@@ -50,32 +50,28 @@ export default function Player({ width = 4, depth = 5 }) {
 
     useFrame(() => {
         let isMoving = Math.abs(speed.current) > .01
-        let turnStrength = .01
-        let accelerationStrength = .01
+        let turnStrength = .0075
+        let accelerationStrength = .0075
         let maxTurnAcceleration = .152
         let maxSpeedAcceleration = .25
 
         if (keys.w && !crashed) {
-            speedAcceleration.current += turnStrength
-            //invalidate()
+            speedAcceleration.current += accelerationStrength 
         }
 
         if (keys.s && !crashed) {
-            speedAcceleration.current -= turnStrength
-            //invalidate()
+            speedAcceleration.current -= accelerationStrength * .45 
         }
 
         if (keys.a && isMoving) {
-            rotationAcceleration.current += accelerationStrength
-            //invalidate()
+            rotationAcceleration.current += turnStrength 
         }
 
         if (keys.d && isMoving) {
-            rotationAcceleration.current -= accelerationStrength
-            //invalidate()
+            rotationAcceleration.current -= turnStrength 
         }
 
-        if (Math.abs(speed.current) < .075) {
+        if (Math.abs(speed.current) < .0175) {
             rotationAcceleration.current *= .2
         }
 
@@ -109,12 +105,10 @@ export default function Player({ width = 4, depth = 5 }) {
         ref.current.position.z -= Math.sin(rotation.current + Math.PI / 2) * speed.current
 
         ref.current.rotation.y = rotation.current
-    })
 
-    useFrame(() => {
         setPlayerPosition([ref.current.position.x, ref.current.position.y, ref.current.position.z])
         setPlayerRotation(ref.current.rotation.y)
-    })
+    }) 
 
     useFrame(() => {
         aabb.setFromObject(ref.current)
