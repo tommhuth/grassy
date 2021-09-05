@@ -85,6 +85,7 @@ export default function Grass({ height = 1 }) {
                 <shaderMaterial
                     attach="material"
                     side={DoubleSide}
+                    transparent
                     flatShading={false}
                     args={[{
                         vertexShader,
