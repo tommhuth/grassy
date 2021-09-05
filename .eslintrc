@@ -1,0 +1,140 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true,
+        "node": true, 
+        "serviceworker": true
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
+    "globals": {
+        "workbox": true
+    },
+    "parser": "babel-eslint",
+    "extends": [
+        "plugin:react/recommended",
+        "eslint:recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:eslint-plugin-import/recommended"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 9,
+        "sourceType": "module"
+    },
+    "rules": {
+        "padding-line-between-statements": [
+            "error",
+            {
+                "blankLine": "always",
+                "prev": "*",
+                "next": "return"
+            },
+            {
+                "blankLine": "always",
+                "prev": [
+                    "const",
+                    "let",
+                    "var",
+                    "import"
+                ],
+                "next": "*"
+            },
+            {
+                "blankLine": "always",
+                "prev": "*",
+                "next": [
+                    "for",
+                    "switch",
+                    "if",
+                    "try"
+                ]
+            },
+            {
+                "blankLine": "always",
+                "prev": "*",
+                "next": "export"
+            },
+            {
+                "blankLine": "always",
+                "prev": "*",
+                "next": "function"
+            },
+            {
+                "blankLine": "any",
+                "prev": [
+                    "const",
+                    "let",
+                    "var"
+                ],
+                "next": [
+                    "const",
+                    "let",
+                    "var"
+                ]
+            },
+            {
+                "blankLine": "any",
+                "prev": [
+                    "import"
+                ],
+                "next": [
+                    "import"
+                ]
+            },
+            {
+                "blankLine": "any",
+                "prev": [
+                    "export"
+                ],
+                "next": [
+                    "export"
+                ]
+            }
+        ],
+        "no-unused-vars": "off",
+		"unused-imports/no-unused-imports": "error",
+		"unused-imports/no-unused-vars": [
+			"warn",
+			{ 
+                "vars": "all", 
+                "varsIgnorePattern": "^_", 
+                "args": "after-used", 
+                "argsIgnorePattern": "^_" 
+            }
+		],
+        "indent": [
+            "error",
+            4,
+            {
+                "SwitchCase": 1
+            }
+        ],
+        "eol-last": [
+            "error",
+            "never"
+        ],
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "semi": [
+            "error",
+            "never"
+        ],
+        "react-hooks/rules-of-hooks": "error",
+        "react/prop-types": "off",
+        "react/jsx-uses-react": "off",
+        "react/react-in-jsx-scope": "off",
+        "react/display-name": "off"
+    },
+    "plugins": [
+        "unused-imports",
+        "babel",
+        "react",
+        "react-hooks",
+        "eslint-plugin-import"
+    ]
+}
