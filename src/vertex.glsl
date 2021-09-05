@@ -1,9 +1,4 @@
-
-#ifdef GL_FRAGMENT_PRECISION_HIGH
-precision mediump float;
-#else
-precision mediump float;
-#endif
+precision mediump float; 
 
 //	Classic Perlin 3D Noise
 //	by Stefan Gustavson
@@ -83,7 +78,7 @@ float cnoise(vec3 P) {
   return 2.2 * n_xyz;
 }
 
-varying vec3 vUv; 
+varying vec3 vPosition; 
 uniform float time;
 uniform float height;
 uniform vec3 mvPosition;
@@ -102,7 +97,8 @@ float easeInOutSine(float x) {
 }
 
 void main() {
-    vUv = position;
+    vPosition = position;
+    
     vec3 p = vec3(position.xyz);
     vec2 textpos = vec2((p.x + 25.) / 50., (-p.z + 25.) / 50.);
     bool isGap = texture2D(gap, textpos).r > 0.;
