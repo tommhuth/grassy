@@ -20,7 +20,7 @@ function useCanvas({
             canvas.style.top = y + "px"
             canvas.style.left = x + "px"
             canvas.style.zIndex = 99999990
-            canvas.style.outline = "1px solid red"
+            canvas.style.outline = "1px solid black"
         }
 
         hasDebug.current = true
