@@ -91,7 +91,8 @@ export default function Player({ width = 4, depth = 5 }) {
         ref.current.rotation.y = rotation.current
 
         setPlayerPosition([ref.current.position.x, ref.current.position.y, ref.current.position.z])
-        setPlayerRotation(ref.current.rotation.y)
+        setPlayerRotation(ref.current.rotation.y) 
+        setSpeed(speed.current * 60)
     })
 
     useFrame(() => {
@@ -152,8 +153,6 @@ export default function Player({ width = 4, depth = 5 }) {
         } else if (!result && inDanger) {
             setInDanger(false)
         }
-
-        setSpeed(speed.current)
     })
 
     return (
