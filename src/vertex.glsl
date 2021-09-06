@@ -98,20 +98,20 @@ float easeInOutSine(float x) {
 
 void main() {
     vPosition = position;
-    
+
     vec3 p = vec3(position.xyz);
-    vec2 textpos = vec2((p.x + 25.) / 50., (-p.z + 25.) / 50.);
-    bool isGap = texture2D(gap, textpos).r > 0.;
+    vec2 uv = vec2((p.x + 25.) / 50., (-p.z + 25.) / 50.);
+    bool isGap = texture2D(gap, uv).r > 0.;
 
     if (isGap) { 
         p.y = -.1;
     } else { 
-        float cutGrade = clamp(1. - texture2D(cut, textpos).r - texture2D(playerPosition, textpos).r, 0., 1.); //|| texture2D(grass, textpos).r > 0.;
+        float cutGrade = clamp(1. - texture2D(cut, uv).r - texture2D(playerPosition, uv).r, 0., 1.); //|| texture2D(grass, uv).r > 0.;
 
         if (cutGrade > 0.) {
-            float noise =  cnoise(vec3(p.x * .25, time, p.z * .25)) * .25;
+            float noise =  cnoise(vec3(p.x * .08, time, p.z * .08)) * .25;
 
-            noise -= cnoise(vec3(p.x * .1, time * .25, p.z * .1)) * .35;
+            noise -= cnoise(vec3(p.x * .1, time * .25, p.z * .1)) * .051;
             noise *= clamp(p.y / 2. - .25, 0., 1.) ;
 
             p.x += noise;
