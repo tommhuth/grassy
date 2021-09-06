@@ -17,6 +17,7 @@ import Danger from "./Danger"
 function App() { 
     let engineHealth = useStore(i => i.player.engineHealth)
     let bladesActive = useStore(i => i.player.bladesActive)
+    let speed = useStore(i => i.player.speed) 
     let bladesHealth = useStore(i => i.player.bladesHealth) 
     let completionGrade = useStore(i => i.player.completionGrade) 
 
@@ -32,9 +33,10 @@ function App() {
                     zIndex: 1000
                 }}
             >
-                completionGrade={(completionGrade * 100).toFixed(1) + "%"} <br />
+                completionGrade={(completionGrade).toFixed(1) + "%"} <br />
                 engineHealth={engineHealth.toFixed(0) + "%"} <br />
                 bladesHealth={bladesHealth.toFixed(0)}% <br />
+                speed={speed.toFixed(2)} <br />
                 blades={JSON.stringify(bladesActive)}  <br /> <br />
                 <button onClick={() => setBladesActive(!bladesActive)}>Activate blades</button>
             </div>

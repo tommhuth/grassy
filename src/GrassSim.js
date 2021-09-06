@@ -1,39 +1,14 @@
+import { useFrame } from "@react-three/fiber"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { CanvasTexture } from "three"
 import { setCompletionGrade, setupWorld, useStore } from "./data/store"
+import { useCanvas } from "./hooks"
 
-function useCanvas({
-    size = 100,
-    x = 0,
-    y = 0
+
+export default function GrassSim({
+    size = 128,
+    completionFidelity = 48
 }) {
-    let hasDebug = useRef(false)
-    let canvas = useMemo(() => {
-        let canvas = document.createElement("canvas")
-
-        canvas.height = size
-        canvas.width = size
-
-        if (!hasDebug.current) {
-            document.body.appendChild(canvas)
-            canvas.style.position = "fixed"
-            canvas.style.top = y + "px"
-            canvas.style.left = x + "px"
-            canvas.style.zIndex = 99999990
-            canvas.style.outline = "1px solid black"
-        }
-
-        hasDebug.current = true
-
-        return canvas
-    }, [x, y, size])
-
-    return canvas
-}
-
-export default function GrassSim({ size = 100, completionFidelity = 35 }) {
-    let rafid = useRef()
-    let rafid3 = useRef()
     let tid = useRef()
     let [playerWidth, playerDepth] = useStore(i => i.player.size)
     let [mapSize, setMapSize] = useState(0)
@@ -41,7 +16,7 @@ export default function GrassSim({ size = 100, completionFidelity = 35 }) {
     let bladesActive = useStore(i => i.player.bladesActive)
     let dangers = useStore(i => i.dangers)
     let obstacles = useStore(i => i.obstacles)
-    let previousPlayerPosition = useRef([0, 0, 0])
+    let previousPlayerPosition = useRef([-10, -10, -10])
     let playerPosition = useRef([0, 0, 0])
     let playerRotation = useRef(0)
     let playerPositionCanvas = useCanvas({ size, x: size * 2 + 20, y: 0 })
@@ -56,7 +31,7 @@ export default function GrassSim({ size = 100, completionFidelity = 35 }) {
         let dy = Math.abs(playerPosition.current[2] - previousPlayerPosition.current[2])
         let delta = .035
 
-        if ((dx > delta || dy > delta) && bladesActive) {
+        if ((dx > delta || dy > delta)) {
             let context = cutCanvas.getContext("2d")
 
             let cutSize = (playerWidth / worldSize * size) * .95
@@ -71,9 +46,7 @@ export default function GrassSim({ size = 100, completionFidelity = 35 }) {
         }
 
         previousPlayerPosition.current = playerPosition.current
-
-        rafid.current = requestAnimationFrame(renderCut)
-    }, [cutCanvas, cutTexture, worldSize, playerWidth, size, bladesActive])
+    }, [cutCanvas, cutTexture, worldSize, playerWidth, size])
     let renderPlayerPosition = useCallback(() => {
         let width = (playerWidth / worldSize * size) * .95
         let depth = (playerDepth / worldSize * size) * .95
@@ -92,8 +65,6 @@ export default function GrassSim({ size = 100, completionFidelity = 35 }) {
         context.fillRect(x - width / 2, y - depth / 2, width, depth)
 
         playerPositionTexture.needsUpdate = true
-
-        rafid3.current = requestAnimationFrame(renderPlayerPosition)
     }, [playerPositionCanvas, playerPositionTexture, worldSize, size, playerWidth, playerDepth])
     let renderGap = useCallback(() => {
         let context = gapCanvas.getContext("2d")
@@ -141,9 +112,9 @@ export default function GrassSim({ size = 100, completionFidelity = 35 }) {
             if (image.data[i] > 10) {
                 filled++
             }
-        } 
-        
-        return Math.min(filled / mapSize, 1)
+        }
+
+        return Math.min(filled / mapSize, 1) * 100
     }, [completionCanvas, cutCanvas, mapSize, completionFidelity])
 
     useEffect(() => {
@@ -176,7 +147,7 @@ export default function GrassSim({ size = 100, completionFidelity = 35 }) {
     }, [cutTexture, gapTexture, playerPositionTexture])
 
     useEffect(() => {
-        if (bladesActive && mapSize > 0) { 
+        if (bladesActive && mapSize > 0) {
             let id = setInterval(() => {
                 setCompletionGrade(getCompletionGrade())
             }, 3000)
@@ -186,26 +157,6 @@ export default function GrassSim({ size = 100, completionFidelity = 35 }) {
             }
         }
     }, [bladesActive, mapSize, getCompletionGrade])
-
-    useEffect(() => {
-        renderCut()
-
-        return () => {
-            cancelAnimationFrame(rafid.current)
-        }
-    }, [renderCut])
-
-    useEffect(() => {
-        renderPlayerPosition()
-
-        return () => {
-            cancelAnimationFrame(rafid3.current)
-        }
-    }, [renderPlayerPosition])
-
-    useEffect(() => {
-        renderGap()
-    }, [renderGap])
 
     useEffect(() => {
         return useStore.subscribe(
@@ -220,6 +171,18 @@ export default function GrassSim({ size = 100, completionFidelity = 35 }) {
             s => s.player.rotation
         )
     }, [])
+
+    useEffect(() => {
+        renderGap()
+    }, [renderGap])
+
+    useFrame(() => {
+        if (bladesActive) {
+            renderCut()
+        }
+
+        renderPlayerPosition()
+    })
 
     return null
 }

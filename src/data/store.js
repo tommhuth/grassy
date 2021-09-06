@@ -6,6 +6,7 @@ const store = create(() => ({
     player: {
         position: [0, .75, 0],
         rotation: 0,
+        speed: 0,
         completionGrade: 0,
         aabb: new Box3(),
         radius: 2,
@@ -45,6 +46,15 @@ export function setInDanger(inDanger){
         player: {
             ...store.getState().player,
             inDanger
+        }
+    })
+}
+
+export function setSpeed(speed){ 
+    store.setState({
+        player: {
+            ...store.getState().player,
+            speed
         }
     })
 }

@@ -1,26 +1,10 @@
 import { useFrame } from "@react-three/fiber"
-import { useEffect, useMemo, useState, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { DoubleSide } from "three"
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 import { useStore } from "./data/store"
 import vertexShader from "./vertex.glsl"
 import fragmentShader from "./fragment.glsl"
-
-let loader = new GLTFLoader()
-
-function useModel(name) {
-    let [model, setModel] = useState()
-
-    useEffect(() => {
-        loader.load(`/models/${name}.glb`, (res) => {
-            let element = res.scene.children[0]
-
-            setModel(element)
-        }, undefined, console.error)
-    }, [name])
-
-    return model
-}
+import { useModel } from "./hooks"
 
 
 
@@ -85,8 +69,7 @@ export default function Grass({ height = 1 }) {
                 <shaderMaterial
                     attach="material"
                     side={DoubleSide}
-                    transparent
-                    flatShading={false}
+                    transparent 
                     args={[{
                         vertexShader,
                         fragmentShader,
