@@ -9,6 +9,7 @@ import { useKeys } from "./hooks"
 export default function Player({ width = 4, depth = 5 }) {
     let obstacles = useStore(i => i.obstacles)
     let [playerWidth, playerDepth] = useStore(i => i.player.size)
+    let bladesActive = useStore(i => i.player.bladesActive)
     let dangers = useStore(i => i.dangers)
     let ref = useRef(0)
     let speed = useRef(0)
@@ -37,16 +38,26 @@ export default function Player({ width = 4, depth = 5 }) {
     }, [crashed])
 
     useEffect(() => {
-        if (inDanger) {
-            let id = setInterval(() => reduceBladesHealth(), 200)
+        if (inDanger && bladesActive) {
+            let action = () => reduceBladesHealth()
+            let id = setInterval(action, 200)
+            let onVisibilityChange = () => { 
+                if (document.hidden) {
+                    clearInterval(id) 
+                } else { 
+                    setInterval(action, 200)
+                }
+            } 
 
+            document.addEventListener("visibilitychange", onVisibilityChange)
             reduceBladesHealth()
 
             return () => {
                 clearInterval(id)
+                document.removeEventListener("visibilitychange", onVisibilityChange)
             }
         }
-    }, [inDanger])
+    }, [inDanger, bladesActive])
 
     useFrame(() => {
         let isMoving = Math.abs(speed.current) > .01
@@ -91,7 +102,8 @@ export default function Player({ width = 4, depth = 5 }) {
         ref.current.rotation.y = rotation.current
 
         setPlayerPosition([ref.current.position.x, ref.current.position.y, ref.current.position.z])
-        setPlayerRotation(ref.current.rotation.y) 
+        setPlayerRotation(ref.current.rotation.y)
+
         setSpeed(speed.current * 60)
     })
 

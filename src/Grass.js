@@ -19,11 +19,11 @@ export default function Grass({ height = 1 }) {
         return {
             time: { value: 0, type: "f" },
             height: { value: height, type: "f" },
-            cut: { value: cutTexture, type: "t" },
-            gap: { value: gapTexture, type: "t" },
-            playerPosition: { value: playerPositionTexture, type: "t" }
+            cut: { value: null, type: "t" },
+            gap: { value: null, type: "t" },
+            playerPosition: { value: null, type: "t" }
         }
-    }, [cutTexture, height, playerPositionTexture, gapTexture])
+    }, [height])
 
     useEffect(() => {
         uniforms.cut.value = cutTexture
@@ -41,15 +41,15 @@ export default function Grass({ height = 1 }) {
         document.getElementById("debug").innerText = gl.info.render.calls
     })
 
-    useFrame(()=> {
+    useFrame(() => {
         counter.current++
 
         if (uniforms.cut.value && counter.current % 2 === 0) {
-            uniforms.cut.needsUpdate = true 
-        } 
+            uniforms.cut.needsUpdate = true
+        }
 
         if (uniforms.playerPosition.value && counter.current % 3 === 0) {
-            uniforms.playerPosition.needsUpdate = true 
+            uniforms.playerPosition.needsUpdate = true
         }
 
         uniforms.time.value += .005
@@ -69,7 +69,7 @@ export default function Grass({ height = 1 }) {
                 <shaderMaterial
                     attach="material"
                     side={DoubleSide}
-                    transparent 
+                    transparent
                     args={[{
                         vertexShader,
                         fragmentShader,

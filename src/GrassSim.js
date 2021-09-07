@@ -19,6 +19,7 @@ export default function GrassSim({
     let previousPlayerPosition = useRef([-10, -10, -10])
     let playerPosition = useRef([0, 0, 0])
     let playerRotation = useRef(0)
+    let lastPlayerPositionChange = useRef(0)
     let playerPositionCanvas = useCanvas({ size, x: size * 2 + 20, y: 0 })
     let gapCanvas = useCanvas({ size, x: 0, y: 0 })
     let cutCanvas = useCanvas({ size, x: size + 10, y: 0 })
@@ -48,23 +49,28 @@ export default function GrassSim({
         previousPlayerPosition.current = playerPosition.current
     }, [cutCanvas, cutTexture, worldSize, playerWidth, size])
     let renderPlayerPosition = useCallback(() => {
-        let width = (playerWidth / worldSize * size) * .95
-        let depth = (playerDepth / worldSize * size) * .95
-        let context = playerPositionCanvas.getContext("2d")
-        let x = (playerPosition.current[0] + 25) / worldSize * size
-        let y = (playerPosition.current[2] + 25) / worldSize * size
+        let dt = Date.now() - lastPlayerPositionChange.current
+        
+        // only keep rendering 1 second after last position change
+        if (dt < 1 * 1000) {  
+            let width = (playerWidth / worldSize * size) * .95
+            let depth = (playerDepth / worldSize * size) * .95
+            let context = playerPositionCanvas.getContext("2d")
+            let x = (playerPosition.current[0] + 25) / worldSize * size
+            let y = (playerPosition.current[2] + 25) / worldSize * size
 
-        context.resetTransform()
-        context.fillStyle = "rgba(0, 0, 0, .05)"
-        context.fillRect(0, 0, size, size)
+            context.resetTransform()
+            context.fillStyle = "rgba(0, 0, 0, .05)"
+            context.fillRect(0, 0, size, size)
 
-        context.fillStyle = "rgb(255, 0,0)"
-        context.translate(x, y)
-        context.rotate(-playerRotation.current)
-        context.translate(-x, -y)
-        context.fillRect(x - width / 2, y - depth / 2, width, depth)
+            context.fillStyle = "rgb(255, 0,0)"
+            context.translate(x, y)
+            context.rotate(-playerRotation.current)
+            context.translate(-x, -y)
+            context.fillRect(x - width / 2, y - depth / 2, width, depth)
 
-        playerPositionTexture.needsUpdate = true
+            playerPositionTexture.needsUpdate = true
+        } 
     }, [playerPositionCanvas, playerPositionTexture, worldSize, size, playerWidth, playerDepth])
     let renderGap = useCallback(() => {
         let context = gapCanvas.getContext("2d")
@@ -148,26 +154,42 @@ export default function GrassSim({
 
     useEffect(() => {
         if (bladesActive && mapSize > 0) {
-            let id = setInterval(() => {
+            let action = () => {
                 setCompletionGrade(getCompletionGrade())
-            }, 3000)
+            }
+            let id = setInterval(action, 3000)
+            let onVisibilityChange = () => {
+                if (document.hidden) {
+                    clearInterval(id)
+                } else {
+                    setInterval(action, 3000)
+                }
+            }
+
+            document.addEventListener("visibilitychange", onVisibilityChange)
 
             return () => {
                 clearInterval(id)
+                document.removeEventListener("visibilitychange", onVisibilityChange)
             }
         }
     }, [bladesActive, mapSize, getCompletionGrade])
 
     useEffect(() => {
         return useStore.subscribe(
-            i => playerPosition.current = i,
+            i => {
+                playerPosition.current = i
+                lastPlayerPositionChange.current = Date.now()
+            },
             s => s.player.position
         )
     }, [])
 
     useEffect(() => {
         return useStore.subscribe(
-            i => playerRotation.current = i,
+            i => {
+                playerRotation.current = i 
+            },
             s => s.player.rotation
         )
     }, [])
