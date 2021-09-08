@@ -3,7 +3,7 @@ import "../assets/styles/app.scss"
 import ReactDOM from "react-dom"
 import { Canvas } from "@react-three/fiber"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { setBladesActive, useStore } from "./data/store"
 
 import Player from "./Player"
@@ -14,13 +14,19 @@ import Grass from "./Grass"
 import Danger from "./Danger"
 
 
-function App() { 
+function App() {
     let engineHealth = useStore(i => i.player.engineHealth)
     let bladesActive = useStore(i => i.player.bladesActive)
-    let speed = useStore(i => i.player.speed) 
-    let bladesHealth = useStore(i => i.player.bladesHealth) 
-    let completionGrade = useStore(i => i.player.completionGrade) 
+    let speed = useRef()
+    let bladesHealth = useStore(i => i.player.bladesHealth)
+    let completionGrade = useStore(i => i.player.completionGrade)
 
+    useEffect(() => {
+        return useStore.subscribe(
+            i => speed.current.innerText = i.toFixed(4),
+            s => s.player.speed
+        )
+    }, [])
 
     return (
         <>
@@ -36,7 +42,7 @@ function App() {
                 completionGrade={(completionGrade).toFixed(1) + "%"} <br />
                 engineHealth={engineHealth.toFixed(0) + "%"} <br />
                 bladesHealth={bladesHealth.toFixed(0)}% <br />
-                speed={speed.toFixed(3)} <br />
+                speed=<span ref={speed} /><br />
                 blades={JSON.stringify(bladesActive)}  <br /> <br />
                 <button onClick={() => setBladesActive(!bladesActive)}>Activate blades</button>
             </div>
