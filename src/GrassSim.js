@@ -24,9 +24,27 @@ export default function GrassSim({
     let gapCanvas = useCanvas({ size, x: 0, y: 0 })
     let cutCanvas = useCanvas({ size, x: size + 10, y: 0 })
     let completionCanvas = useCanvas({ size: completionFidelity, x: size * 3 + 30, y: 0 })
-    let cutTexture = useMemo(() => new CanvasTexture(cutCanvas), [cutCanvas])
-    let gapTexture = useMemo(() => new CanvasTexture(gapCanvas), [gapCanvas])
-    let playerPositionTexture = useMemo(() => new CanvasTexture(playerPositionCanvas), [playerPositionCanvas])
+    let cutTexture = useMemo(() => {
+        let texture = new CanvasTexture(cutCanvas)
+
+        texture.generateMipmaps = false 
+
+        return texture
+    }, [cutCanvas])
+    let gapTexture = useMemo(() => {
+        let texture = new CanvasTexture(gapCanvas)
+
+        texture.generateMipmaps = false 
+
+        return texture
+    }, [gapCanvas])
+    let playerPositionTexture = useMemo(() => {
+        let texture = new CanvasTexture(playerPositionCanvas)
+
+        texture.generateMipmaps = false 
+
+        return texture
+    }, [playerPositionCanvas])
     let renderCut = useCallback(() => {
         let dx = Math.abs(playerPosition.current[0] - previousPlayerPosition.current[0])
         let dy = Math.abs(playerPosition.current[2] - previousPlayerPosition.current[2])
