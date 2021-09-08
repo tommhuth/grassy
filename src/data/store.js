@@ -17,14 +17,13 @@ const store = create(() => ({
         inDanger: false,
     },
     vehicle: { 
-        power: .001,
+        power: .0002,
         friction: .85,
         lightness: .8,
         bladesPenalty: .55,
         maxSpeed: .02,
         minSpeed: -.0075,
-        turnStrength: .025,
-     
+        turnStrength: .025, 
     },
     world: {
         size: 50,

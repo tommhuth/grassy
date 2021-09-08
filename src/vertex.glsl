@@ -120,9 +120,7 @@ void main() {
 
         p.y *= easeInOutCubic(max(cutGrade * cutGrade* cutGrade, .1)) * height; // ? .1 : 1.; // vec2((p.x + 25.) / 50., (p.z + 25.) / 50.)).r * 5.;
 
-    }
-
-    p.y = 2.0;
+    } 
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
 }

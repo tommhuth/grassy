@@ -1,6 +1,6 @@
 import { useFrame } from "@react-three/fiber"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { CanvasTexture } from "three"
+import { CanvasTexture, LinearFilter } from "three"
 import { setCompletionGrade, setupWorld, useStore } from "./data/store"
 import { useCanvas } from "./hooks"
 
@@ -14,6 +14,7 @@ export default function GrassSim({
     let [mapSize, setMapSize] = useState(0)
     let worldSize = useStore(i => i.world.size)
     let bladesActive = useStore(i => i.player.bladesActive)
+    let bladesHealth = useStore(i => i.player.bladesHealth)
     let dangers = useStore(i => i.dangers)
     let obstacles = useStore(i => i.obstacles)
     let previousPlayerPosition = useRef([-10, -10, -10])
@@ -27,21 +28,33 @@ export default function GrassSim({
     let cutTexture = useMemo(() => {
         let texture = new CanvasTexture(cutCanvas)
 
+        /*
         texture.generateMipmaps = false 
+        texture.magFilter = LinearFilter
+        texture.minFilter = LinearFilter
+        */
 
         return texture
     }, [cutCanvas])
     let gapTexture = useMemo(() => {
         let texture = new CanvasTexture(gapCanvas)
-
+        
+        /*
         texture.generateMipmaps = false 
-
+        texture.magFilter = LinearFilter
+        texture.minFilter = LinearFilter
+        */
+        
         return texture
     }, [gapCanvas])
     let playerPositionTexture = useMemo(() => {
         let texture = new CanvasTexture(playerPositionCanvas)
 
+        /*
         texture.generateMipmaps = false 
+        texture.magFilter = LinearFilter
+        texture.minFilter = LinearFilter
+        */
 
         return texture
     }, [playerPositionCanvas])
@@ -50,7 +63,7 @@ export default function GrassSim({
         let dy = Math.abs(playerPosition.current[2] - previousPlayerPosition.current[2])
         let delta = .035
 
-        if ((dx > delta || dy > delta)) {
+        if ((dx > delta || dy > delta)  ) {
             let context = cutCanvas.getContext("2d")
 
             let cutSize = (playerWidth / worldSize * size) * .95
@@ -65,12 +78,12 @@ export default function GrassSim({
         }
 
         previousPlayerPosition.current = playerPosition.current
-    }, [cutCanvas, cutTexture, worldSize, playerWidth, size])
+    }, [cutCanvas, cutTexture, worldSize, playerWidth,  size])
     let renderPlayerPosition = useCallback(() => {
         let dt = Date.now() - lastPlayerPositionChange.current
         
-        // only keep rendering 1 second after last position change
-        if (dt < 1 * 1000) {  
+        // only keep rendering .35 second after last position change
+        if (dt < .35 * 1000) {  
             let width = (playerWidth / worldSize * size) * .95
             let depth = (playerDepth / worldSize * size) * .95
             let context = playerPositionCanvas.getContext("2d")
@@ -78,7 +91,7 @@ export default function GrassSim({
             let y = (playerPosition.current[2] + 25) / worldSize * size
 
             context.resetTransform()
-            context.fillStyle = "rgba(0, 0, 0, .05)"
+            context.fillStyle = "rgba(0, 0, 0, .045)"
             context.fillRect(0, 0, size, size)
 
             context.fillStyle = "rgb(255, 0,0)"
@@ -217,7 +230,7 @@ export default function GrassSim({
     }, [renderGap])
 
     useFrame(() => {
-        if (bladesActive) {
+        if (bladesActive && bladesHealth > 0) {
             renderCut()
         }
 

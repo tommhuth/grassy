@@ -3,7 +3,7 @@ import "../assets/styles/app.scss"
 import ReactDOM from "react-dom"
 import { Canvas } from "@react-three/fiber"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { setBladesActive, useStore } from "./data/store"
 
 import Player from "./Player"
@@ -23,7 +23,7 @@ function App() {
 
     useEffect(() => {
         return useStore.subscribe(
-            i => speed.current.innerText = i.toFixed(4),
+            i => speed.current.innerText = i.toFixed(3),
             s => s.player.speed
         )
     }, [])
@@ -34,6 +34,7 @@ function App() {
                 style={{
                     position: "absolute",
                     top: 10,
+                    textAlign: "right",
                     right: 10,
                     color: "black",
                     zIndex: 1000
@@ -42,7 +43,7 @@ function App() {
                 completionGrade={(completionGrade).toFixed(1) + "%"} <br />
                 engineHealth={engineHealth.toFixed(0) + "%"} <br />
                 bladesHealth={bladesHealth.toFixed(0)}% <br />
-                speed=<span ref={speed} /><br />
+                speed=<span ref={speed} >0.000</span><br />
                 blades={JSON.stringify(bladesActive)}  <br /> <br />
                 <button onClick={() => setBladesActive(!bladesActive)}>Activate blades</button>
             </div>
@@ -50,8 +51,7 @@ function App() {
             <Canvas
                 id="main"
                 orthographic
-                dpr={1}
-                //frameloop="demand"
+                dpr={1} 
                 camera={{
                     zoom: 55,
                     near: 0,

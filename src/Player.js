@@ -2,7 +2,7 @@ import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Vector2, Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
-import { reduceBladesHealth, reduceEngineHealth, setInDanger, setPlayerPosition, setPlayerRotation, setSpeed, useStore } from "./data/store"
+import { reduceBladesHealth, reduceEngineHealth, setBladesActive, setInDanger, setPlayerPosition, setPlayerRotation, setSpeed, useStore } from "./data/store"
 import { useKeys } from "./hooks"
 
 
@@ -12,6 +12,8 @@ export default function Player({ width = 4, depth = 5 }) {
     let bladesActive = useStore(i => i.player.bladesActive)
     let dangers = useStore(i => i.dangers)
     let vehicle = useStore(i => i.vehicle)
+    let engineHealth = useStore(i => i.player.engineHealth)
+    let healthy = engineHealth > 0
     let ref = useRef(0)
     let speed = useRef(0)
     let [crashed, setCrashed] = useState(false)
@@ -63,17 +65,17 @@ export default function Player({ width = 4, depth = 5 }) {
     useFrame(() => {
         let speedScale = Math.abs(speed.current / (speed.current > 0 ? vehicle.maxSpeed : vehicle.minSpeed))
 
-        if (keys.w) {
+        if (keys.w && healthy) {
             speed.current = Math.min(speed.current + vehicle.power, vehicle.maxSpeed * (bladesActive ? vehicle.bladesPenalty : 1))
-        } else if (keys.s) {
+        } else if (keys.s && healthy) {
             speed.current = Math.max(speed.current - vehicle.power, vehicle.minSpeed)
         } else {
             speed.current *= vehicle.lightness
         }
 
-        if (keys.a) {
+        if (keys.a && healthy) {
             rotation.current += vehicle.turnStrength * speedScale
-        } else if (keys.d) {
+        } else if (keys.d && healthy) {
             rotation.current -= vehicle.turnStrength * speedScale
         }
 
@@ -94,7 +96,7 @@ export default function Player({ width = 4, depth = 5 }) {
 
         setPlayerPosition([ref.current.position.x, ref.current.position.y, ref.current.position.z])
         setPlayerRotation(ref.current.rotation.y)
-        setSpeed(Math.sqrt(velocity.x ** 2 + velocity.y ** 2))
+        setSpeed(speed.current)
     })
 
     useFrame(() => {
@@ -108,7 +110,7 @@ export default function Player({ width = 4, depth = 5 }) {
                 let crash = false
 
                 while (obstacle.obb.intersectsOBB(obb)) {
-                    let push = .051
+                    let push = .025
                     let direction = hitDelta.copy(ref.current.position)
                         .sub(obstacle.obb.center)
                         .normalize()
@@ -126,14 +128,14 @@ export default function Player({ width = 4, depth = 5 }) {
                 }
 
                 if (crash) {
+                    let damage = Math.ceil(Math.abs(speed.current / (speed.current > 0 ? vehicle.maxSpeed : vehicle.minSpeed)) * 58) - 10
+
                     speed.current *= -.25
-                    velocity.x = 0
-                    velocity.y = 0
-                    acceleration.x = 0
-                    acceleration.y = 0
+                    velocity.set(0, 0)
+                    acceleration.set(0, 0)
 
                     setCrashed(true)
-                    reduceEngineHealth(Math.ceil(Math.abs(speed.current) * 100 * .75))
+                    reduceEngineHealth(Math.max(damage, 0))
                 }
             }
         }
