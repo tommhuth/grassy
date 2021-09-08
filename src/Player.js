@@ -1,6 +1,6 @@
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Vector3 } from "three"
+import { Vector2, Vector3 } from "three" 
 import { OBB } from "three/examples/jsm/math/OBB"
 import { reduceBladesHealth, reduceEngineHealth, setInDanger, setPlayerPosition, setPlayerRotation, setSpeed, useStore } from "./data/store"
 import { useKeys } from "./hooks"
@@ -11,13 +11,12 @@ export default function Player({ width = 4, depth = 5 }) {
     let [playerWidth, playerDepth] = useStore(i => i.player.size)
     let bladesActive = useStore(i => i.player.bladesActive)
     let dangers = useStore(i => i.dangers)
+    let vehicle = useStore(i => i.vehicle)
     let ref = useRef(0)
-    let speed = useRef(0)
-    let speedAcceleration = useRef(0)
+    let speed = useRef(0) 
     let [crashed, setCrashed] = useState(false)
-    let rotation = useRef(0)
-    let keys = useKeys()
-    let rotationAcceleration = useRef(0)
+    let rotation = useRef(Math.PI / 2)
+    let keys = useKeys() 
     let size = useMemo(() => {
         return new Vector3(playerWidth / 2, 1.5 / 2, playerDepth / 2)
     }, [playerWidth, playerDepth])
@@ -30,6 +29,8 @@ export default function Player({ width = 4, depth = 5 }) {
     let playerPosition = useMemo(() => new Vector3(), [])
     let dangerPosition = useMemo(() => new Vector3(), [])
     let hitDelta = useMemo(() => new Vector3(), [])
+    let velocity = useMemo(() => new Vector2(), [])
+    let acceleration = useMemo(() => new Vector2(), [])
 
     useEffect(() => {
         if (crashed) {
@@ -41,13 +42,13 @@ export default function Player({ width = 4, depth = 5 }) {
         if (inDanger && bladesActive) {
             let action = () => reduceBladesHealth()
             let id = setInterval(action, 200)
-            let onVisibilityChange = () => { 
+            let onVisibilityChange = () => {
                 if (document.hidden) {
-                    clearInterval(id) 
-                } else { 
+                    clearInterval(id)
+                } else {
                     setInterval(action, 200)
                 }
-            } 
+            }
 
             document.addEventListener("visibilitychange", onVisibilityChange)
             reduceBladesHealth()
@@ -60,51 +61,40 @@ export default function Player({ width = 4, depth = 5 }) {
     }, [inDanger, bladesActive])
 
     useFrame(() => {
-        let isMoving = Math.abs(speed.current) > .01
-        let turnStrength = .0075
-        let accelerationStrength = .0075
-        let maxTurnAcceleration = .152
-        let maxSpeedAcceleration = .25
+        let speedScale = Math.abs(speed.current / (speed.current > 0 ? vehicle.maxSpeed : vehicle.minSpeed))
 
-        if (keys.w && !crashed) {
-            speedAcceleration.current += accelerationStrength
+        if (keys.w) {
+            speed.current = Math.min(speed.current + vehicle.power, vehicle.maxSpeed * (bladesActive ? vehicle.bladesPenalty : 1))
+        } else if (keys.s) {
+            speed.current = Math.max(speed.current - vehicle.power, vehicle.minSpeed)
+        } else {
+            speed.current *= vehicle.lightness
+        } 
+
+        if (keys.a) {
+            rotation.current += vehicle.turnStrength * speedScale
+        } else if (keys.d) {
+            rotation.current -= vehicle.turnStrength * speedScale
         }
 
-        if (keys.s && !crashed) {
-            speedAcceleration.current -= accelerationStrength * .45
-        }
+        acceleration.x = Math.cos(rotation.current) * speed.current
+        acceleration.y = Math.sin(rotation.current) * speed.current
 
-        if (keys.a && isMoving) {
-            rotationAcceleration.current += turnStrength
-        }
+        velocity.x += acceleration.x
+        velocity.y += acceleration.y
 
-        if (keys.d && isMoving) {
-            rotationAcceleration.current -= turnStrength
-        }
+        velocity.x *= vehicle.friction
+        velocity.y *= vehicle.friction
 
-        if (Math.abs(speed.current) < .0175) {
-            rotationAcceleration.current *= .2
-        }
+        ref.current.position.x += velocity.x
+        ref.current.position.z -= velocity.y 
+        ref.current.position.y = .75 
 
-        rotationAcceleration.current *= .75
-        rotation.current += Math.min(Math.abs(rotationAcceleration.current), maxTurnAcceleration) * Math.sign(rotationAcceleration.current)
-        speed.current += Math.min(Math.abs(speedAcceleration.current), maxSpeedAcceleration) * Math.sign(speedAcceleration.current)
-
-        speedAcceleration.current *= .8
-        speed.current *= .75
-    })
-
-    useFrame(() => {
-        ref.current.position.y = .75
-        ref.current.position.x += Math.cos(rotation.current + Math.PI / 2) * speed.current
-        ref.current.position.z -= Math.sin(rotation.current + Math.PI / 2) * speed.current
-
-        ref.current.rotation.y = rotation.current
+        ref.current.rotation.y = rotation.current + Math.PI / 2
 
         setPlayerPosition([ref.current.position.x, ref.current.position.y, ref.current.position.z])
         setPlayerRotation(ref.current.rotation.y)
-
-        setSpeed(speed.current * 60)
+        setSpeed(Math.sqrt(velocity.x**2 + velocity.y **2))
     })
 
     useFrame(() => {
@@ -115,30 +105,33 @@ export default function Player({ width = 4, depth = 5 }) {
 
         for (let obstacle of obstacles) {
             if (aabb.intersectsBox(obstacle.aabb)) {
-                let crash = false
+                let crash = false 
 
                 while (obstacle.obb.intersectsOBB(obb)) {
-                    let push = .1
+                    let push = .051
                     let direction = hitDelta.copy(ref.current.position)
-                        .sub(obstacle.obb.center )
+                        .sub(obstacle.obb.center)
                         .normalize()
                         .multiplyScalar(push)
 
-                    ref.current.position.x += direction.x  
-                    ref.current.position.z += direction.z   
+                    ref.current.position.x += direction.x
+                    ref.current.position.z += direction.z
 
                     obb.center.set(0, 0, 0)
                     obb.rotation.identity()
                     ref.current.updateMatrixWorld()
                     obb.applyMatrix4(ref.current.matrixWorld)
 
-                    crash = true
+                    crash = true 
                 }
 
                 if (crash) {
-                    speed.current *= -1.35
-                    speedAcceleration.current = 0
-                    rotationAcceleration.current = 0
+                    speed.current *= -.25 
+                    velocity.x = 0
+                    velocity.y = 0
+                    acceleration.x = 0
+                    acceleration.y = 0
+ 
                     setCrashed(true)
                     reduceEngineHealth(Math.ceil(Math.abs(speed.current) * 100 * .75))
                 }

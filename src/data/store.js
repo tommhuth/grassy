@@ -14,8 +14,18 @@ const store = create(() => ({
         bladesActive: false,
         bladesHealth: 100,
         engineHealth: 100,
-        inDanger: false
-    }, 
+        inDanger: false,
+    },
+    vehicle: { 
+        power: .001,
+        friction: .85,
+        lightness: .8,
+        bladesPenalty: .55,
+        maxSpeed: .02,
+        minSpeed: -.0075,
+        turnStrength: .025,
+     
+    },
     world: {
         size: 50,
         cutTexture: null,
@@ -26,7 +36,7 @@ const store = create(() => ({
     dangers: []
 }))
 
-export function addDanger({ position, radius, rotation, aabb }){
+export function addDanger({ position, radius, rotation, aabb }) {
     store.setState({
         dangers: [
             ...store.getState().dangers,
@@ -41,7 +51,7 @@ export function addDanger({ position, radius, rotation, aabb }){
     })
 }
 
-export function setInDanger(inDanger){ 
+export function setInDanger(inDanger) {
     store.setState({
         player: {
             ...store.getState().player,
@@ -50,7 +60,7 @@ export function setInDanger(inDanger){
     })
 }
 
-export function setSpeed(speed){ 
+export function setSpeed(speed) {
     store.setState({
         player: {
             ...store.getState().player,
@@ -58,7 +68,7 @@ export function setSpeed(speed){
         }
     })
 }
-export function setCompletionGrade(value){ 
+export function setCompletionGrade(value) {
     store.setState({
         player: {
             ...store.getState().player,
@@ -67,7 +77,7 @@ export function setCompletionGrade(value){
     })
 }
 
-export function setupWorld({ cutTexture, gapTexture, playerPositionTexture }){
+export function setupWorld({ cutTexture, gapTexture, playerPositionTexture }) {
     store.setState({
         world: {
             ...store.getState().world,

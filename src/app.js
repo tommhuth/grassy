@@ -36,7 +36,7 @@ function App() {
                 completionGrade={(completionGrade).toFixed(1) + "%"} <br />
                 engineHealth={engineHealth.toFixed(0) + "%"} <br />
                 bladesHealth={bladesHealth.toFixed(0)}% <br />
-                speed={speed.toFixed(2)} <br />
+                speed={speed.toFixed(3)} <br />
                 blades={JSON.stringify(bladesActive)}  <br /> <br />
                 <button onClick={() => setBladesActive(!bladesActive)}>Activate blades</button>
             </div>
