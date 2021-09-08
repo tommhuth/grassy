@@ -122,5 +122,7 @@ void main() {
 
     }
 
+    p.y = 2.0;
+
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
 }
