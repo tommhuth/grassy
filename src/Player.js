@@ -1,6 +1,6 @@
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Vector2, Vector3 } from "three" 
+import { Vector2, Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
 import { reduceBladesHealth, reduceEngineHealth, setInDanger, setPlayerPosition, setPlayerRotation, setSpeed, useStore } from "./data/store"
 import { useKeys } from "./hooks"
@@ -13,10 +13,10 @@ export default function Player({ width = 4, depth = 5 }) {
     let dangers = useStore(i => i.dangers)
     let vehicle = useStore(i => i.vehicle)
     let ref = useRef(0)
-    let speed = useRef(0) 
+    let speed = useRef(0)
     let [crashed, setCrashed] = useState(false)
     let rotation = useRef(Math.PI / 2)
-    let keys = useKeys() 
+    let keys = useKeys()
     let size = useMemo(() => {
         return new Vector3(playerWidth / 2, 1.5 / 2, playerDepth / 2)
     }, [playerWidth, playerDepth])
@@ -69,7 +69,7 @@ export default function Player({ width = 4, depth = 5 }) {
             speed.current = Math.max(speed.current - vehicle.power, vehicle.minSpeed)
         } else {
             speed.current *= vehicle.lightness
-        } 
+        }
 
         if (keys.a) {
             rotation.current += vehicle.turnStrength * speedScale
@@ -87,14 +87,14 @@ export default function Player({ width = 4, depth = 5 }) {
         velocity.y *= vehicle.friction
 
         ref.current.position.x += velocity.x
-        ref.current.position.z -= velocity.y 
-        ref.current.position.y = .75 
+        ref.current.position.z -= velocity.y
+        ref.current.position.y = .75
 
         ref.current.rotation.y = rotation.current + Math.PI / 2
 
         setPlayerPosition([ref.current.position.x, ref.current.position.y, ref.current.position.z])
         setPlayerRotation(ref.current.rotation.y)
-        setSpeed(Math.sqrt(velocity.x**2 + velocity.y **2))
+        setSpeed(Math.sqrt(velocity.x ** 2 + velocity.y ** 2))
     })
 
     useFrame(() => {
@@ -105,7 +105,7 @@ export default function Player({ width = 4, depth = 5 }) {
 
         for (let obstacle of obstacles) {
             if (aabb.intersectsBox(obstacle.aabb)) {
-                let crash = false 
+                let crash = false
 
                 while (obstacle.obb.intersectsOBB(obb)) {
                     let push = .051
@@ -122,16 +122,16 @@ export default function Player({ width = 4, depth = 5 }) {
                     ref.current.updateMatrixWorld()
                     obb.applyMatrix4(ref.current.matrixWorld)
 
-                    crash = true 
+                    crash = true
                 }
 
                 if (crash) {
-                    speed.current *= -.25 
+                    speed.current *= -.25
                     velocity.x = 0
                     velocity.y = 0
                     acceleration.x = 0
                     acceleration.y = 0
- 
+
                     setCrashed(true)
                     reduceEngineHealth(Math.ceil(Math.abs(speed.current) * 100 * .75))
                 }
