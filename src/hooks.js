@@ -64,6 +64,7 @@ export function useCanvas({
         canvas.style.left = x + "px"
         canvas.style.zIndex = 99999990
         canvas.style.outline = "1px solid black"
+        canvas.className = "cdebug"
     }, [x, y, canvas])
 
     return canvas

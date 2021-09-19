@@ -1,3 +1,10 @@
 @import "global.scss";
 @import "variables.scss";
 @import "typography.scss";
+
+
+.cdebug {
+    @media (max-width: 900px) {
+        display: none;
+    }
+}
