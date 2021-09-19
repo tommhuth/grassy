@@ -62,9 +62,9 @@ void main() {
         float cutGrade = clamp(1. - texture2D(cut, uv).r - texture2D(playerPosition, uv).r, 0., 1.); 
 
         if (cutGrade > 0.) {
-            float wind = noise(vec3(p.x * .03, time, p.z * .03)) * .35;
+            float wind = noise(vec3(p.x * .05, time, p.z * .05)) * .35;
 
-            wind += noise(vec3(p.x * .1, time * .25, p.z * .1)) * .125;
+            wind += noise(vec3(p.x * .1, time * .25, p.z * .1)) * .2;
             wind *= clamp(p.y / 2. - .25, 0., 1.);
 
             p.x += wind;
