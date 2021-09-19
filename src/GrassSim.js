@@ -184,16 +184,17 @@ export default function GrassSim({
     }, [cutTexture, gapTexture, playerPositionTexture])
 
     useEffect(() => {
+        let updateCompletionGrade = () => {
+            setCompletionGrade(getCompletionGrade())
+        }
+
         if (bladesActive && mapSize > 0) {
-            let action = () => {
-                setCompletionGrade(getCompletionGrade())
-            }
-            let id = setInterval(action, 3000)
+            let id = setInterval(updateCompletionGrade, 3000)
             let onVisibilityChange = () => {
                 if (document.hidden) {
                     clearInterval(id)
                 } else {
-                    setInterval(action, 3000)
+                    setInterval(updateCompletionGrade, 3000)
                 }
             }
 
@@ -204,6 +205,9 @@ export default function GrassSim({
                 document.removeEventListener("visibilitychange", onVisibilityChange)
             }
         }
+        
+        updateCompletionGrade()
+
     }, [bladesActive, mapSize, getCompletionGrade])
 
     useEffect(() => {
@@ -227,7 +231,7 @@ export default function GrassSim({
 
     useEffect(() => {
         renderGap()
-    }, [renderGap])
+    }, [renderGap]) 
 
     useFrame(() => {
         if (bladesActive && bladesHealth > 0) {
