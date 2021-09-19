@@ -54,23 +54,24 @@ void main() {
     vec3 p = vec3(position.xyz);
     vec2 uv = vec2((p.x + 25.) / 50., (-p.z + 25.) / 50.);
     bool isGap = texture2D(gap, uv).r > 0.;
+    float cutHeight = .1;
 
     if (isGap) { 
         p.y = -.1;
     } else { 
         float cutGrade = clamp(1. - texture2D(cut, uv).r - texture2D(playerPosition, uv).r, 0., 1.); 
 
-        if (cutGrade > 0.1) {
-            float n =  noise(vec3(p.x * .08, time, p.z * .08)) * .25;
+        if (cutGrade > 0.) {
+            float wind = noise(vec3(p.x * .03, time, p.z * .03)) * .35;
 
-            n -= noise(vec3(p.x * .1, time * .25, p.z * .1)) * .051;
-            n *= clamp(p.y / 2. - .25, 0., 1.) ;
+            wind += noise(vec3(p.x * .1, time * .25, p.z * .1)) * .125;
+            wind *= clamp(p.y / 2. - .25, 0., 1.);
 
-            p.x += n;
-            p.z += n;
+            p.x += wind;
+            p.z += wind * .8;
         }
 
-        p.y *= easeInOutCubic(max(cutGrade * cutGrade * cutGrade, .1)) * height; // ? .1 : 1.; // vec2((p.x + 25.) / 50., (p.z + 25.) / 50.)).r * 5.;
+        p.y *= easeInOutCubic(max(cutGrade, cutHeight)) * height;  
 
     } 
 

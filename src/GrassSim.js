@@ -82,8 +82,8 @@ export default function GrassSim({
     let renderPlayerPosition = useCallback(() => {
         let dt = Date.now() - lastPlayerPositionChange.current
         
-        // only keep rendering .35 second after last position change
-        if (dt < .35 * 1000) {  
+        // only keep rendering .5 second after last position change
+        if (dt < .5 * 1000) {  
             let width = (playerWidth / worldSize * size) * .95
             let depth = (playerDepth / worldSize * size) * .95
             let context = playerPositionCanvas.getContext("2d")
@@ -91,7 +91,7 @@ export default function GrassSim({
             let y = (playerPosition.current[2] + 25) / worldSize * size
 
             context.resetTransform()
-            context.fillStyle = "rgba(0, 0, 0, .045)"
+            context.fillStyle = "rgba(0, 0, 0, .025)"
             context.fillRect(0, 0, size, size)
 
             context.fillStyle = "rgb(255, 0,0)"

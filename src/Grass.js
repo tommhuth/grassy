@@ -58,14 +58,14 @@ export default function Grass({ height = 1 }) {
 
     if (!grass) {
         return null
-    }
+    } 
 
     return (
         <>
-            <primitive
-                object={grass}
+            <mesh 
+                geometry={grass?.geometry}
                 position={[0, 0, 0]}
-            >
+            > 
                 <shaderMaterial
                     attach="material"
                     side={DoubleSide}
@@ -76,7 +76,7 @@ export default function Grass({ height = 1 }) {
                         uniforms,
                     }]}
                 />
-            </primitive>
+            </mesh>
 
             <mesh position={[0, -2.5, 0]}>
                 <boxBufferGeometry args={[worldSize + 2, 5, worldSize + 2]} />
