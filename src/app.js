@@ -1,23 +1,25 @@
 import "../assets/styles/app.scss"
 
 import ReactDOM from "react-dom"
-import { Canvas } from "@react-three/fiber"
-
+import { Canvas, useFrame } from "@react-three/fiber"
 import { useEffect, useRef } from "react"
-import { setBladesActive, useStore } from "./data/store"
-
+import { addDanger, addRoadkill, setBladesActive, setCutHeight, useStore } from "./data/store"
 import Player from "./Player"
 import Camera from "./Camera"
 import Obstacle from "./Obstacle"
 import GrassSim from "./GrassSim"
 import Grass from "./Grass"
 import Danger from "./Danger"
+import { BufferGeometry } from "three" 
+import Roadkill, { paths } from "./Roadkill"
 
 
 function App() {
     let engineHealth = useStore(i => i.player.engineHealth)
     let bladesActive = useStore(i => i.player.bladesActive)
+    let roadkill = useStore(i => i.roadkill)
     let speed = useRef()
+    let cutHeight = useStore(i => i.player.cutHeight)
     let bladesHealth = useStore(i => i.player.bladesHealth)
     let completionGrade = useStore(i => i.player.completionGrade)
 
@@ -26,6 +28,10 @@ function App() {
             i => speed.current.innerText = i.toFixed(3),
             s => s.player.speed
         )
+    }, [])
+
+    useEffect(()=> {
+        addRoadkill()
     }, [])
 
     return (
@@ -44,20 +50,30 @@ function App() {
                 engineHealth={engineHealth.toFixed(0) + "%"} <br />
                 bladesHealth={bladesHealth.toFixed(0)}% <br />
                 speed=<span ref={speed} >0.000</span><br />
-                blades={JSON.stringify(bladesActive)}  <br /> <br />
-                <button onClick={() => setBladesActive(!bladesActive)}>Activate blades</button>
+
+                <button onClick={() => setBladesActive(!bladesActive)}>blades={JSON.stringify(bladesActive)}</button> <br />
+
+                cut=<input
+                    type="range"
+                    value={cutHeight}
+                    min={.05}
+                    max={.3}
+                    step={.05}
+                    onChange={(e) => setCutHeight(e.target.valueAsNumber)}
+                /> {cutHeight.toFixed(2)}
             </div>
 
             <Canvas
                 id="main"
                 orthographic
-                dpr={window.matchMedia("(min-width: 1300px)").matches ? 1 : [1, 1.5]} 
+                dpr={window.matchMedia("(min-width: 1200px)").matches ? .85 : [1, 1.5]}
                 camera={{
-                    zoom: 55,
+                    zoom: 40,
                     near: 0,
                     far: 100
                 }}
                 linear
+                shadows
                 colorManagement
                 gl={{
                     antialias: true,
@@ -70,16 +86,6 @@ function App() {
 
                 <Camera />
 
-                <directionalLight
-                    color={0xffffff}
-                    position={[8, 14, 6]}
-                    intensity={.9}
-                    onUpdate={self => {
-                        self.updateMatrixWorld()
-                    }}
-                />
-                <ambientLight intensity={.25} />
-                <pointLight position={[0, 10, 0]} distance={50} intensity={0} color="red" />
 
                 <GrassSim />
                 <Grass />
@@ -119,54 +125,52 @@ function App() {
 
                 <Player />
 
+                {roadkill.map(i => <Roadkill key={i.id} {...i} />)}
 
+                {paths.map((i, index) => {
+                    return (
+                        <line position={[0,1,0]} key={index} geometry={new BufferGeometry().setFromPoints(i.getPoints(40))}>
+                            <lineBasicMaterial color="yellow" />
+                        </line>
+                    )
+                })}
+
+                <Lights />
 
             </Canvas>
         </>
     )
 }
 
+function Lights() {
+    let ref = useRef()
 
-/*
 
-                {grass ? <primitive object={grass} position={[0, 0, 0]} >
-                    <shaderMaterial
-                        attach="material"
-                        side={DoubleSide}
-                        flatShading={false}
-                        args={[{
-                            vertexShader,
-                            fragmentShader, //: ShaderLib.phong.fragmentShader,
-                            uniforms,
-                        }]}
-                    />
-                </primitive> : null}
-  <canvas
-                ref={setCanvas}
-                width={500}
-                height={500}
-                style={{
-                    position: "fixed",
-                    display: "none",
-                    top: 10,
-                    zIndex: 10000,
-                    outline: "1px solid red",
-                    left: 10
+    useFrame(() => {
+        ref.current.shadow.needsUpdate = true
+    })
+
+    return (
+        <>
+            <ambientLight intensity={.4} />
+            <directionalLight
+                ref={ref}
+                color={0xffffff}
+                position={[8, 14, 6]}
+                intensity={.45}
+                castShadow
+                onUpdate={self => {
+                    self.updateMatrixWorld()
+
+                    self.shadow.camera.right = 30
+                    self.shadow.camera.left = -30
+                    self.shadow.camera.top = 30
+                    self.shadow.camera.bottom = -30
                 }}
             />
-                    <meshLambertMaterial attachArray="material" color="darkgreen" />
-
-                    <meshLambertMaterial attachArray="material"    >
-                        <canvasTexture args={[canvas]} attach="map" ref={reff} />
-                    </meshLambertMaterial>
-
-                    <meshLambertMaterial attachArray="material" color="darkgreen" />
-                    <meshLambertMaterial attachArray="material" color="darkgreen" />
-                    <meshLambertMaterial attachArray="material" color="darkgreen" />
-
-
-                */
-
+        </>
+    )
+}
 
 
 

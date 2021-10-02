@@ -1,6 +1,6 @@
 import create from "zustand"
 import random from "@huth/random"
-import { Box3 } from "three"
+import { Box3, Vector3 } from "three" 
 
 const store = create(() => ({
     player: {
@@ -11,6 +11,7 @@ const store = create(() => ({
         aabb: new Box3(),
         radius: 2,
         size: [4, 5],
+        cutHeight: .15,
         bladesActive: false,
         bladesHealth: 100,
         engineHealth: 100,
@@ -32,8 +33,36 @@ const store = create(() => ({
         playerPositionTexture: null
     },
     obstacles: [],
-    dangers: []
+    dangers: [],
+    roadkill: []
 }))
+
+export function setCutHeight(height) {
+    store.setState({
+        player: {
+            ...store.getState().player, 
+            cutHeight: height
+        } 
+    })
+}
+
+export function addRoadkill() {
+    store.setState({
+        roadkill: [
+            ...store.getState().roadkill,
+            {
+                id: random.id(),
+                speed: random.float(.1, .2),
+                position: new Vector3()
+            }
+        ]
+    })
+}
+export function removeRoadkill(id) {
+    store.setState({
+        roadkill:  store.getState().roadkill.filter(i => i.id !== id) 
+    })
+}
 
 export function addDanger({ position, radius, rotation, aabb }) {
     store.setState({

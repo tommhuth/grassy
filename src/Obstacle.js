@@ -40,7 +40,7 @@ export default function Obstacle({
     }, [x, y, z, width, height, depth, rotation, obb])
 
     return (
-        <mesh ref={ref}>
+        <mesh ref={ref} castShadow receiveShadow>
             <boxBufferGeometry args={[width, height, depth]} />
             <meshLambertMaterial color="brown" />
         </mesh>
