@@ -10,6 +10,7 @@ export default function GrassSim({
     completionFidelity = 48
 }) {
     let tid = useRef()
+    let cid = useRef(0)
     let [playerWidth, playerDepth] = useStore(i => i.player.size)
     let [mapSize, setMapSize] = useState(0)
     let worldSize = useStore(i => i.world.size)
@@ -18,8 +19,7 @@ export default function GrassSim({
     let cutHeight = useStore(i => i.player.cutHeight)
     let roadkill = useStore(i => i.roadkill)
     let dangers = useStore(i => i.dangers)
-    let obstacles = useStore(i => i.obstacles)
-    let previousPlayerPosition = useRef([-10, -10, -10])
+    let obstacles = useStore(i => i.obstacles) 
     let playerPosition = useRef([0, 0, 0])
     let playerRotation = useRef(0)
     let lastPlayerPositionChange = useRef(0)
@@ -61,11 +61,7 @@ export default function GrassSim({
         return texture
     }, [playerPositionCanvas])
     let renderCut = useCallback(() => {
-        let dx = Math.abs(playerPosition.current[0] - previousPlayerPosition.current[0])
-        let dy = Math.abs(playerPosition.current[2] - previousPlayerPosition.current[2])
-        let delta = .035
-
-        if ((dx > delta || dy > delta)) {
+        if (cid.current % 10 === 0) {
             let context = cutCanvas.getContext("2d")
 
             let cutSize = (playerWidth / worldSize * size) * .95
@@ -79,7 +75,7 @@ export default function GrassSim({
             cutTexture.needsUpdate = true
         }
 
-        previousPlayerPosition.current = playerPosition.current
+        cid.current++ 
     }, [cutCanvas, cutTexture, worldSize, playerWidth, size])
     let renderPlayerPosition = useCallback(() => {
         let dt = Date.now() - lastPlayerPositionChange.current
