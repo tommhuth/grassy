@@ -3,21 +3,20 @@ import "../assets/styles/app.scss"
 import ReactDOM from "react-dom"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { useEffect, useRef } from "react"
-import { addDanger, addRoadkill, setBladesActive, setCutHeight, useStore } from "./data/store"
+import { addRoadkill, setBladesActive, setCutHeight, useStore } from "./data/store"
 import Player from "./Player"
 import Camera from "./Camera"
 import Obstacle from "./Obstacle"
 import GrassSim from "./GrassSim"
 import Grass from "./Grass"
 import Danger from "./Danger"
-import { BufferGeometry } from "three" 
+import { BufferGeometry } from "three"
 import Roadkill, { paths } from "./Roadkill"
 
 
-function App() {
+function UI() { 
     let engineHealth = useStore(i => i.player.engineHealth)
     let bladesActive = useStore(i => i.player.bladesActive)
-    let roadkill = useStore(i => i.roadkill)
     let speed = useRef()
     let cutHeight = useStore(i => i.player.cutHeight)
     let bladesHealth = useStore(i => i.player.bladesHealth)
@@ -30,39 +29,47 @@ function App() {
         )
     }, [])
 
-    useEffect(()=> {
+    return (
+
+        <div
+            style={{
+                position: "absolute",
+                top: 10,
+                textAlign: "right",
+                right: 10,
+                color: "black",
+                zIndex: 1000
+            }}
+        >
+            completionGrade={(completionGrade).toFixed(1) + "%"} <br />
+            engineHealth={engineHealth.toFixed(0) + "%"} <br />
+            bladesHealth={bladesHealth.toFixed(0)}% <br />
+            speed=<span ref={speed} >0.000</span><br />
+
+            <button onClick={() => setBladesActive(!bladesActive)}>blades={JSON.stringify(bladesActive)}</button> <br />
+
+            cut=<input
+                type="range"
+                value={cutHeight}
+                min={.05}
+                max={.3}
+                step={.05}
+                onChange={(e) => setCutHeight(e.target.valueAsNumber)}
+            /> {cutHeight.toFixed(2)}
+        </div>
+    )
+}
+
+function App() {
+    let roadkill = useStore(i => i.roadkill)
+
+    useEffect(() => {
         addRoadkill()
     }, [])
 
     return (
         <>
-            <div
-                style={{
-                    position: "absolute",
-                    top: 10,
-                    textAlign: "right",
-                    right: 10,
-                    color: "black",
-                    zIndex: 1000
-                }}
-            >
-                completionGrade={(completionGrade).toFixed(1) + "%"} <br />
-                engineHealth={engineHealth.toFixed(0) + "%"} <br />
-                bladesHealth={bladesHealth.toFixed(0)}% <br />
-                speed=<span ref={speed} >0.000</span><br />
-
-                <button onClick={() => setBladesActive(!bladesActive)}>blades={JSON.stringify(bladesActive)}</button> <br />
-
-                cut=<input
-                    type="range"
-                    value={cutHeight}
-                    min={.05}
-                    max={.3}
-                    step={.05}
-                    onChange={(e) => setCutHeight(e.target.valueAsNumber)}
-                /> {cutHeight.toFixed(2)}
-            </div>
-
+            <UI />
             <Canvas
                 id="main"
                 orthographic
@@ -129,7 +136,7 @@ function App() {
 
                 {paths.map((i, index) => {
                     return (
-                        <line position={[0,1,0]} key={index} geometry={new BufferGeometry().setFromPoints(i.getPoints(40))}>
+                        <line position={[0, 1, 0]} key={index} geometry={new BufferGeometry().setFromPoints(i.getPoints(40))}>
                             <lineBasicMaterial color="yellow" />
                         </line>
                     )
@@ -162,10 +169,12 @@ function Lights() {
                 onUpdate={self => {
                     self.updateMatrixWorld()
 
-                    self.shadow.camera.right = 30
-                    self.shadow.camera.left = -30
-                    self.shadow.camera.top = 30
-                    self.shadow.camera.bottom = -30
+                    self.shadow.camera.right = 40
+                    self.shadow.camera.left = -40
+                    self.shadow.camera.top = 40
+                    self.shadow.camera.bottom = -40
+                    self.shadow.camera.near = -40
+                    self.shadow.camera.far = 40
                 }}
             />
         </>
