@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react"
+import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react"
 import { Box3, Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
 import { addObstalce } from "./data/store"
 
-export default function Obstacle({
+function Obstacle({
     position: [x, y, z] = [0, 0, 0],
     size: [width, height, depth],
     rotation = 0
@@ -46,3 +46,5 @@ export default function Obstacle({
         </mesh>
     )
 }
+
+export default memo(Obstacle)
