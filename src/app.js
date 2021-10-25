@@ -15,6 +15,9 @@ import Roadkill from "./Roadkill"
 import { Only } from "./utils"
 import Config from "./Config"
 
+window.oncontextmenu = (e) => {
+    e.preventDefault()
+}
 
 function UI() {
     let engineHealth = useStore(i => i.player.engineHealth)
@@ -39,7 +42,7 @@ function UI() {
                 position: "absolute",
                 top: 10,
                 textAlign: "right",
-                right: 10, 
+                right: 10,
                 zIndex: 1000,
                 textShadow: "0 0 .5em black"
             }}
