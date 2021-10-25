@@ -3,7 +3,7 @@ import "../assets/styles/app.scss"
 import ReactDOM from "react-dom"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { useEffect, useRef } from "react"
-import { addRoadkill, setBladesActive, setCutHeight, useStore } from "./data/store"
+import { addRoadkill, paths, setBladesActive, setCutHeight, useStore } from "./data/store"
 import Player from "./Player"
 import Camera from "./Camera"
 import Obstacle from "./Obstacle"
@@ -11,15 +11,18 @@ import GrassSim from "./GrassSim"
 import Grass from "./Grass"
 import Danger from "./Danger"
 import { BufferGeometry } from "three"
-import Roadkill, { paths } from "./Roadkill"
+import Roadkill from "./Roadkill"
+import { Only } from "./utils"
+import Config from "./Config"
 
 
-function UI() { 
+function UI() {
     let engineHealth = useStore(i => i.player.engineHealth)
     let bladesActive = useStore(i => i.player.bladesActive)
     let speed = useRef()
     let cutHeight = useStore(i => i.player.cutHeight)
     let bladesHealth = useStore(i => i.player.bladesHealth)
+    let kills = useStore(i => i.player.kills)
     let completionGrade = useStore(i => i.player.completionGrade)
 
     useEffect(() => {
@@ -45,6 +48,7 @@ function UI() {
             engineHealth={engineHealth.toFixed(0) + "%"} <br />
             bladesHealth={bladesHealth.toFixed(0)}% <br />
             speed=<span ref={speed} >0.000</span><br />
+            kills={kills}<br />
 
             <button onClick={() => setBladesActive(!bladesActive)}>blades={JSON.stringify(bladesActive)}</button> <br />
 
@@ -52,7 +56,7 @@ function UI() {
                 type="range"
                 value={cutHeight}
                 min={.05}
-                max={.3}
+                max={.4}
                 step={.05}
                 onChange={(e) => setCutHeight(e.target.valueAsNumber)}
             /> {cutHeight.toFixed(2)}
@@ -64,7 +68,7 @@ function App() {
     let roadkill = useStore(i => i.roadkill)
 
     useEffect(() => {
-        addRoadkill()
+        setInterval(() => addRoadkill(), 1000 * 1)
     }, [])
 
     return (
@@ -93,6 +97,7 @@ function App() {
 
                 <Camera />
 
+                <Player />
 
                 <GrassSim />
                 <Grass />
@@ -130,17 +135,18 @@ function App() {
                 />
 
 
-                <Player />
 
                 {roadkill.map(i => <Roadkill key={i.id} {...i} />)}
 
-                {paths.map((i, index) => {
-                    return (
-                        <line position={[0, 1, 0]} key={index} geometry={new BufferGeometry().setFromPoints(i.getPoints(40))}>
-                            <lineBasicMaterial color="yellow" />
-                        </line>
-                    )
-                })}
+                <Only if={Config.DEBUG}> 
+                    {paths.map((i, index) => {
+                        return (
+                            <line position={[0, 1, 0]} key={index} geometry={new BufferGeometry().setFromPoints(i.getPoints(40))}>
+                                <lineBasicMaterial color="yellow" />
+                            </line>
+                        )
+                    })}
+                </Only>
 
                 <Lights />
 

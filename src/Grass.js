@@ -73,6 +73,7 @@ export default function Grass({ height = 1 }) {
                 position={[0, 0, 0]}
                 castShadow
                 receiveShadow
+                //visible={false}
             >
                 <meshDepthMaterial
                     attach="customDepthMaterial"
@@ -120,8 +121,6 @@ export default function Grass({ height = 1 }) {
             <mesh position={[0, -2.5, 0]} receiveShadow>
                 <boxBufferGeometry args={[worldSize + 10, 5, worldSize + 10]} />
                 <meshLambertMaterial color="darkgreen" />
-
-
             </mesh>
         </>
     )

@@ -7,24 +7,18 @@ import { useKeys } from "./hooks"
 import random from "@huth/random"
 
 export default function Player({ width = 4, depth = 5, height = 3 }) {
-    let obstacles = useStore(i => i.obstacles)
-    let [playerWidth, playerDepth] = useStore(i => i.player.size)
+    let obstacles = useStore(i => i.obstacles) 
     let bladesActive = useStore(i => i.player.bladesActive)
     let dangers = useStore(i => i.dangers)
     let vehicle = useStore(i => i.vehicle)
     let engineHealth = useStore(i => i.player.engineHealth)
+    let obb = useStore(i => i.player.obb)
     let healthy = engineHealth > 0
     let ref = useRef(0)
     let speed = useRef(0)
     let [crashed, setCrashed] = useState(false)
     let rotation = useRef(Math.PI / 2)
-    let keys = useKeys()
-    let size = useMemo(() => {
-        return new Vector3(playerWidth / 2, 1.5 / 2, playerDepth / 2)
-    }, [playerWidth, playerDepth])
-    let obb = useMemo(() => {
-        return new OBB(new Vector3(0, 0, 0), size)
-    }, [size])
+    let keys = useKeys() 
     let aabb = useStore(i => i.player.aabb)
     let playerRadius = useStore(i => i.player.radius)
     let inDanger = useStore(i => i.player.inDanger)
@@ -32,7 +26,7 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
     let dangerPosition = useMemo(() => new Vector3(), [])
     let hitDelta = useMemo(() => new Vector3(), [])
     let velocity = useMemo(() => new Vector2(), [])
-    let acceleration = useMemo(() => new Vector2(), [])
+    let acceleration = useMemo(() => new Vector2(), [])  
 
     useEffect(() => {
         if (crashed) {
@@ -104,7 +98,8 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
         obb.center.set(0, 0, 0)
         obb.rotation.identity()
         obb.applyMatrix4(ref.current.matrixWorld)
-
+ 
+        outer:
         for (let obstacle of obstacles) {
             if (aabb.intersectsBox(obstacle.aabb)) {
                 let crash = false
@@ -136,9 +131,10 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
 
                     setCrashed(true)
                     reduceEngineHealth(Math.max(damage, 0))
+                    break outer
                 }
             }
-        }
+        } 
     })
 
     useFrame(() => {

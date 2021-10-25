@@ -1,6 +1,20 @@
 import create from "zustand"
 import random from "@huth/random"
-import { Box3, Vector3 } from "three" 
+import { Box3, Vector3, CatmullRomCurve3 } from "three"
+import { OBB } from "three/examples/jsm/math/OBB"
+
+let paths = [
+    new CatmullRomCurve3([
+        new Vector3(-25, 0, -25),
+        new Vector3(-10, 0, 13),
+        new Vector3(9, 0, 8),
+        new Vector3(25, 0, -12)
+    ])
+]
+
+export { paths }
+
+const playerSize = [4, 5]
 
 const store = create(() => ({
     player: {
@@ -9,22 +23,24 @@ const store = create(() => ({
         speed: 0,
         completionGrade: 0,
         aabb: new Box3(),
+        obb: new OBB(new Vector3(0, 0, 0), new Vector3(playerSize[0] / 2, 1.5 / 2, playerSize[1] / 2)),
         radius: 2,
-        size: [4, 5],
+        size: playerSize,
         cutHeight: .15,
         bladesActive: false,
         bladesHealth: 100,
         engineHealth: 100,
         inDanger: false,
+        kills: 0
     },
-    vehicle: { 
+    vehicle: {
         power: .0002,
         friction: .85,
         lightness: .8,
         bladesPenalty: .55,
         maxSpeed: .02,
         minSpeed: -.0075,
-        turnStrength: .025, 
+        turnStrength: .025,
     },
     world: {
         size: 50,
@@ -40,27 +56,46 @@ const store = create(() => ({
 export function setCutHeight(height) {
     store.setState({
         player: {
-            ...store.getState().player, 
+            ...store.getState().player,
             cutHeight: height
-        } 
+        }
     })
 }
 
+let i = 0
+
 export function addRoadkill() {
+    if (store.getState().roadkill.length) {
+        return false
+    }
+
+    let speed = random.pick(-.00075, .00075)
+    let path = paths[i]
+    let startIndex = speed > 0 ? .0001 : .9999
+    let position = path.getPointAt(startIndex, new Vector3())
+
+    i = (i + 1) % paths.length
+
     store.setState({
         roadkill: [
             ...store.getState().roadkill,
             {
                 id: random.id(),
-                speed: random.float(.1, .2),
-                position: new Vector3()
+                position,
+                startIndex,
+                path,
+                speed
             }
         ]
     })
 }
-export function removeRoadkill(id) {
+export function removeRoadkill(id, kill = false) {
     store.setState({
-        roadkill:  store.getState().roadkill.filter(i => i.id !== id) 
+        roadkill: store.getState().roadkill.filter(i => i.id !== id),
+        player: {
+            ...store.getState().player,
+            kills: store.getState().player.kills + (kill ? 1 : 0)
+        }
     })
 }
 

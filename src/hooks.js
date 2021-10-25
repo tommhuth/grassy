@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
+import Config from "./Config"
 
 let loader = new GLTFLoader()
 
@@ -58,13 +59,15 @@ export function useCanvas({
     }, [size])
 
     useEffect(() => {
-        document.body.appendChild(canvas)
-        canvas.style.position = "fixed"
-        canvas.style.top = y + "px"
-        canvas.style.left = x + "px"
-        canvas.style.zIndex = 99999990
-        canvas.style.outline = "1px solid black"
-        canvas.className = "cdebug"
+        if (Config.DEBUG) { 
+            document.body.appendChild(canvas)
+            canvas.style.position = "fixed"
+            canvas.style.top = y + "px"
+            canvas.style.left = x + "px"
+            canvas.style.zIndex = 99999990
+            canvas.style.outline = "1px solid black"
+            canvas.className = "cdebug"
+        }
     }, [x, y, canvas])
 
     return canvas

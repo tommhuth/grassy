@@ -1,47 +1,34 @@
 import { useFrame } from "@react-three/fiber"
-import {useRef,useMemo,useEffect, useState } from "react"
-import { removeRoadkill } from "./data/store"
-import { CatmullRomCurve3, Vector3 } from "three"
-import random from "@huth/random" 
+import { useRef, useMemo, useEffect, useState } from "react"
+import { removeRoadkill, useStore } from "./data/store"
+import { Vector3 } from "three"
+import { Only } from "./utils"
+import Config from "./Config"
 
-let paths = [
-    new CatmullRomCurve3([
-        new Vector3(-25, 0, -25),
-        new Vector3(-10, 0, 13),
-        new Vector3(9, 0, 8),
-        new Vector3(25, 0, -12)
-    ])
-]
-let i = 0
-
-export {paths}
-
-export default function Roadkill({ id, position }) {
+export default function Roadkill({ id, position, path, startIndex, speed }) {
     let ref = useRef()
-    let [path, setPath] = useState()
-    let speed = useRef(random.pick(-.00075, .00075))
-    let index = useRef(speed.current > 0 ? 0.000001 : .999999)
-    let vec = useMemo(() => new Vector3(), [])
+    let tid = useRef()
+    let index = useRef(startIndex)
+    let [hit, setHit] = useState(false)
+    let playerPosition = useMemo(() => new Vector3(), [])
+    let playerAabb = useStore(i => i.player.aabb)
 
     useEffect(() => {
-        setPath(paths[i])
-
-        i = (i + 1) % paths.length
-    }, [])
+        return useStore.subscribe(
+            i => playerPosition.set(...i),
+            state => state.player.position
+        )
+    }, [playerPosition])
 
     useFrame(() => {
         try {
-            if (path && ref.current && position) {
-                let p = path.getPointAt(index.current, vec)
+            if (path && ref.current && !hit) {
+                let p = path.getPointAt(index.current, position)
 
                 ref.current.lookAt(p)
+                ref.current.position.copy(p)
 
-                ref.current.position.x = p.x
-                ref.current.position.z = p.z
-                ref.current.position.y = p.y
-                position.set(p.x, p.y, p.z)
-
-                index.current += speed.current
+                index.current += speed
             }
         } catch (e) {
             // must be out of bounds
@@ -49,10 +36,31 @@ export default function Roadkill({ id, position }) {
         }
     })
 
+    useFrame(() => {
+        if (playerAabb.containsPoint(position) && !hit) {
+            setHit(true)
+        }
+    })
+
+    useEffect(() => {
+        if (hit) {
+            tid.current = setTimeout(() => removeRoadkill(id, true), 100)
+
+            return () => {
+                clearTimeout(tid.current)
+            }
+        }
+    }, [hit, id]) 
+
     return (
-        <mesh ref={ref}>
-            <boxBufferGeometry args={[1, 4, 1]} />
-            <meshLambertMaterial color={"darkgray"} />
-        </mesh>
+        <group ref={ref}>
+            <Only if={Config.DEBUG}>
+                <axesHelper scale={8} /> 
+            </Only>
+            <mesh position={[0, 2, 0]} castShadow receiveShadow>
+                <boxBufferGeometry args={[1, 4, 1]} />
+                <meshLambertMaterial color={"darkgray"} />
+            </mesh>
+        </group>
     )
 }
