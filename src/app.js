@@ -39,9 +39,9 @@ function UI() {
                 position: "absolute",
                 top: 10,
                 textAlign: "right",
-                right: 10,
-                color: "black",
-                zIndex: 1000
+                right: 10, 
+                zIndex: 1000,
+                textShadow: "0 0 .5em black"
             }}
         >
             completionGrade={(completionGrade).toFixed(1) + "%"} <br />
@@ -87,7 +87,7 @@ function App() {
                 orthographic
                 dpr={window.matchMedia("(min-width: 1000px)").matches ? .85 : [1, 2]}
                 camera={{
-                    zoom: 40,
+                    zoom: window.matchMedia("(max-width: 800px)").matches ? 30 : 40,
                     near: 0,
                     far: 100
                 }}
