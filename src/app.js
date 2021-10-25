@@ -64,12 +64,20 @@ function UI() {
     )
 }
 
-function App() {
+function Roadkills() {
     let roadkill = useStore(i => i.roadkill)
 
     useEffect(() => {
-        setInterval(() => addRoadkill(), 1000 * 1)
+        addRoadkill()
+
+        setInterval(() => addRoadkill(), 1000 * 25)
     }, [])
+
+    return roadkill.map(i => <Roadkill key={i.id} {...i} />)
+}
+
+
+function App() {
 
     return (
         <>
@@ -77,7 +85,7 @@ function App() {
             <Canvas
                 id="main"
                 orthographic
-                dpr={window.matchMedia("(min-width: 1200px)").matches ? .85 : [1, 1.5]}
+                dpr={window.matchMedia("(min-width: 1000px)").matches ? .85 : [1, 2]}
                 camera={{
                     zoom: 40,
                     near: 0,
@@ -135,10 +143,9 @@ function App() {
                 />
 
 
+                <Roadkills />
 
-                {roadkill.map(i => <Roadkill key={i.id} {...i} />)}
-
-                <Only if={Config.DEBUG}> 
+                <Only if={Config.DEBUG}>
                     {paths.map((i, index) => {
                         return (
                             <line position={[0, 1, 0]} key={index} geometry={new BufferGeometry().setFromPoints(i.getPoints(40))}>
