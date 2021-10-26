@@ -54,16 +54,18 @@ body {
     width: 100% !important;
 }
 
-canvas#main { 
+#main { 
     top: 0; 
     position: fixed;
     display: block;
-    height: 100vh !important; 
-    width: 100% !important;
+    bottom: 0;  
     right: 0;
     left: 0;
+    touch-action: none;
+    /*
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    */
 }
