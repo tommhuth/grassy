@@ -16,10 +16,10 @@ vec3 grassTransform(vec3 position) {
         float cutGrade = clamp(1. - texture2D(cut, uv).r - texture2D(playerPosition, uv).r, 0., 1.); 
 
         if (cutGrade > 0.) {
-            float windStrength = noise(vec3(p.x * .05 + 75., time, p.z * .05 + 75.)) * 1.;
-            float wind = noise(vec3(p.x * .05, time, p.z * .05)) * windStrength;
+            float windStrength = noise(vec3(p.x * .05 + time + 75., 0., p.z * .05 + 75.)) * 1.5;
+            float wind = noise(vec3(p.x  * .05 + time , .0, p.z * .05)) * windStrength;
 
-            wind += noise(vec3(p.x * .1, time * .25, p.z * .1)) * .2;
+            //wind += noise(vec3(p.x  * .1 + time, 0., p.z * .1)) * .2;
             wind *= clamp(p.y / 2. - .25, 0., 1.);
 
             p.x += wind;
