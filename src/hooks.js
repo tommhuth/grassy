@@ -4,13 +4,18 @@ import Config from "./Config"
 
 let loader = new GLTFLoader()
 
-export function useModel(name) {
+export function useModel({ name, onLoad = () => {} }) {
     let [model, setModel] = useState()
 
     useEffect(() => {
-        loader.load(`/models/${name}.glb`, (res) => {
-            let element = res.scene.children[0]
+        if (!name) {
+            return 
+        }
 
+        loader.load(`/models/${name}.glb`, (res) => {
+            let element = res.scene.children[0] 
+
+            onLoad(element)
             setModel(element)
         }, undefined, console.error)
     }, [name])
@@ -59,7 +64,7 @@ export function useCanvas({
     }, [size])
 
     useEffect(() => {
-        if (Config.DEBUG) { 
+        if (Config.DEBUG) {
             document.body.appendChild(canvas)
             canvas.style.position = "fixed"
             canvas.style.top = y + "px"

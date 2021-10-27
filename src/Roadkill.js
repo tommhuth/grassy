@@ -58,8 +58,8 @@ function Roadkill({ id, position, path, startIndex, speed }) {
             <Only if={Config.DEBUG}>
                 <axesHelper scale={8} />
             </Only>
-            <mesh position={[0, 2, 0]} castShadow receiveShadow>
-                <boxBufferGeometry args={[1, 4, 1]} />
+            <mesh position={[0, .75, 0]} castShadow receiveShadow>
+                <boxBufferGeometry args={[1, 1.5, 1]} />
                 <meshLambertMaterial color={"darkgray"} />
             </mesh>
         </group>

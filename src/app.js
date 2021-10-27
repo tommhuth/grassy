@@ -15,9 +15,11 @@ import Roadkill from "./Roadkill"
 import { Only } from "./utils"
 import Config from "./Config"
 
+/*
 window.oncontextmenu = (e) => {
     e.preventDefault()
 }
+*/
 
 function UI() {
     let engineHealth = useStore(i => i.player.engineHealth)
@@ -90,7 +92,7 @@ function App() {
                 orthographic
                 dpr={window.matchMedia("(min-width: 1000px)").matches ? .85 : [1, 2]}
                 camera={{
-                    zoom: window.matchMedia("(max-width: 800px)").matches ? 30 : 40,
+                    zoom: window.matchMedia("(max-width: 800px)").matches ? 26 : 40,
                     near: 0,
                     far: 100
                 }}
@@ -183,7 +185,6 @@ function Lights() {
                 intensity={.45}
                 castShadow
                 onUpdate={self => {
-                    self.updateMatrixWorld()
 
                     self.shadow.camera.right = 40
                     self.shadow.camera.left = -40
@@ -191,6 +192,8 @@ function Lights() {
                     self.shadow.camera.bottom = -40
                     self.shadow.camera.near = -40
                     self.shadow.camera.far = 40
+                    self.shadow.mapSize.set(512, 512)
+                    self.updateMatrixWorld()
                 }}
             />
         </>

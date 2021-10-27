@@ -8,11 +8,11 @@ import { useModel } from "./hooks"
 import grassTransform from "./grassTransform.glsl"
 
 
-export default function Grass({ 
-    windScale = 2, 
-    height = 1.5, 
-    wildness = 2.5, 
-    scale = .05 
+export default function Grass({
+    windScale = 2,
+    height = 1.5,
+    wildness = 1.5,
+    scale = .05
 }) {
     let counter = useRef(0)
     let cutTexture = useStore(i => i.world.cutTexture)
@@ -20,7 +20,7 @@ export default function Grass({
     let cutHeight = useStore(i => i.player.cutHeight)
     let playerPositionTexture = useStore(i => i.world.playerPositionTexture)
     let worldSize = useStore(i => i.world.size)
-    let grass = useModel("grass2")// 135000  
+    let grass = useModel({ name: "grass2" })// 135000  
     let uniforms = useMemo(() => {
         return {
             time: { value: 0, type: "f" },
@@ -33,7 +33,7 @@ export default function Grass({
             gap: { value: null, type: "t" },
             playerPosition: { value: null, type: "t" }
         }
-    }, [height,windScale, wildness, scale])
+    }, [height, windScale, wildness, scale])
 
     useEffect(() => {
         uniforms.cut.value = cutTexture
@@ -81,7 +81,7 @@ export default function Grass({
                 position={[0, 0, 0]}
                 castShadow
                 receiveShadow
-                //visible={false}
+            //visible={false}
             >
                 <meshDepthMaterial
                     attach="customDepthMaterial"

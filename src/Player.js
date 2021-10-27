@@ -1,24 +1,31 @@
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
-import { Vector2, Vector3, Quaternion, Color, Matrix4 } from "three"
-import { OBB } from "three/examples/jsm/math/OBB"
+import { Vector2, Vector3, Quaternion, Color, Matrix4 , MeshPhongMaterial} from "three"
 import { reduceBladesHealth, reduceEngineHealth, setInDanger, setPlayerPosition, setPlayerRotation, setSpeed, useStore } from "./data/store"
-import { useKeys } from "./hooks"
-import random from "@huth/random"
+import { useKeys, useModel } from "./hooks"
+import random from "@huth/random" 
 
-export default function Player({ width = 4, depth = 5, height = 3 }) {
-    let obstacles = useStore(i => i.obstacles) 
+const mats = {
+    metalDark: new MeshPhongMaterial({ color: "#dd9" }),
+    metalRed: new MeshPhongMaterial({ color: "#fff" }),
+    metal: new MeshPhongMaterial({ color: "orange" }),
+    dark: new MeshPhongMaterial({ color: "#445" })
+}
+
+export default function Player() { 
+    let obstacles = useStore(i => i.obstacles)
     let bladesActive = useStore(i => i.player.bladesActive)
+    let [, height] = useStore(i => i.player.size)
     let dangers = useStore(i => i.dangers)
     let vehicle = useStore(i => i.vehicle)
     let engineHealth = useStore(i => i.player.engineHealth)
     let obb = useStore(i => i.player.obb)
     let healthy = engineHealth > 0
-    let ref = useRef(0)
+    let ref = useRef()
     let speed = useRef(0)
     let [crashed, setCrashed] = useState(false)
     let rotation = useRef(Math.PI / 2)
-    let keys = useKeys() 
+    let keys = useKeys()
     let aabb = useStore(i => i.player.aabb)
     let playerRadius = useStore(i => i.player.radius)
     let inDanger = useStore(i => i.player.inDanger)
@@ -26,7 +33,20 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
     let dangerPosition = useMemo(() => new Vector3(), [])
     let hitDelta = useMemo(() => new Vector3(), [])
     let velocity = useMemo(() => new Vector2(), [])
-    let acceleration = useMemo(() => new Vector2(), [])  
+    let acceleration = useMemo(() => new Vector2(), [])
+    let m = useModel({
+        name: "craft_cargoB",
+        onLoad(el) { 
+            el.traverse(i => {
+                if (i.isMesh) {
+                    i.castShadow = true
+                    i.receiveShadow = true
+
+                    i.material = mats[i.material.name] 
+                }
+            })
+        },
+    })
 
     useEffect(() => {
         if (crashed) {
@@ -57,6 +77,10 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
     }, [inDanger, bladesActive])
 
     useFrame(() => {
+        if (!ref.current) {
+            return
+        }
+
         let speedScale = Math.abs(speed.current / (speed.current > 0 ? vehicle.maxSpeed : vehicle.minSpeed))
 
         if (keys.w && healthy) {
@@ -84,7 +108,7 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
 
         ref.current.position.x += velocity.x
         ref.current.position.z -= velocity.y
-        ref.current.position.y = height/2
+        ref.current.position.y = height / 2
 
         ref.current.rotation.y = rotation.current + Math.PI / 2
 
@@ -94,17 +118,21 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
     })
 
     useFrame(() => {
-        aabb.setFromObject(ref.current)
+        if (!ref.current) {
+            return
+        }
+         
+        aabb.setFromObject(ref.current) 
         obb.center.set(0, 0, 0)
         obb.rotation.identity()
         obb.applyMatrix4(ref.current.matrixWorld)
- 
+
         outer:
         for (let obstacle of obstacles) {
             if (aabb.intersectsBox(obstacle.aabb)) {
                 let crash = false
 
-                while (obstacle.obb.intersectsOBB(obb)) {
+                while (obstacle.obb.intersectsOBB(obb)) { 
                     let push = .025
                     let direction = hitDelta.copy(ref.current.position)
                         .sub(obstacle.obb.center)
@@ -112,14 +140,17 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
                         .multiplyScalar(push)
 
                     ref.current.position.x += direction.x
-                    ref.current.position.z += direction.z
+                    ref.current.position.z += direction.z 
 
                     obb.center.set(0, 0, 0)
                     obb.rotation.identity()
-                    ref.current.updateMatrixWorld()
+                    ref.current.updateMatrixWorld() 
                     obb.applyMatrix4(ref.current.matrixWorld)
 
+
                     crash = true
+
+                    break
                 }
 
                 if (crash) {
@@ -134,10 +165,13 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
                     break outer
                 }
             }
-        } 
+        }
     })
 
     useFrame(() => {
+        if (!ref.current) {
+            return
+        }
         let result = false
 
         for (let danger of dangers) {
@@ -156,16 +190,17 @@ export default function Player({ width = 4, depth = 5, height = 3 }) {
         } else if (!result && inDanger) {
             setInDanger(false)
         }
-    })
+    }) 
 
+    if (!m) {
+        return null
+    }
 
     return (
-        <>
-            <Sparks />
-            <mesh ref={ref} castShadow receiveShadow>
-                <boxBufferGeometry args={[width, height, depth]} />
-                <meshLambertMaterial color="darkgray" />
-            </mesh>
+        <> 
+            <group ref={ref}> 
+                <primitive object={m} rotation-y={Math.PI}  position={[0,0,0]} scale={[2, 2, 2]} />
+            </group>
         </>
     )
 }
@@ -189,7 +224,7 @@ function Sparks({ count = 100 }) {
         if (instance) {
             instance.setMatrixAt(index, _matrix.compose(
                 _position.set(...position),
-                _rotation.setFromAxisAngle(_y, rotation ),
+                _rotation.setFromAxisAngle(_y, rotation),
                 _scale.set(...scale)
             ))
             instance.instanceMatrix.needsUpdate = true
@@ -209,9 +244,9 @@ function Sparks({ count = 100 }) {
                 x: playerPosition.current[0],
                 y: 0, //playerPosition.current[1] + random.float(-.5, .25),
                 z: playerPosition.current[2],
-                size: random.float(inDanger ? .1 : .05, inDanger ? .2 :.1),
+                size: random.float(inDanger ? .1 : .05, inDanger ? .2 : .1),
                 index: index % count,
-                color: inDanger ? random.pick("rgb(0,255,0)", "yellow", "rgb(0,255,0)", "white") : random.pick("rgb(0,255,0)" ),
+                color: inDanger ? random.pick("rgb(0,255,0)", "yellow", "rgb(0,255,0)", "white") : random.pick("rgb(0,255,0)"),
                 friction: random.float(.85, .9),
                 rotation: random.float(0, Math.PI * 2),
                 speed: random.float(.55, .75),

@@ -11,7 +11,7 @@ export default function GrassSim({
 }) {
     let tid = useRef()
     let cid = useRef(0)
-    let [playerWidth, playerDepth] = useStore(i => i.player.size)
+    let [playerWidth, , playerDepth] = useStore(i => i.player.size)
     let [mapSize, setMapSize] = useState(0)
     let worldSize = useStore(i => i.world.size)
     let bladesActive = useStore(i => i.player.bladesActive)
