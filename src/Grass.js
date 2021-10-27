@@ -80,8 +80,7 @@ export default function Grass({
                 geometry={grass?.geometry}
                 position={[0, 0, 0]}
                 castShadow
-                receiveShadow
-            //visible={false}
+                receiveShadow 
             >
                 <meshDepthMaterial
                     attach="customDepthMaterial"

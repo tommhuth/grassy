@@ -11,6 +11,7 @@ uniform float scale;
 uniform sampler2D cut;
 uniform sampler2D playerPosition;
 uniform sampler2D gap;
+uniform float size;  
 
 @import ./grassTransform;
  

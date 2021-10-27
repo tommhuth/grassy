@@ -19,7 +19,7 @@ export default function GrassSim({
     let cutHeight = useStore(i => i.player.cutHeight)
     let roadkill = useStore(i => i.roadkill)
     let dangers = useStore(i => i.dangers)
-    let obstacles = useStore(i => i.obstacles) 
+    let obstacles = useStore(i => i.obstacles)
     let playerPosition = useRef([0, 0, 0])
     let playerRotation = useRef(0)
     let lastPlayerPositionChange = useRef(0)
@@ -75,7 +75,7 @@ export default function GrassSim({
             cutTexture.needsUpdate = true
         }
 
-        cid.current++ 
+        cid.current++
     }, [cutCanvas, cutTexture, worldSize, playerWidth, size])
     let renderPlayerPosition = useCallback(() => {
         let dt = Date.now() - lastPlayerPositionChange.current
@@ -85,8 +85,8 @@ export default function GrassSim({
             let width = (playerWidth / worldSize * size) * .95
             let depth = (playerDepth / worldSize * size) * .95
             let context = playerPositionCanvas.getContext("2d")
-            let x = (playerPosition.current[0] + 25) / worldSize * size
-            let y = (playerPosition.current[2] + 25) / worldSize * size
+            let x = (playerPosition.current[0] + worldSize / 2) / worldSize * size
+            let y = (playerPosition.current[2] + worldSize / 2) / worldSize * size
 
             context.resetTransform()
             context.fillStyle = "rgba(0, 0, 0, .025)"
@@ -99,8 +99,8 @@ export default function GrassSim({
             context.fillRect(x - width / 2, y - depth / 2, width, depth)
 
             for (let r of roadkill) {
-                let x = (r.position?.x + 25) / worldSize * size
-                let z = (r.position?.z + 25) / worldSize * size
+                let x = (r.position?.x + worldSize / 2) / worldSize * size
+                let z = (r.position?.z + worldSize / 2) / worldSize * size
 
                 context.resetTransform()
                 context.fillStyle = "rgb(255, 0,0)"
