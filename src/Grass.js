@@ -8,7 +8,12 @@ import { useModel } from "./hooks"
 import grassTransform from "./grassTransform.glsl"
 
 
-export default function Grass({ height = 1 }) {
+export default function Grass({ 
+    windScale = 2, 
+    height = 1.5, 
+    wildness = 2.5, 
+    scale = .05 
+}) {
     let counter = useRef(0)
     let cutTexture = useStore(i => i.world.cutTexture)
     let gapTexture = useStore(i => i.world.gapTexture)
@@ -20,12 +25,15 @@ export default function Grass({ height = 1 }) {
         return {
             time: { value: 0, type: "f" },
             height: { value: height, type: "f" },
-            cutHeight: { value: 0, type: "f" },
+            windScale: { value: windScale, type: "f" },
+            wildness: { value: wildness, type: "f" }, // subraction of base height
+            scale: { value: scale, type: "f" }, // scale of noise of wildness
+            cutHeight: { value: .15, type: "f" },
             cut: { value: null, type: "t" },
             gap: { value: null, type: "t" },
             playerPosition: { value: null, type: "t" }
         }
-    }, [height])
+    }, [height,windScale, wildness, scale])
 
     useEffect(() => {
         uniforms.cut.value = cutTexture
@@ -99,6 +107,9 @@ export default function Grass({ height = 1 }) {
                                 uniform sampler2D cut;
                                 uniform sampler2D playerPosition;
                                 uniform sampler2D gap; 
+                                uniform float wildness;
+                                uniform float scale;
+                                uniform float windScale;
                                  
                                 ${grassTransform}
                                 ${shader.vertexShader}
