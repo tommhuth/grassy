@@ -224,7 +224,7 @@ function Grass({
             uniforms.playerPosition.needsUpdate = true
         }
 
-        uniforms.time.value += .005
+        uniforms.time.value += .0075
         uniforms.time.needsUpdate = true
     })
 
