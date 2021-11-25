@@ -4,6 +4,7 @@ import { removeRoadkill, useStore } from "./data/store"
 import { Vector3 } from "three"
 import { Only } from "./utils"
 import Config from "./Config"
+import { OBB } from "three/examples/jsm/math/OBB"
 
 function Roadkill({ id, position, path, startIndex, speed }) {
     let ref = useRef()
@@ -11,7 +12,9 @@ function Roadkill({ id, position, path, startIndex, speed }) {
     let index = useRef(startIndex)
     let [hit, setHit] = useState(false)
     let playerPosition = useMemo(() => new Vector3(), [])
-    let playerAabb = useStore(i => i.player.aabb)
+    let playerAabb = useStore(i => i.player.obb)
+    let obb = useMemo(() => new OBB(new Vector3(0,0,0), new Vector3(1 / 2, 2 / 2, 1 / 2)), [])
+    let r = useRef(0)
 
     useEffect(() => {
         return useStore.subscribe(
@@ -20,7 +23,7 @@ function Roadkill({ id, position, path, startIndex, speed }) {
         )
     }, [playerPosition])
 
-    useFrame(() => { 
+    useFrame(() => {
         if (path && ref.current && !hit) {
             try {
                 let p = path.getPointAt(index.current, position)
@@ -37,10 +40,14 @@ function Roadkill({ id, position, path, startIndex, speed }) {
     })
 
     useFrame(() => {
-        if (playerAabb.containsPoint(position) && !hit) {
-            setHit(true)
-            console.log("ssss")
-        }
+        r.current++
+        obb.center.set(0, 0, 0)
+        obb.rotation.identity() 
+        obb.applyMatrix4(ref.current.matrixWorld) 
+
+        if (playerAabb.intersectsOBB(obb) && !hit && r.current % 6 === 0) {
+            setHit(true) 
+        } 
     })
 
     useEffect(() => {
@@ -58,8 +65,8 @@ function Roadkill({ id, position, path, startIndex, speed }) {
             <Only if={Config.DEBUG}>
                 <axesHelper scale={8} />
             </Only>
-            <mesh position={[0, .75, 0]} castShadow receiveShadow>
-                <boxBufferGeometry args={[1, 1.5, 1]} />
+            <mesh position={[0, 1, 0]} castShadow receiveShadow>
+                <boxBufferGeometry args={[1, 2, 1]} />
                 <meshLambertMaterial color={"darkgray"} />
             </mesh>
         </group>

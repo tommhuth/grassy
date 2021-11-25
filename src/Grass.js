@@ -1,30 +1,32 @@
 import { useFrame } from "@react-three/fiber"
-import { useEffect, useMemo, useRef } from "react"
-import { DoubleSide, RGBADepthPacking } from "three"
-import { useStore } from "./data/store"
-import vertexShader from "./vertex.glsl"
-import fragmentShader from "./fragment.glsl"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { DoubleSide,Matrix4,Vector3, MeshLambertMaterial, Quaternion, RGBADepthPacking } from "three"
+import { useStore } from "./data/store" 
 import { useModel } from "./hooks"
-import grassTransform from "./grassTransform.glsl"
-
-
+import grassTransform from "./grassTransform.glsl" 
+import random from "@huth/random"
+import { glsl } from "./utils"
+ 
 export default function Grass({
     windScale = 2,
     height = 1.5,
     wildness = 1.5,
     scale = .05
 }) {
-    let counter = useRef(0)
+    let [ref, setRef] = useState()
+    let partSize = 3
+    let size = useStore(i => i.world.size)
     let cutTexture = useStore(i => i.world.cutTexture)
     let gapTexture = useStore(i => i.world.gapTexture)
     let cutHeight = useStore(i => i.player.cutHeight)
     let playerPositionTexture = useStore(i => i.world.playerPositionTexture)
-    let worldSize = useStore(i => i.world.size)
-    let grass = useModel({ name: "grass2" })// 135000  
-    let uniforms = useMemo(() => {
-        return {
-            time: { value: 0, type: "f" },
+    let model = useModel({ name: "grass5" })
+    let counter = useRef(0)
+    let { material, uniforms } = useMemo(() => {
+        let uniforms = {
             height: { value: height, type: "f" },
+            time: { value: 0, type: "f" },
+            size: { value: size, type: "f" },
             windScale: { value: windScale, type: "f" },
             wildness: { value: wildness, type: "f" }, // subraction of base height
             scale: { value: scale, type: "f" }, // scale of noise of wildness
@@ -33,7 +35,63 @@ export default function Grass({
             gap: { value: null, type: "t" },
             playerPosition: { value: null, type: "t" }
         }
-    }, [height, windScale, wildness, scale])
+        let material = new MeshLambertMaterial({
+            color: "blue",
+            wireframe: false,
+            side: DoubleSide,
+            onBeforeCompile(shader) {
+                shader.vertexShader = shader.vertexShader.replace("#include <common>", glsl`
+                    #include <common>
+             
+                    uniform float time; 
+                    uniform float windScale;
+                    uniform float height;
+                    uniform float cutHeight;
+                    uniform float wildness;
+                    uniform float scale;
+                    uniform sampler2D cut;
+                    uniform sampler2D playerPosition;
+                    uniform sampler2D gap;
+                    uniform float size;  
+                    varying vec3 vPosition;
+
+                    ${grassTransform}
+                `)
+                shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", glsl`
+                    #include <begin_vertex>
+            
+                    vec4 wpos = instanceMatrix *  vec4(position, 1.);
+            
+                    wpos = modelMatrix * wpos;
+            
+                    transformed =  grassTransform(position, wpos.xyz) ; 
+
+                    vPosition = transformed;
+                `)
+                shader.uniforms = {
+                    ...shader.uniforms,
+                    ...uniforms
+                }
+
+                shader.fragmentShader = shader.fragmentShader.replace("#include <common>", glsl`
+                    #include <common>
+
+                    varying vec3 vPosition;
+                `)
+                shader.fragmentShader = shader.fragmentShader.replace("#include <dithering_fragment>", glsl`
+                    #include <dithering_fragment>
+
+                    vec3 top = vec3(.05, .3, .2);
+                    vec3 bottom = vec3(0., .9, 0.); 
+                    float height = 3.;
+
+                    gl_FragColor = vec4(mix(top, bottom, vPosition.y/ height), clamp(vPosition.y / .25, 0., 1.));
+                `)
+            }
+        })
+
+        return { uniforms, material }
+    }, [scale, wildness, height, size, windScale])
 
     useEffect(() => {
         uniforms.cut.value = cutTexture
@@ -51,10 +109,6 @@ export default function Grass({
         uniforms.playerPosition.value = playerPositionTexture
     }, [uniforms, playerPositionTexture])
 
-    useFrame(({ gl }) => {
-        document.getElementById("debug").innerText = gl.info.render.calls
-    })
-
     useFrame(() => {
         counter.current++
 
@@ -70,28 +124,62 @@ export default function Grass({
         uniforms.time.needsUpdate = true
     })
 
-    if (!grass) {
+    useEffect(() => {
+        if (ref && model?.geometry) {
+            let i = 0
+            let matrix = new Matrix4()
+            let pos = new Vector3()
+            let scale = new Vector3(1, 1, 1)
+            let rotation = new Quaternion()
+
+            for (let x = 0; x < Math.floor(size / partSize); x += 1) {
+                for (let z = 0; z <  Math.floor(size / partSize); z += 1) {
+                    rotation.setFromAxisAngle(new Vector3(0, 1, 0), random.float(.1, .75))
+
+                    pos.set(
+                        partSize * x - (size) / 2 + partSize / 2,
+                        0,
+                        partSize * z - (size) / 2 + partSize / 2
+                    )
+
+
+                    ref.setMatrixAt(i, matrix.compose(pos, rotation, scale))
+                    i++
+                }
+            }
+            console.log(i)
+
+            ref.instanceMatrix.needsUpdate = true
+        }
+    }, [ref, partSize, size, model?.geometry])
+
+
+    if (!model) {
         return null
     }
 
     return (
         <>
-            <mesh
-                geometry={grass?.geometry}
+            <instancedMesh
                 position={[0, 0, 0]}
+                ref={setRef}
+                args={[model.geometry, material, size * size]}
+                receiveShadow
                 castShadow
-                receiveShadow 
-            >
+            > 
                 <meshDepthMaterial
                     attach="customDepthMaterial"
                     args={[{
                         depthPacking: RGBADepthPacking,
                         alphaTest: .5,
                         onBeforeCompile(shader) {
-                            const chunk = `
-                                #include <begin_vertex> 
- 
-                                transformed = grassTransform(position);
+                            const chunk = glsl`
+                                #include <begin_vertex>
+
+                                vec4 wpos = instanceMatrix * vec4(position, 1.);
+            
+                                wpos = modelMatrix * wpos; 
+                                transformed = grassTransform(position, wpos.xyz);
                             `
 
                             shader.uniforms = {
@@ -99,38 +187,29 @@ export default function Grass({
                                 ...uniforms
                             }
 
-                            shader.vertexShader = ` 
+                            shader.vertexShader = glsl`
                                 uniform float time;
+                                uniform float windScale;
                                 uniform float height;
                                 uniform float cutHeight;
-                                uniform sampler2D cut;
-                                uniform sampler2D playerPosition;
-                                uniform sampler2D gap; 
                                 uniform float wildness;
                                 uniform float scale;
-                                uniform float windScale;
-                                 
+                                uniform sampler2D cut;
+                                uniform sampler2D playerPosition;
+                                uniform sampler2D gap;
+                                uniform float size;
+
                                 ${grassTransform}
                                 ${shader.vertexShader}
                             `.replace("#include <begin_vertex>", chunk)
                         },
                     }]}
                 />
-                <shaderMaterial
-                    attach="material"
-                    side={DoubleSide}
-                    transparent
-                    args={[{
-                        vertexShader,
-                        fragmentShader,
-                        uniforms,
-                    }]}
-                />
-            </mesh>
+            </instancedMesh>  
 
-            <mesh position={[0, -2.5, 0]} receiveShadow>
-                <boxBufferGeometry args={[worldSize + 10, 5, worldSize + 10]} />
-                <meshLambertMaterial color="darkgreen" />
+            <mesh position={[0, -5, 0]} receiveShadow>
+                <meshLambertMaterial color="lightgreen" />
+                <boxBufferGeometry args={[size + 10, 10, size + 10, 1, 1, 1]} />
             </mesh>
         </>
     )

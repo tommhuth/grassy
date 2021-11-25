@@ -23,6 +23,7 @@ export default function Player() {
     let healthy = engineHealth > 0
     let ref = useRef()
     let speed = useRef(0)
+    let r = useRef(0)
     let [crashed, setCrashed] = useState(false)
     let rotation = useRef(Math.PI / 2)
     let keys = useKeys()
@@ -118,9 +119,11 @@ export default function Player() {
     })
 
     useFrame(() => {
-        if (!ref.current) {
+        r.current++
+
+        if (!ref.current || r.current % 2 !== 0) {
             return
-        }
+        } 
          
         aabb.setFromObject(ref.current) 
         obb.center.set(0, 0, 0)

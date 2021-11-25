@@ -41,7 +41,7 @@ const store = create(() => ({
         turnStrength: .025,
     },
     world: {
-        size: 60,
+        size: 75,
         cutTexture: null,
         gapTexture: null,
         playerPositionTexture: null

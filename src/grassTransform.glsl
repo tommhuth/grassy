@@ -1,15 +1,14 @@
 @import ./noise;
 
  
-vec3 grassTransform(vec3 position) {
-    vec3 p = vec3(position.xyz);
-    vec4 wp = modelMatrix * vec4(p, 1.); 
-    vec2 uv = vec2((wp.x + size/2.) / size, (-wp.z + size/2.) / size);
+vec3 grassTransform(vec3 position, vec3 wp) { // worldpos
+    vec3 p = vec3(position.xyz); 
+    vec2 uv = vec2((wp.x + size / 2.) / size, (-wp.z + size/2.) / size);
     bool isGap = texture2D(gap, uv).r > 0.;   
 
     if (isGap) { 
         p.y = -.1;
-    } else { 
+    } else {  
         float y = 1. - max(texture2D(cut, uv).r - cutHeight, texture2D(playerPosition, uv).r);
 
         float scaleHeight = noise(vec3(wp.x  * scale, .0, wp.z * scale)) * wildness; 
@@ -22,6 +21,7 @@ vec3 grassTransform(vec3 position) {
         p.z += wind; 
 
         p.y *= y * (height + scaleHeight);
+        
     } 
 
     return p;
