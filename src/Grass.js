@@ -14,7 +14,6 @@ export default function Grass({
     scale = .05
 }) {
     let [ref, setRef] = useState()
-    let partSize = 3
     let size = useStore(i => i.world.size)
     let cutTexture = useStore(i => i.world.cutTexture)
     let gapTexture = useStore(i => i.world.gapTexture)
@@ -126,32 +125,34 @@ export default function Grass({
 
     useEffect(() => {
         if (ref && model?.geometry) {
+            let partSize = 3
             let i = 0
             let matrix = new Matrix4()
-            let pos = new Vector3()
+            let position = new Vector3()
             let scale = new Vector3(1, 1, 1)
             let rotation = new Quaternion()
+            let y = new Vector3(0, 1, 0)
 
             for (let x = 0; x < Math.floor(size / partSize); x += 1) {
                 for (let z = 0; z <  Math.floor(size / partSize); z += 1) {
-                    rotation.setFromAxisAngle(new Vector3(0, 1, 0), random.float(.1, .75))
+                    rotation.setFromAxisAngle(y, random.float(.1, .75))
 
-                    pos.set(
+                    position.set(
                         partSize * x - (size) / 2 + partSize / 2,
                         0,
                         partSize * z - (size) / 2 + partSize / 2
-                    )
+                    ) 
 
-
-                    ref.setMatrixAt(i, matrix.compose(pos, rotation, scale))
+                    ref.setMatrixAt(i, matrix.compose(position, rotation, scale))
                     i++
                 }
             }
+            
             console.log(i)
 
             ref.instanceMatrix.needsUpdate = true
         }
-    }, [ref, partSize, size, model?.geometry])
+    }, [ref, size, model?.geometry])
 
 
     if (!model) {
