@@ -73,7 +73,7 @@ export default function Controls() {
             speed.current = clamp(speed.current, vehicle.minSpeed, vehicle.maxSpeed)
         } else if (mode.current === "touch") {
             if (!stouch.touching) {
-                speed.current *= .95
+                speed.current = .1
             }
 
             if (!rtouch.touching) {
@@ -111,12 +111,12 @@ export default function Controls() {
                 onTouchMove={(e) => {
                     let touch = e.nativeEvent.targetTouches[0]
                     let turnScale = speed.current > 0 ? speed.current / vehicle.maxSpeed : Math.abs(speed.current / vehicle.minSpeed)
-                    let value = (rtouch.start - touch.clientX) * .001
+                    let value = -(rtouch.start - touch.clientX) * .001
 
                     rotation.current += value * turnScale
                     rtouch.count++
 
-                    if (rtouch.count % 2 === 0) {
+                    if (rtouch.count % 3 === 0) {
                         rtouch.start = touch.clientX
                     }
                 }}
@@ -154,7 +154,7 @@ export default function Controls() {
                     stouch.count++
 
                     if (stouch.count % 2 === 0) {
-                        stouch.start = touch.clientY
+                        //stouch.start = touch.clientY
                     }
                 }}
                 onTouchEnd={() => {

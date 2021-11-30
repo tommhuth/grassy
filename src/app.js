@@ -44,7 +44,7 @@ function App() {
             <Canvas
                 id="main"
                 orthographic
-                dpr={window.matchMedia("(min-width: 1000px)").matches ? .85 : [1, 2]}
+                dpr={window.matchMedia("(min-width: 1000px)").matches ? .85 : [1, 1.5]}
                 camera={{
                     zoom: window.matchMedia("(max-width: 800px)").matches ? 34 : 40,
                     near: 0,
