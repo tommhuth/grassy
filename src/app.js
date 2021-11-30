@@ -1,9 +1,27 @@
 import "../assets/styles/app.scss"
 
+if (!window.OffscreenCanvas) {
+    window.OffscreenCanvas = class OffscreenCanvas {
+        constructor(width, height) {
+            this.canvas = document.createElement("canvas")
+            this.canvas.width = width
+            this.canvas.height = height
+
+            this.canvas.convertToBlob = () => {
+                return new Promise(resolve => {
+                    this.canvas.toBlob(resolve)
+                })
+            }
+
+            return this.canvas
+        }
+    }
+}
+
 import ReactDOM from "react-dom"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { useEffect, useState, useMemo, useRef } from "react"
-import { paths, setBladesActive, setCutHeight, useStore } from "./data/store"
+import { useRef } from "react"
+import { paths } from "./data/store"
 import Player from "./Player"
 import Camera from "./Camera"
 import Obstacle from "./Obstacle"
@@ -14,69 +32,21 @@ import { Only } from "./utils"
 import Config from "./Config"
 import Roadkills from "./Roadkills"
 import Grass from "./Grass"
+import Controls from "./Controls"
+import UI from "./UI"
 
-
-function UI() {
-    let engineHealth = useStore(i => i.player.engineHealth)
-    let bladesActive = useStore(i => i.player.bladesActive)
-    let speed = useRef()
-    let cutHeight = useStore(i => i.player.cutHeight)
-    let bladesHealth = useStore(i => i.player.bladesHealth)
-    let kills = useStore(i => i.player.kills)
-    let completionGrade = useStore(i => i.player.completionGrade)
-
-    useEffect(() => {
-        return useStore.subscribe(
-            i => speed.current.innerText = i.toFixed(3),
-            s => s.player.speed
-        )
-    }, [])
-
-    return (
-
-        <div
-            style={{
-                position: "absolute",
-                top: 10,
-                textAlign: "right",
-                right: 10,
-                zIndex: 1000,
-                textShadow: "0 0 .5em black"
-            }}
-        >
-            completionGrade={(completionGrade).toFixed(1) + "%"} <br />
-            engineHealth={engineHealth.toFixed(0) + "%"} <br />
-            bladesHealth={bladesHealth.toFixed(0)}% <br />
-            speed=<span ref={speed} >0.000</span><br />
-            kills={kills}<br />
-
-            <button onClick={() => setBladesActive(!bladesActive)}>
-                blades={JSON.stringify(bladesActive)}
-            </button> <br />
-
-            cut=<input
-                type="range"
-                value={cutHeight}
-                min={.05}
-                max={.4}
-                step={.05}
-                onChange={(e) => setCutHeight(e.target.valueAsNumber)}
-            /> {cutHeight.toFixed(2)}
-        </div>
-    )
-}
-
-
-function App() { 
+function App() {
     return (
         <>
             <UI />
+            <Controls />
+
             <Canvas
                 id="main"
                 orthographic
                 dpr={window.matchMedia("(min-width: 1000px)").matches ? .85 : [1, 2]}
                 camera={{
-                    zoom: window.matchMedia("(max-width: 800px)").matches ? 26 : 40,
+                    zoom: window.matchMedia("(max-width: 800px)").matches ? 34 : 40,
                     near: 0,
                     far: 100
                 }}

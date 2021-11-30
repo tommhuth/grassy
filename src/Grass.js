@@ -34,9 +34,9 @@ export default function Grass({
             gap: { value: null, type: "t" },
             playerPosition: { value: null, type: "t" }
         }
-        let material = new MeshLambertMaterial({
-            color: "blue",
+        let material = new MeshLambertMaterial({ 
             wireframe: false,
+            transparent: true,
             side: DoubleSide,
             onBeforeCompile(shader) {
                 shader.vertexShader = shader.vertexShader.replace("#include <common>", glsl`
@@ -146,9 +146,7 @@ export default function Grass({
                     ref.setMatrixAt(i, matrix.compose(position, rotation, scale))
                     i++
                 }
-            }
-            
-            console.log(i)
+            } 
 
             ref.instanceMatrix.needsUpdate = true
         }

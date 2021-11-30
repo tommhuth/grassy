@@ -2,8 +2,9 @@ import create from "zustand"
 import random from "@huth/random"
 import { Box3, Vector3, CatmullRomCurve3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
+import { clamp } from "../utils"
 
-const playerSize = [3, 1.5, 5] 
+const playerSize = [3, 1.5, 5]
 
 export const paths = [
     new CatmullRomCurve3([
@@ -13,15 +14,20 @@ export const paths = [
         new Vector3(25, 0, -12)
     ])
 ]
- 
+
 const store = create(() => ({
+    input: {
+        mode: "keyboard",
+        speed: 0,
+        rotation: 0
+    },
     player: {
         position: [0, .75, 0],
         rotation: 0,
-        speed: 0, 
+        speed: 0,
         completionGrade: 0,
         aabb: new Box3(),
-        obb: new OBB(new Vector3(0, 0, 0), new Vector3(playerSize[0] / 2, playerSize[1]/ 2, playerSize[2] / 2)),
+        obb: new OBB(new Vector3(0, 0, 0), new Vector3(playerSize[0] / 2, playerSize[1] / 2, playerSize[2] / 2)),
         radius: 2,
         size: playerSize,
         cutHeight: .15,
@@ -29,15 +35,16 @@ const store = create(() => ({
         bladesHealth: 100,
         engineHealth: 10000,
         inDanger: false,
-        kills: 0
+        kills: 0,
+        crash : 0
     },
     vehicle: {
         power: .0002,
         friction: .85,
         lightness: .8,
         bladesPenalty: .55,
-        maxSpeed: .02,
-        minSpeed: -.0075,
+        maxSpeed: .1,
+        minSpeed: -.05,
         turnStrength: .025,
     },
     world: {
@@ -50,6 +57,42 @@ const store = create(() => ({
     dangers: [],
     roadkill: []
 }))
+
+export function setCrash() {
+    store.setState({
+        player: {
+            ...store.getState().player,
+            crash: store.getState().player.crash + 1
+        }
+    })
+} 
+
+export function setInputMode(mode) {
+    store.setState({
+        input: {
+            ...store.getState().input,
+            mode
+        }
+    })
+} 
+
+export function setSpeed(speed) {
+    store.setState({
+        input: {
+            ...store.getState().input,
+            speed
+        }
+    })
+}
+
+export function setRotation(rotation) {
+    store.setState({
+        input: {
+            ...store.getState().input,
+            rotation
+        }
+    })
+}
 
 export function setCutHeight(height) {
     store.setState({
@@ -121,14 +164,7 @@ export function setInDanger(inDanger) {
     })
 }
 
-export function setSpeed(speed) {
-    store.setState({
-        player: {
-            ...store.getState().player,
-            speed
-        }
-    })
-}
+
 export function setCompletionGrade(value) {
     store.setState({
         player: {
@@ -184,14 +220,6 @@ export function setPlayerPosition(position) {
     })
 }
 
-export function setPlayerRotation(rotation) {
-    store.setState({
-        player: {
-            ...store.getState().player,
-            rotation
-        }
-    })
-}
 
 export function addObstalce({ position, obb, size, rotation = 0, aabb }) {
     store.setState({
@@ -209,4 +237,4 @@ export function addObstalce({ position, obb, size, rotation = 0, aabb }) {
     })
 }
 
-export const useStore = store 
+export const useStore = store

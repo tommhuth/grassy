@@ -94,7 +94,7 @@ export default function GrassSim({
 
             context.fillStyle = "rgb(255, 0,0)"
             context.translate(x, y)
-            context.rotate(-playerRotation.current)
+            context.rotate(-playerRotation.current + Math.PI/2)
             context.translate(-x, -y)
             context.fillRect(x - width / 2, y - depth / 2, width, depth)
 
@@ -241,7 +241,7 @@ export default function GrassSim({
             i => {
                 playerRotation.current = i
             },
-            s => s.player.rotation
+            s => s.input.rotation
         )
     }, [])
 
