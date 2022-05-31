@@ -55,13 +55,16 @@ export function useCanvas({
     y = 0, 
 }) {
     let canvas = useMemo(() => {
-        let canvas = new OffscreenCanvas(size, size)  
+        let canvas = document.createElement("canvas")
+
+        canvas.width = size
+        canvas.height = size
 
         return canvas
     }, [size])
 
     useEffect(() => {
-        if (Config.DEBUG && false) {
+        if (Config.DEBUG) {
             document.body.appendChild(canvas)
             canvas.style.position = "fixed"
             canvas.style.top = y + "px"

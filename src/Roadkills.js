@@ -1,5 +1,4 @@
 import random from "@huth/random"
-import { useFrame } from "@react-three/fiber"
 import { useEffect } from "react"
 import { addRoadkill, useStore } from "./data/store"
 import Roadkill from "./Roadkill"
@@ -13,7 +12,7 @@ export default function Roadkills() {
         let add = () => { 
             addRoadkill()
 
-            tid = setTimeout(add, random.integer(1000 * 40, 1000 * 120))
+            tid = setTimeout(add, random.integer(1000 * 40, 1000 * 60))
         }
         
         add()
@@ -21,11 +20,7 @@ export default function Roadkills() {
         return () => {
             clearTimeout(tid)
         }
-    }, [])
-
-    useFrame(({gl}) => {
-        document.getElementById("debug").innerText = gl.info.render.calls
-    })
+    }, []) 
 
     return roadkill.map(i => <Roadkill key={i.id} {...i} />)
 } 

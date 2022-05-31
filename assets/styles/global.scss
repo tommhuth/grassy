@@ -61,11 +61,9 @@ body {
     bottom: 0;  
     right: 0;
     left: 0;
-    touch-action: none;
-    /*
+    touch-action: none; 
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
     image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    */
+    image-rendering: crisp-edges; 
 }

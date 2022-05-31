@@ -1,15 +1,16 @@
 import { useFrame } from "@react-three/fiber"
-import { useEffect, useMemo, useRef, useState, useCallback } from "react"
-import { Vector2, Vector3, Quaternion, Color, Matrix4, MeshPhongMaterial } from "three"
-import { reduceBladesHealth, reduceEngineHealth, setCrash, setInDanger, setPlayerPosition, setSpeed, useStore } from "./data/store"
-import { useKeys, useModel } from "./hooks"
+import { useEffect, useMemo, useRef } from "react"
+import { Vector3, MeshPhongMaterial } from "three"
+import { reduceBladesHealth, reduceEngineHealth, setBladesActive, setInDanger, setPlayerPosition, useStore } from "./data/store"
+import { useModel } from "./hooks"
+import { Shadow } from "@react-three/drei"
 import random from "@huth/random"
 
 const mats = {
-    metalDark: new MeshPhongMaterial({ color: "#dd9" }),
+    metalDark: new MeshPhongMaterial({ color: "#555" }),
     metalRed: new MeshPhongMaterial({ color: "#fff" }),
-    metal: new MeshPhongMaterial({ color: "orange" }),
-    dark: new MeshPhongMaterial({ color: "#445" })
+    metal: new MeshPhongMaterial({ color: "#fff" }),
+    dark: new MeshPhongMaterial({ color: "#222" })
 }
 
 export default function Player() {
@@ -17,24 +18,23 @@ export default function Player() {
     let bladesActive = useStore(i => i.player.bladesActive)
     let [, height] = useStore(i => i.player.size)
     let dangers = useStore(i => i.dangers)
-    let vehicle = useStore(i => i.vehicle)
     let engineHealth = useStore(i => i.player.engineHealth)
+    let bladesHealth = useStore(i => i.player.bladesHealth)
+    let vehicle = useStore(i => i.vehicle)
     let obb = useStore(i => i.player.obb)
-    let healthy = engineHealth > 0
-    let ref = useRef()
+    let outerRef = useRef()
     let speed = useRef(0)
     let rotation = useRef(0)
     let tick = useRef(0)
-    let [crashed, setCrashed] = useState(false)
-    //let keys = useKeys()
+    let playerRef = useRef(0)
+    let shadowRef = useRef(0)
+    let bladesPenalty = useRef(1)
     let aabb = useStore(i => i.player.aabb)
     let playerRadius = useStore(i => i.player.radius)
     let inDanger = useStore(i => i.player.inDanger)
-    let playerPosition = useMemo(() => new Vector3(), [])
     let dangerPosition = useMemo(() => new Vector3(), [])
+    let playerPosition = useMemo(() => new Vector3(), [])
     let hitDelta = useMemo(() => new Vector3(), [])
-    //let velocity = useMemo(() => new Vector2(), [])
-    //let acceleration = useMemo(() => new Vector2(), [])
     let model = useModel({
         name: "craft_cargoB",
         onLoad(el) {
@@ -57,60 +57,57 @@ export default function Player() {
         return useStore.subscribe(r => rotation.current = r, state => state.input.rotation)
     }, [])
 
+    useEffect(() => {
+        if (engineHealth === 0) {
+            setBladesActive(false)
+        }
+    }, [engineHealth])
 
-    useFrame(() => {
-        if (!ref.current) {
+    useEffect(() => {
+        if (bladesHealth === 0) {
+            setBladesActive(false)
+        }
+    }, [bladesHealth])
+
+
+    useFrame(({ clock }) => {
+        if (!outerRef.current) {
             return
         }
-        /*
 
-        let speedScale = Math.abs(speed.current / (speed.current > 0 ? vehicle.maxSpeed : vehicle.minSpeed))
+        bladesPenalty.current += ((bladesActive ? vehicle.bladesPenalty : 1) - bladesPenalty.current) * .05
 
-        if (keys.w && healthy) {
-            speed.current = Math.min(speed.current + vehicle.power, vehicle.maxSpeed * (bladesActive ? vehicle.bladesPenalty : 1))
-        } else if (keys.s && healthy) {
-            speed.current = Math.max(speed.current - vehicle.power, vehicle.minSpeed)
+        outerRef.current.position.x += Math.cos(rotation.current) * speed.current * bladesPenalty.current
+        outerRef.current.position.z -= Math.sin(rotation.current) * speed.current * bladesPenalty.current
+        playerRef.current.position.y = height / 2 + Math.cos(clock.getElapsedTime() * 2) * .15
+        outerRef.current.rotation.y = rotation.current + Math.PI / 2
+    })
+
+    useFrame(() => {
+        if (!shadowRef.current) {
+            return
+        }
+
+        if (bladesActive) {
+            let size = random.float(6, 11)
+            let scale = Math.max(speed.current / (speed.current > 0 ? vehicle.maxSpeed : vehicle.minSpeed), .35)
+
+            shadowRef.current.scale.set(size, size, size)
+            shadowRef.current.material.opacity = random.float(.5, 1) * scale
         } else {
-            speed.current *= vehicle.lightness
+            let size = random.float(6, 7)
+            let scale = Math.max(speed.current / (speed.current > 0 ? vehicle.maxSpeed : vehicle.minSpeed), .25)
+
+            shadowRef.current.scale.set(size, size, size)
+            shadowRef.current.material.opacity = random.float(.4, .65) * scale
         }
-
-        if (keys.a && healthy) {
-            rotation.current += vehicle.turnStrength * speedScale
-        } else if (keys.d && healthy) {
-            rotation.current -= vehicle.turnStrength * speedScale
-        }
-
-        acceleration.x = Math.cos(rotation.current) * speed.current
-        acceleration.y = Math.sin(rotation.current) * speed.current
-
-        velocity.x += acceleration.x
-        velocity.y += acceleration.y
-
-        velocity.x *= vehicle.friction
-        velocity.y *= vehicle.friction
-
-        ref.current.position.x += velocity.x
-        ref.current.position.z -= velocity.y
-        ref.current.position.y = height / 2
-
-
-*/
-        ref.current.position.x += Math.cos(rotation.current) * speed.current
-        ref.current.position.z -= Math.sin(rotation.current) * speed.current
-        ref.current.position.y = height / 2
-        ref.current.rotation.y = rotation.current + Math.PI / 2
-
     })
 
     useFrame(() => {
-        if (!ref.current) {
-            return
+        if (outerRef.current) {
+            setPlayerPosition([outerRef.current.position.x, outerRef.current.position.y, outerRef.current.position.z])
         }
-        setPlayerPosition([ref.current.position.x, ref.current.position.y, ref.current.position.z])
-        //setPlayerRotation(ref.current.rotation.y)
-        //setSpeed(speed.current)
     })
-
 
     useEffect(() => {
         if (inDanger && bladesActive) {
@@ -137,34 +134,35 @@ export default function Player() {
     useFrame(() => {
         tick.current++
 
-        if (!ref.current || tick.current % 2 !== 0) {
+        if (!outerRef.current || tick.current % 2 !== 0) {
             return
         }
 
-        aabb.setFromObject(ref.current)
+        aabb.setFromObject(outerRef.current)
         obb.center.set(0, 0, 0)
         obb.rotation.identity()
-        obb.applyMatrix4(ref.current.matrixWorld)
+        obb.applyMatrix4(outerRef.current.matrixWorld)
 
         outer:
         for (let obstacle of obstacles) {
             if (aabb.intersectsBox(obstacle.aabb)) {
                 let crash = false
+                let hitSpeed = speed.current
 
                 while (obstacle.obb.intersectsOBB(obb)) {
                     let push = .025
-                    let direction = hitDelta.copy(ref.current.position)
+                    let direction = hitDelta.copy(outerRef.current.position)
                         .sub(obstacle.obb.center)
                         .normalize()
                         .multiplyScalar(push)
 
-                    ref.current.position.x += direction.x
-                    ref.current.position.z += direction.z
+                    outerRef.current.position.x += direction.x
+                    outerRef.current.position.z += direction.z
 
                     obb.center.set(0, 0, 0)
                     obb.rotation.identity()
-                    ref.current.updateMatrixWorld()
-                    obb.applyMatrix4(ref.current.matrixWorld)
+                    outerRef.current.updateMatrixWorld()
+                    obb.applyMatrix4(outerRef.current.matrixWorld)
 
                     crash = true
 
@@ -172,8 +170,10 @@ export default function Player() {
                 }
 
                 if (crash) {
-                    setCrash()
-                    setCrashed(true)
+                    let damage = Math.ceil(Math.abs(hitSpeed / (hitSpeed > 0 ? vehicle.maxSpeed : vehicle.minSpeed)) * 25)
+
+                    reduceEngineHealth(damage)
+
                     break outer
                 }
             }
@@ -181,19 +181,18 @@ export default function Player() {
     })
 
     useFrame(() => {
-        if (!ref.current) {
+        if (!outerRef.current) {
             return
         }
+
         let result = false
 
         for (let danger of dangers) {
-            if (danger.aabb.intersectsBox(aabb)) {
-                let distance = aabb.getCenter(dangerPosition).distanceTo(aabb.getCenter(playerPosition))
+            let distance = danger.aabb.getCenter(dangerPosition).distanceTo(aabb.getCenter(playerPosition))
 
-                if (distance < playerRadius + danger.radius) {
-                    result = true
-                    break
-                }
+            if (distance < playerRadius + danger.radius) {
+                result = true
+                break
             }
         }
 
@@ -209,8 +208,15 @@ export default function Player() {
     }
 
     return (
-        <group ref={ref}>
-            <primitive object={model} rotation-y={Math.PI} position={[0, 0, 0]} scale={[2, 2, 2]} />
+        <group ref={outerRef}>
+            <primitive ref={playerRef} object={model} rotation-y={Math.PI} position={[0, 0, 0]} scale={[2, 2, 2]} />
+            <Shadow
+                color={"#00fff7"}
+                ref={shadowRef}
+                position={[0, .001, 0]}
+                rotation={[-Math.PI / 2, 0, 0]}
+                scale={[6, 6, 6]}
+            />
         </group>
     )
 }

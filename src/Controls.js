@@ -4,8 +4,6 @@ import { setRotation, setSpeed, useStore } from "./data/store"
 import { useKeys } from "./hooks"
 
 function useAnimationFrame(callback, deps = []) {
-    // Use useRef for mutable variables that we want to persist
-    // without triggering a re-render on their change
     const requestRef = useRef()
     const previousTimeRef = useRef()
 
@@ -23,9 +21,10 @@ function useAnimationFrame(callback, deps = []) {
         requestRef.current = requestAnimationFrame(animate)
 
         return () => cancelAnimationFrame(requestRef.current)
-    }, deps) // Make sure the effect runs only once
+    }, deps)
 }
 
+// touch and controller controls are missing/incomplete
 export default function Controls() {
     let rotation = useRef(0)
     let speed = useRef(0)
@@ -52,7 +51,7 @@ export default function Controls() {
         }
     }, [crashed])
 
-    useAnimationFrame((delta) => {
+    useAnimationFrame(() => {
         if (mode.current === "keyboard") {
             let turnScale = speed.current > 0 ? speed.current / vehicle.maxSpeed : Math.abs(speed.current / vehicle.minSpeed)
 
@@ -82,8 +81,6 @@ export default function Controls() {
         }
     }, [keys])
 
-    let rtt = useRef(0)
-
     useAnimationFrame(() => {
         setRotation(rotation.current)
         setSpeed(speed.current)
@@ -100,7 +97,6 @@ export default function Controls() {
                     width: "50vw",
                     height: "100vh",
                     touchAction: "none",
-                    //outline: "2px dashed blue",
                     transform: "translateY(-50%)"
                 }}
                 onTouchStart={(e) => {
@@ -151,11 +147,7 @@ export default function Controls() {
 
                     speed.current += value
                     speed.current = clamp(speed.current, vehicle.minSpeed, vehicle.maxSpeed)
-                    stouch.count++
-
-                    if (stouch.count % 2 === 0) {
-                        //stouch.start = touch.clientY
-                    }
+                    stouch.count++ 
                 }}
                 onTouchEnd={() => {
                     stouch.touching = false

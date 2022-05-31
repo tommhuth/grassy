@@ -61,7 +61,7 @@ export default function GrassSim({
         return texture
     }, [playerPositionCanvas])
     let renderCut = useCallback(() => {
-        if (cid.current % 10 === 0) {
+        if (cid.current % 20 === 0) {
             let context = cutCanvas.getContext("2d")
 
             let cutSize = (playerWidth / worldSize * size) * .95
@@ -118,7 +118,7 @@ export default function GrassSim({
         context.fillStyle = "rgb(255, 0, 0)"
 
         for (let obstacle of obstacles) {
-            let buffer = .1
+            let buffer = .2
             let x = (obstacle.position[0] + worldSize / 2) / worldSize * size
             let z = (obstacle.position[2] + worldSize / 2) / worldSize * size
             let width = ((obstacle.size[0] + buffer) / worldSize) * size
@@ -128,17 +128,20 @@ export default function GrassSim({
             context.translate(x, z)
             context.rotate(-obstacle.rotation)
             context.translate(-x, -z)
+            context.beginPath()
             context.fillRect(x - width / 2, z - depth / 2, width, depth)
+        
         }
 
         context.resetTransform()
 
         for (let danger of dangers) {
-            let buffer = 0
+            let buffer = .2
             let x = (danger.position[0] + worldSize / 2) / worldSize * size
             let z = (danger.position[2] + worldSize / 2) / worldSize * size
             let width = ((danger.radius + buffer) / worldSize) * size
 
+            context.beginPath()
             context.arc(x, z, width, 0, Math.PI * 2)
             context.fill()
         }

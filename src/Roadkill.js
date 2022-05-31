@@ -1,20 +1,21 @@
 import { useFrame } from "@react-three/fiber"
 import { useRef, useMemo, useEffect, useState, memo } from "react"
-import { removeRoadkill, useStore } from "./data/store"
+import { incrementRoadkills, removeRoadkill, reduceEngineHealth, useStore } from "./data/store"
 import { Vector3 } from "three"
-import { Only } from "./utils"
-import Config from "./Config"
 import { OBB } from "three/examples/jsm/math/OBB"
+import animate from "@huth/animate"
+import random from "@huth/random"
 
 function Roadkill({ id, position, path, startIndex, speed }) {
     let ref = useRef()
-    let tid = useRef()
+    let [height] = useState(() => random.float(1.5, 3))
     let index = useRef(startIndex)
-    let [hit, setHit] = useState(false)
+    let [ready, setReady] = useState(false)
+    let [dead, setDead] = useState(false)
     let playerPosition = useMemo(() => new Vector3(), [])
     let playerAabb = useStore(i => i.player.obb)
-    let obb = useMemo(() => new OBB(new Vector3(0,0,0), new Vector3(1 / 2, 2 / 2, 1 / 2)), [])
-    let r = useRef(0)
+    let obb = useMemo(() => new OBB(new Vector3(0, 0, 0), new Vector3(1 / 2, height / 2, 1 / 2)), [height])
+    let tick = useRef(0)
 
     useEffect(() => {
         return useStore.subscribe(
@@ -23,8 +24,47 @@ function Roadkill({ id, position, path, startIndex, speed }) {
         )
     }, [playerPosition])
 
+    useEffect(() => {
+        let p1 = path.getPointAt(index.current)
+        let p2 = path.getPointAt(index.current + speed * 1.5)
+
+        ref.current.position.x = p1.x
+        ref.current.position.z = p1.z
+        ref.current.lookAt(p2)
+
+        animate({
+            from: 50,
+            to: position.y,
+            duration: 2000,
+            easing: "easeInOutQuint",
+            render(val) {
+                ref.current.position.y = val
+            },
+            end() {
+                setReady(true)
+            }
+        })
+    }, [])
+
+    useEffect(() => {
+        if (dead) {
+            animate({
+                from: ref.current.position.y,
+                to: 50,
+                duration: 3000,
+                easing: "easeOutQuint",
+                render(val) {
+                    ref.current.position.y = val
+                },
+                end() {
+                    removeRoadkill(id)
+                }
+            })
+        }
+    }, [dead, id])
+
     useFrame(() => {
-        if (path && ref.current && !hit) {
+        if (path && ref.current && ready && !dead) {
             try {
                 let p = path.getPointAt(index.current, position)
 
@@ -34,40 +74,33 @@ function Roadkill({ id, position, path, startIndex, speed }) {
                 index.current += speed
             } catch (e) {
                 // must be out of bounds
-                removeRoadkill(id)
+                setDead(true)
             }
         }
     })
 
     useFrame(() => {
-        r.current++
-        obb.center.set(0, 0, 0)
-        obb.rotation.identity() 
-        obb.applyMatrix4(ref.current.matrixWorld) 
-
-        if (playerAabb.intersectsOBB(obb) && !hit && r.current % 6 === 0) {
-            setHit(true) 
-        } 
-    })
-
-    useEffect(() => {
-        if (hit) {
-            tid.current = setTimeout(() => removeRoadkill(id, true), 100)
-
-            return () => {
-                clearTimeout(tid.current)
-            }
+        if (!ready || dead) {
+            return
         }
-    }, [hit, id])
+
+        tick.current++
+        obb.center.set(0, 0, 0)
+        obb.rotation.identity()
+        obb.applyMatrix4(ref.current.matrixWorld)
+
+        if (playerAabb.intersectsOBB(obb) && tick.current % 6 === 0) {
+            setDead(true)
+            incrementRoadkills()
+            reduceEngineHealth()
+        }
+    })
 
     return (
         <group ref={ref}>
-            <Only if={Config.DEBUG}>
-                <axesHelper scale={8} />
-            </Only>
-            <mesh position={[0, 1, 0]} castShadow receiveShadow>
-                <boxBufferGeometry args={[1, 2, 1]} />
-                <meshLambertMaterial color={"darkgray"} />
+            <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
+                <boxBufferGeometry args={[1, height, 1]} />
+                <meshLambertMaterial color={"#fff"} />
             </mesh>
         </group>
     )

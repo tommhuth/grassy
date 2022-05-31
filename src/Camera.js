@@ -19,9 +19,7 @@ export default function Camera({ startPosition = [30, 30, -30] }) {
         )
     }, [])
 
-    useFrame(({ gl }) => {
-        //document.getElementById("debug").innerText = gl.info.render.calls 
-
+    useFrame(() => { 
         camera.position.z += (position.current[2] + startPosition[2] - camera.position.z) * .1
         camera.position.x += (position.current[0] + startPosition[0] - camera.position.x) * .1
     })

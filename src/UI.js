@@ -2,11 +2,14 @@ import { useEffect, useRef } from "react"
 import { setBladesActive, setCutHeight, useStore } from "./data/store"
 
 
-export default function UI() { 
+export default function UI() {
     let bladesActive = useStore(i => i.player.bladesActive)
     let speed = useRef()
-    let cutHeight = useStore(i => i.player.cutHeight) 
+    let cutHeight = useStore(i => i.player.cutHeight)
     let completionGrade = useStore(i => i.player.completionGrade)
+    let engineHealth = useStore(i => i.player.engineHealth)
+    let bladesHealth = useStore(i => i.player.bladesHealth)
+    let kills = useStore(i => i.player.kills)
 
     useEffect(() => {
         return useStore.subscribe(
@@ -15,33 +18,110 @@ export default function UI() {
         )
     }, [])
 
-    return ( 
-        <div
+    return (
+        <ul
             style={{
                 position: "absolute",
-                top: 10,
+                display: "flex",
+                flexDirection: "column",
+                gap: "1em",
+                top: "2em",
                 textAlign: "right",
-                right: 10,
+                right: "2em",
                 zIndex: 1000000,
                 textShadow: "0 0 .5em black"
             }}
         >
-            completionGrade={(completionGrade).toFixed(1) + "%"} <br />
-
-            <button onClick={() => setBladesActive(!bladesActive)}>
-                blades={JSON.stringify(bladesActive)}
-            </button> <br />
-
-            cut=<input
-                type="range"
-                value={cutHeight}
-                min={.05}
-                max={.4}
-                step={.05}
-                onChange={(e) => setCutHeight(e.target.valueAsNumber)}
-            /> {cutHeight.toFixed(2)}
-        </div>
+            <li>
+                <div style={{ opacity: .7, fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".25em" }}>
+                    Completion grade
+                </div>
+                <div style={{ fontSize: 20 }}>
+                    {(Number.isNaN(completionGrade) ? 0 : completionGrade).toFixed(1) + "%"}
+                </div>
+            </li>
+            <li>
+                <div style={{ opacity: .7, fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".25em" }}>
+                    Blades
+                </div>
+                <button
+                    style={{ fontSize: 20, alignItems: "center", display: "inline-flex ", gap: ".5em", cursor: "pointer", textShadow: "0 0 .5em black" }}
+                    onClick={() => setBladesActive(!bladesActive)}
+                    disabled={bladesHealth === 0}
+                >
+                    <span
+                        style={{
+                            width: ".5em",
+                            height: ".5em",
+                            display: "block",
+                            borderRadius: "50%",
+                            background: bladesActive ? "green" : "red",
+                        }}
+                    />
+                    {bladesActive ? "Active" : "Disabled"}
+                </button>
+            </li>
+            <li>
+                <label
+                    htmlFor="cuth"
+                    style={{
+                        display: "block",
+                        textTransform: "uppercase",
+                        marginBottom: ".25em", 
+                        letterSpacing: ".1em",
+                        fontSize: 12,
+                        opacity: .7
+                    }}
+                >
+                    Cut length
+                </label>
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "1em", fontSize: 20
+                    }}
+                >
+                    <input
+                        id="cuth"
+                        type="range"
+                        value={cutHeight}
+                        min={.05}
+                        max={.3}
+                        step={.05}
+                        onChange={(e) => setCutHeight(e.target.valueAsNumber)}
+                    />
+                    <div>
+                        {(cutHeight * 200 + 10).toFixed(0)} mm
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div style={{ opacity: .7, fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".35em" }}>
+                    Health
+                </div>
+                <div style={{ fontSize: 20 }}>
+                    <span
+                        style={{
+                            opacity: .5,
+                            borderRadius: 5,
+                            marginRight: ".25em",
+                            padding: "2px 5px",
+                            outline: "1px dashed currentColor"
+                        }}
+                    >
+                        {bladesHealth.toFixed(0) + "%"}
+                    </span>
+                    {engineHealth.toFixed(0) + "%"}
+                </div>
+            </li>
+            <li>
+                <div style={{ opacity: .7, letterSpacing: ".1em", fontSize: 12, textTransform: "uppercase", marginBottom: ".25em" }}>
+                    Roadkills
+                </div>
+                <div style={{ fontSize: 20 }}>
+                    {kills}
+                </div>
+            </li>
+        </ul>
     )
 }
-
-

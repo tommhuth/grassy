@@ -1,17 +1,28 @@
 import create from "zustand"
 import random from "@huth/random"
 import { Box3, Vector3, CatmullRomCurve3 } from "three"
-import { OBB } from "three/examples/jsm/math/OBB"
-import { clamp } from "../utils"
+import { OBB } from "three/examples/jsm/math/OBB" 
 
 const playerSize = [3, 1.5, 5]
 
 export const paths = [
     new CatmullRomCurve3([
-        new Vector3(-25, 0, -25),
+        new Vector3(-30, 0, -30),
         new Vector3(-10, 0, 13),
         new Vector3(9, 0, 8),
-        new Vector3(25, 0, -12)
+        new Vector3(30, 0, -12)
+    ]),
+    new CatmullRomCurve3([
+        new Vector3(0, 0, -30), 
+        new Vector3(0, 0, 15), 
+        new Vector3(-30, 0, 30), 
+    ]),
+    new CatmullRomCurve3([
+        new Vector3(-30, 0, 0),  
+        new Vector3(-25, 0, 10),  
+        new Vector3(0, 0, -16),  
+        new Vector3(20, 0, 0),  
+        new Vector3(-5, 0, 25),  
     ])
 ]
 
@@ -33,7 +44,7 @@ const store = create(() => ({
         cutHeight: .15,
         bladesActive: false,
         bladesHealth: 100,
-        engineHealth: 10000,
+        engineHealth: 100,
         inDanger: false,
         kills: 0,
         crash : 0
@@ -42,13 +53,13 @@ const store = create(() => ({
         power: .0002,
         friction: .85,
         lightness: .8,
-        bladesPenalty: .55,
+        bladesPenalty: .4,
         maxSpeed: .1,
         minSpeed: -.05,
         turnStrength: .025,
     },
     world: {
-        size: 75,
+        size: 45,
         cutTexture: null,
         gapTexture: null,
         playerPositionTexture: null
@@ -58,7 +69,7 @@ const store = create(() => ({
     roadkill: []
 }))
 
-export function setCrash() {
+export function crash() {
     store.setState({
         player: {
             ...store.getState().player,
@@ -111,7 +122,7 @@ export function addRoadkill() {
     }
 
     let speed = random.pick(-.00075, .00075)
-    let path = paths[i]
+    let path = random.pick(...paths)
     let startIndex = speed > 0 ? .0001 : .9999
     let position = path.getPointAt(startIndex, new Vector3())
 
@@ -130,13 +141,19 @@ export function addRoadkill() {
         ]
     })
 }
-export function removeRoadkill(id, kill = false) {
-    store.setState({
-        roadkill: store.getState().roadkill.filter(i => i.id !== id),
+
+export function incrementRoadkills() {
+    store.setState({ 
         player: {
             ...store.getState().player,
-            kills: store.getState().player.kills + (kill ? 1 : 0)
+            kills: store.getState().player.kills +  1
         }
+    })
+}
+
+export function removeRoadkill(id) {
+    store.setState({
+        roadkill: store.getState().roadkill.filter(i => i.id !== id), 
     })
 }
 
@@ -193,7 +210,7 @@ export function reduceEngineHealth(amount = 30) {
         }
     })
 }
-export function reduceBladesHealth(amount = 10) {
+export function reduceBladesHealth(amount = random.integer(2, 8)) {
     store.setState({
         player: {
             ...store.getState().player,

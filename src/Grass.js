@@ -1,14 +1,14 @@
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { DoubleSide,Matrix4,Vector3, MeshLambertMaterial, Quaternion, RGBADepthPacking } from "three"
-import { useStore } from "./data/store" 
+import { DoubleSide, Matrix4, Vector3, MeshLambertMaterial, Quaternion, RGBADepthPacking } from "three"
+import { useStore } from "./data/store"
 import { useModel } from "./hooks"
-import grassTransform from "./grassTransform.glsl" 
+import grassTransform from "./grassTransform.glsl"
 import random from "@huth/random"
 import { glsl } from "./utils"
- 
+
 export default function Grass({
-    windScale = 2,
+    windScale = 3,
     height = 1.5,
     wildness = 1.5,
     scale = .05
@@ -34,7 +34,7 @@ export default function Grass({
             gap: { value: null, type: "t" },
             playerPosition: { value: null, type: "t" }
         }
-        let material = new MeshLambertMaterial({ 
+        let material = new MeshLambertMaterial({
             wireframe: false,
             transparent: true,
             side: DoubleSide,
@@ -80,11 +80,11 @@ export default function Grass({
                 shader.fragmentShader = shader.fragmentShader.replace("#include <dithering_fragment>", glsl`
                     #include <dithering_fragment>
 
-                    vec3 top = vec3(.05, .3, .2);
-                    vec3 bottom = vec3(0., .9, 0.); 
+                    vec3 top = vec3(255./255., 242./255., 133./255.);
+                    vec3 bottom = vec3(0., 122./255., 100./255.); 
                     float height = 3.;
 
-                    gl_FragColor = vec4(mix(top, bottom, vPosition.y/ height), clamp(vPosition.y / .25, 0., 1.));
+                    gl_FragColor = vec4(mix(bottom, top, vPosition.y/ height), clamp(vPosition.y / .25, 0., 1.));
                 `)
             }
         })
@@ -125,7 +125,7 @@ export default function Grass({
 
     useEffect(() => {
         if (ref && model?.geometry) {
-            let partSize = 3
+            let partSize = 3.5
             let i = 0
             let matrix = new Matrix4()
             let position = new Vector3()
@@ -134,14 +134,14 @@ export default function Grass({
             let y = new Vector3(0, 1, 0)
 
             for (let x = 0; x < Math.floor(size / partSize); x += 1) {
-                for (let z = 0; z <  Math.floor(size / partSize); z += 1) {
+                for (let z = 0; z < Math.floor(size / partSize); z += 1) {
                     rotation.setFromAxisAngle(y, random.float(.1, .75))
 
                     position.set(
                         partSize * x - (size) / 2 + partSize / 2,
                         0,
                         partSize * z - (size) / 2 + partSize / 2
-                    ) 
+                    )
 
                     ref.setMatrixAt(i, matrix.compose(position, rotation, scale))
                     i++
@@ -165,7 +165,7 @@ export default function Grass({
                 args={[model.geometry, material, size * size]}
                 receiveShadow
                 castShadow
-            > 
+            >
                 <meshDepthMaterial
                     attach="customDepthMaterial"
                     args={[{
@@ -204,11 +204,11 @@ export default function Grass({
                         },
                     }]}
                 />
-            </instancedMesh>  
+            </instancedMesh>
 
-            <mesh position={[0, -5, 0]} receiveShadow>
-                <meshLambertMaterial color="lightgreen" />
-                <boxBufferGeometry args={[size + 10, 10, size + 10, 1, 1, 1]} />
+            <mesh position={[0, 0, 0]} receiveShadow rotation-x={-Math.PI/2}>
+                <meshLambertMaterial color="#555" />
+                <planeBufferGeometry args={[200, 200, 1, 1]} />
             </mesh>
         </>
     )

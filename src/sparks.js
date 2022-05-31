@@ -1,3 +1,8 @@
+import random from "@huth/random"
+import { useFrame } from "@react-three/fiber"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Color, Matrix4, Quaternion, Vector3 } from "three"
+import { useStore } from "./data/store"
 
 
 let _matrix = new Matrix4()
@@ -8,7 +13,7 @@ let _y = new Vector3(0, 1, 0)
 let _color = new Color()
 let index = 0
 
-function Sparks({ count = 100 }) {
+export default function Sparks({ count = 100 }) {
     let [instance, setInstance] = useState()
     let [sparks, setSparks] = useState([])
     let inDanger = useStore(i => i.player.inDanger)

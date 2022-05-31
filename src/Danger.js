@@ -10,6 +10,7 @@ export default function Danger({ radius, position = [0, 0, 0], rotation = [0, 0,
         aabb.setFromObject(ref.current)
 
         addDanger({ position, aabb, radius, rotation })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [aabb, radius])
 
     return (
@@ -21,7 +22,7 @@ export default function Danger({ radius, position = [0, 0, 0], rotation = [0, 0,
             rotation={rotation}
         >
             <sphereBufferGeometry args={[radius]} />
-            <meshLambertMaterial />
+            <meshLambertMaterial color="white" />
         </mesh>
     )
 }
