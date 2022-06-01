@@ -1,34 +1,33 @@
 import create from "zustand"
 import random from "@huth/random"
 import { Box3, Vector3, CatmullRomCurve3 } from "three"
-import { OBB } from "three/examples/jsm/math/OBB" 
+import { OBB } from "three/examples/jsm/math/OBB"
 
 const playerSize = [3, 1.5, 5]
 
 export const paths = [
     new CatmullRomCurve3([
-        new Vector3(-30, 0, -30),
-        new Vector3(-10, 0, 13),
+        new Vector3(-50, 0, -50),
+        new Vector3(-10, 0, 0),
         new Vector3(9, 0, 8),
-        new Vector3(30, 0, -12)
+        new Vector3(50, 0, -12)
     ]),
     new CatmullRomCurve3([
-        new Vector3(0, 0, -30), 
-        new Vector3(0, 0, 15), 
-        new Vector3(-30, 0, 30), 
+        new Vector3(0, 0, -50),
+        new Vector3(0, 0, 15),
+        new Vector3(-50, 0, 30),
     ]),
     new CatmullRomCurve3([
-        new Vector3(-30, 0, 0),  
-        new Vector3(-25, 0, 10),  
-        new Vector3(0, 0, -16),  
-        new Vector3(20, 0, 0),  
-        new Vector3(-5, 0, 25),  
+        new Vector3(-50, 0, 0),
+        new Vector3(-25, 0, 10),
+        new Vector3(0, 0, -16),
+        new Vector3(25, 0, 0),
+        new Vector3(5, 0, 55),
     ])
 ]
 
 const store = create(() => ({
     input: {
-        mode: "keyboard",
         speed: 0,
         rotation: 0
     },
@@ -47,7 +46,7 @@ const store = create(() => ({
         engineHealth: 100,
         inDanger: false,
         kills: 0,
-        crash : 0
+        crash: 0
     },
     vehicle: {
         power: .0002,
@@ -59,7 +58,7 @@ const store = create(() => ({
         turnStrength: .025,
     },
     world: {
-        size: 45,
+        size: 55,
         cutTexture: null,
         gapTexture: null,
         playerPositionTexture: null
@@ -69,6 +68,15 @@ const store = create(() => ({
     roadkill: []
 }))
 
+export function setWorldSize(size) {
+    store.setState({
+        world: {
+            ...store.getState().world,
+            size
+        }
+    })
+}
+
 export function crash() {
     store.setState({
         player: {
@@ -76,7 +84,7 @@ export function crash() {
             crash: store.getState().player.crash + 1
         }
     })
-} 
+}
 
 export function setInputMode(mode) {
     store.setState({
@@ -85,7 +93,7 @@ export function setInputMode(mode) {
             mode
         }
     })
-} 
+}
 
 export function setSpeed(speed) {
     store.setState({
@@ -143,17 +151,17 @@ export function addRoadkill() {
 }
 
 export function incrementRoadkills() {
-    store.setState({ 
+    store.setState({
         player: {
             ...store.getState().player,
-            kills: store.getState().player.kills +  1
+            kills: store.getState().player.kills + 1
         }
     })
 }
 
 export function removeRoadkill(id) {
     store.setState({
-        roadkill: store.getState().roadkill.filter(i => i.id !== id), 
+        roadkill: store.getState().roadkill.filter(i => i.id !== id),
     })
 }
 

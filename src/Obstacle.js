@@ -45,7 +45,7 @@ function Obstacle({
     return (
         <mesh ref={ref} castShadow receiveShadow scale={[width, height, depth]}>
             <primitive object={model?.geometry || new BoxBufferGeometry()} attach="geometry" />
-            <meshLambertMaterial   color="#444" />
+            <meshLambertMaterial   color="#666" />
         </mesh>
     )
 }

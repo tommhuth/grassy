@@ -12,7 +12,7 @@ vec3 grassTransform(vec3 position, vec3 wp) { // worldpos
         float y = 1. - max(texture2D(cut, uv).r - cutHeight, texture2D(playerPosition, uv).r);
 
         float heightEase = clamp(p.y / 2. - .25, 0., y);
-        float scaleHeight = noise(vec3(wp.x  * scale, .0, wp.z * scale)) * wildness; 
+        float scaleHeight = noise(vec3(wp.x  * scale + randomizer, .0, wp.z * scale + randomizer)) * wildness; 
         float windStrength = noise(vec3(wp.x * .05 + time + 75., 0., wp.z * .05 + 75.)) * windScale;
         float wind = noise(vec3(wp.x  * .05 + time , .0, wp.z * .05 + time * .1)) * windStrength;
             

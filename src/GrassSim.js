@@ -115,6 +115,7 @@ export default function GrassSim({
     let renderGap = useCallback(() => {
         let context = gapCanvas.getContext("2d")
 
+        context.clearRect(0, 0, size, size)
         context.fillStyle = "rgb(255, 0, 0)"
 
         for (let obstacle of obstacles) {
@@ -166,7 +167,7 @@ export default function GrassSim({
         return Math.min(filled / mapSize, 1) * 100
     }, [completionCanvas, cutCanvas, mapSize, completionFidelity])
 
-    useEffect(() => {
+    useEffect(() => {  
         clearTimeout(tid.current)
         tid.current = setTimeout(() => {
             let context = completionCanvas.getContext("2d")
@@ -184,7 +185,7 @@ export default function GrassSim({
             }
 
             setMapSize((completionFidelity * completionFidelity) - exempt)
-        }, 350)
+        }, 750)
 
         return () => {
             clearTimeout(tid.current)
@@ -200,7 +201,9 @@ export default function GrassSim({
 
         context.clearRect(0, 0, size, size)
         cutTexture.needsUpdate = true
-    }, [cutHeight, cutCanvas, cutTexture, size])
+        setCompletionGrade(0)
+    }, [cutHeight, worldSize, cutCanvas, cutTexture, size])
+    
 
     useEffect(() => {
         let updateCompletionGrade = () => {

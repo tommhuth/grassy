@@ -20,6 +20,7 @@ module.exports = {
             {
                 "runtime": "automatic"
             }
-        ]
+        ],
+        "module:@react-three/babel",
     ]
 }

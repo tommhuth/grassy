@@ -1,6 +1,6 @@
-import { useFrame } from "@react-three/fiber"
+import { useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { DoubleSide, Matrix4, Vector3, MeshLambertMaterial, Quaternion, RGBADepthPacking } from "three"
+import { DoubleSide, Matrix4, Vector3, MeshBasicMaterial, Quaternion, RGBADepthPacking } from "three"
 import { useStore } from "./data/store"
 import { useModel } from "./hooks"
 import grassTransform from "./grassTransform.glsl"
@@ -14,6 +14,7 @@ export default function Grass({
     scale = .05
 }) {
     let [ref, setRef] = useState()
+    let { viewport } = useThree()
     let size = useStore(i => i.world.size)
     let cutTexture = useStore(i => i.world.cutTexture)
     let gapTexture = useStore(i => i.world.gapTexture)
@@ -24,6 +25,9 @@ export default function Grass({
     let { material, uniforms } = useMemo(() => {
         let uniforms = {
             height: { value: height, type: "f" },
+            randomizer: { value: Math.random(), type: "f" },
+            canvasCross: { value: 0, type: "f" },
+            cameraCenterPosition: { value: [0, 0, 0], type: "v3" },
             time: { value: 0, type: "f" },
             size: { value: size, type: "f" },
             windScale: { value: windScale, type: "f" },
@@ -34,38 +38,48 @@ export default function Grass({
             gap: { value: null, type: "t" },
             playerPosition: { value: null, type: "t" }
         }
-        let material = new MeshLambertMaterial({
+        let material = new MeshBasicMaterial({
             wireframe: false,
             transparent: true,
             side: DoubleSide,
             onBeforeCompile(shader) {
                 shader.vertexShader = shader.vertexShader.replace("#include <common>", glsl`
                     #include <common>
-             
+                    
                     uniform float time; 
                     uniform float windScale;
+                    uniform float randomizer;
                     uniform float height;
                     uniform float cutHeight;
+                    uniform float canvasCross;
                     uniform float wildness;
+                    uniform vec3 cameraCenterPosition;
                     uniform float scale;
                     uniform sampler2D cut;
                     uniform sampler2D playerPosition;
                     uniform sampler2D gap;
                     uniform float size;  
                     varying vec3 vPosition;
+                    flat out int vIgnore;
 
                     ${grassTransform}
                 `)
                 shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", glsl`
                     #include <begin_vertex>
             
-                    vec4 wpos = instanceMatrix *  vec4(position, 1.);
+                    vec4 globalPosition = instanceMatrix *  vec4(position, 1.);
             
-                    wpos = modelMatrix * wpos;
+                    globalPosition = modelMatrix * globalPosition;
             
-                    transformed =  grassTransform(position, wpos.xyz) ; 
+                    transformed =  grassTransform(position, globalPosition.xyz) ; 
 
                     vPosition = transformed;
+
+                    if (length(cameraCenterPosition - globalPosition.xyz) > canvasCross) {
+                        vIgnore = 1;
+                    } else {
+                        vIgnore = 0;
+                    }
                 `)
                 shader.uniforms = {
                     ...shader.uniforms,
@@ -73,12 +87,16 @@ export default function Grass({
                 }
 
                 shader.fragmentShader = shader.fragmentShader.replace("#include <common>", glsl`
-                    #include <common>
+                    #include <common> 
 
-                    varying vec3 vPosition;
+                    varying vec3 vPosition; 
+                    flat in int vIgnore;  
                 `)
-                shader.fragmentShader = shader.fragmentShader.replace("#include <dithering_fragment>", glsl`
-                    #include <dithering_fragment>
+                shader.fragmentShader = shader.fragmentShader.replace("#include <dithering_fragment>", glsl` 
+
+                    if (vIgnore == 1) {
+                        discard;
+                    } 
 
                     vec3 top = vec3(255./255., 242./255., 133./255.);
                     vec3 bottom = vec3(0., 122./255., 100./255.); 
@@ -92,9 +110,25 @@ export default function Grass({
         return { uniforms, material }
     }, [scale, wildness, height, size, windScale])
 
+
+    useEffect(() => {
+        let diagonal = Math.sqrt(viewport.width ** 2 + viewport.height ** 2)
+
+        uniforms.canvasCross.value = diagonal * .75
+        uniforms.canvasCross.needsUpdate = true  
+    }, [viewport, uniforms, size])
+
+    useEffect(() => {
+        useStore.subscribe(position => {
+            uniforms.cameraCenterPosition.value = [position[0] + 2, 0, position[2] - 2]
+            uniforms.cameraCenterPosition.needsUpdate = true
+        }, state => state.player.position)
+    }, [uniforms,])
+
     useEffect(() => {
         uniforms.cut.value = cutTexture
     }, [uniforms, cutTexture])
+
 
     useEffect(() => {
         uniforms.cutHeight.value = cutHeight
@@ -125,7 +159,7 @@ export default function Grass({
 
     useEffect(() => {
         if (ref && model?.geometry) {
-            let partSize = 3.5
+            let partSize = 3.75
             let i = 0
             let matrix = new Matrix4()
             let position = new Vector3()
@@ -175,10 +209,10 @@ export default function Grass({
                             const chunk = glsl`
                                 #include <begin_vertex>
 
-                                vec4 wpos = instanceMatrix * vec4(position, 1.);
+                                vec4 globalPosition = instanceMatrix * vec4(position, 1.);
             
-                                wpos = modelMatrix * wpos; 
-                                transformed = grassTransform(position, wpos.xyz);
+                                globalPosition = modelMatrix * globalPosition; 
+                                transformed = grassTransform(position, globalPosition.xyz);
                             `
 
                             shader.uniforms = {
@@ -188,6 +222,7 @@ export default function Grass({
 
                             shader.vertexShader = glsl`
                                 uniform float time;
+                                uniform float randomizer;
                                 uniform float windScale;
                                 uniform float height;
                                 uniform float cutHeight;
@@ -206,8 +241,8 @@ export default function Grass({
                 />
             </instancedMesh>
 
-            <mesh position={[0, 0, 0]} receiveShadow rotation-x={-Math.PI/2}>
-                <meshLambertMaterial color="#555" />
+            <mesh position={[0, 0, 0]} receiveShadow rotation-x={-Math.PI / 2}>
+                <meshLambertMaterial color="#777" />
                 <planeBufferGeometry args={[200, 200, 1, 1]} />
             </mesh>
         </>

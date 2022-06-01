@@ -51,8 +51,8 @@ function Roadkill({ id, position, path, startIndex, speed }) {
             animate({
                 from: ref.current.position.y,
                 to: 50,
-                duration: 3000,
-                easing: "easeOutQuint",
+                duration: 700,
+                easing: "easeInQuart",
                 render(val) {
                     ref.current.position.y = val
                 },
