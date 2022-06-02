@@ -242,7 +242,7 @@ export default function Grass({
             </instancedMesh>
 
             <mesh position={[0, 0, 0]} receiveShadow rotation-x={-Math.PI / 2}>
-                <meshLambertMaterial color="#777" />
+                <meshLambertMaterial color="#888" />
                 <planeBufferGeometry args={[200, 200, 1, 1]} />
             </mesh>
         </>
