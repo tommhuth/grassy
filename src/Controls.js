@@ -8,14 +8,14 @@ export default function Controls() {
     let rotation = useRef(0)
     let speed = useRef(0)
     let keys = useKeys()
-    let crash = useStore(i => i.player.crash)
+    let crashCounter = useStore(i => i.player.crashCounter)
     let vehicle = useStore(i => i.vehicle)
     let [crashed, setCrashed] = useState(false) 
 
     useEffect(() => {
         speed.current *= -.5
         setCrashed(true)
-    }, [crash])
+    }, [crashCounter])
 
     useEffect(() => {
         if (crashed) {

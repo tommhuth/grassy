@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react"
 import { Box3 } from "three"
-import { addDanger } from "./data/store"
+import { addDanger, removeDanger } from "./data/store"
 
 export default function Danger({ radius, position = [0, 0, 0], rotation = [0, 0, 0] }) {
     let aabb = useMemo(() => new Box3(), [])
@@ -9,7 +9,11 @@ export default function Danger({ radius, position = [0, 0, 0], rotation = [0, 0,
     useEffect(() => {
         aabb.setFromObject(ref.current)
 
-        addDanger({ position, aabb, radius, rotation })
+        let id = addDanger({ position, aabb, radius, rotation })
+
+        return () => {
+            removeDanger(id)
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [aabb, radius])
 
@@ -21,7 +25,7 @@ export default function Danger({ radius, position = [0, 0, 0], rotation = [0, 0,
             position={position}
             rotation={rotation}
         >
-            <sphereBufferGeometry args={[radius]} />
+            <sphereBufferGeometry args={[radius, 12,12,12]} />
             <meshLambertMaterial color="white" />
         </mesh>
     )

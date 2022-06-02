@@ -46,7 +46,7 @@ const store = create(() => ({
         engineHealth: 100,
         inDanger: false,
         kills: 0,
-        crash: 0
+        crashCounter: 0
     },
     vehicle: {
         power: .0002,
@@ -59,14 +59,28 @@ const store = create(() => ({
     },
     world: {
         size: 55,
+        difficultyLevel: 3,
         cutTexture: null,
         gapTexture: null,
-        playerPositionTexture: null
+        playerPositionTexture: null,
+        grassWildness: 1.5,
+        grassHeight: 1.5,
+        grassNoiseScale: .05,
+        grassWindScale: 3,
     },
     obstacles: [],
     dangers: [],
     roadkill: []
 }))
+
+export function setGrassProperty(key, value) {
+    store.setState({
+        world: {
+            ...store.getState().world,
+            [key]: value,
+        }
+    })
+}
 
 export function setWorldSize(size) {
     store.setState({
@@ -77,11 +91,14 @@ export function setWorldSize(size) {
     })
 }
 
-export function crash() {
+export function crash(amount) {
+    const state = store.getState()
+
     store.setState({
         player: {
-            ...store.getState().player,
-            crash: store.getState().player.crash + 1
+            ...state.player,
+            crashCounter: state.player.crashCounter + 1,
+            engineHealth: Math.max(state.player.engineHealth - amount, 0)
         }
     })
 }
@@ -130,6 +147,7 @@ export function addRoadkill() {
     }
 
     let speed = random.pick(-.00075, .00075)
+    let speedScale = random.float(.5, 1.5)
     let path = random.pick(...paths)
     let startIndex = speed > 0 ? .0001 : .9999
     let position = path.getPointAt(startIndex, new Vector3())
@@ -144,7 +162,7 @@ export function addRoadkill() {
                 position,
                 startIndex,
                 path,
-                speed
+                speed: speedScale * speed
             }
         ]
     })
@@ -166,11 +184,13 @@ export function removeRoadkill(id) {
 }
 
 export function addDanger({ position, radius, rotation, aabb }) {
+    let id = random.id()
+
     store.setState({
         dangers: [
             ...store.getState().dangers,
             {
-                id: random.id(),
+                id,
                 position,
                 radius,
                 aabb,
@@ -178,6 +198,14 @@ export function addDanger({ position, radius, rotation, aabb }) {
             }
         ]
     })
+
+    return id
+}
+
+export function removeDanger(id) { 
+    store.setState({
+        dangers: store.getState().dangers.filter(i => i.id !== id)
+    }) 
 }
 
 export function setInDanger(inDanger) {

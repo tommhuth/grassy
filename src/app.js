@@ -7,7 +7,6 @@ import Player from "./Player"
 import Camera from "./Camera"
 import Obstacle from "./Obstacle"
 import GrassSim from "./GrassSim"
-import Danger from "./Danger"
 import { BufferGeometry, PlaneBufferGeometry, CanvasTexture, MeshBasicMaterial, PlaneGeometry } from "three"
 import { Only } from "./utils"
 import Config from "./Config"
@@ -18,6 +17,7 @@ import UI from "./UI"
 import Lights from "./Lights"
 import { EffectComposer } from "@react-three/postprocessing"
 import { Suspense } from "react"
+import Dangers from "./Dangers"
 
 extend({
     PlaneBufferGeometry,
@@ -41,25 +41,7 @@ function App() {
 
             <GrassSim />
             <Roadkills />
-
-            <Danger
-                position={[0, 0, 5]}
-                radius={.5}
-            />
-
-            <Danger
-                position={[-5, 0, 5]}
-                radius={.4}
-            />
-            <Danger
-                position={[-15, 0, 15]}
-                radius={1.25}
-            />
-            <Danger
-                position={[10, 0, -15]}
-                radius={.85}
-            />
-
+            <Dangers />
 
             <Obstacle
                 size={[5, 5, 5]}
@@ -105,7 +87,7 @@ window.addEventListener("resize", () => {
             near: -100,
             far: 500
         },
-        dpr: window.matchMedia("(max-width: 1000px)").matches ? .85 : .75,
+        dpr: window.devicePixelRatio === 1 ? .7 : window.devicePixelRatio * .35,
         gl: {
             antialias: false,
             depth: true,

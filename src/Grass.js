@@ -7,15 +7,14 @@ import grassTransform from "./grassTransform.glsl"
 import random from "@huth/random"
 import { glsl } from "./utils"
 
-export default function Grass({
-    windScale = 3,
-    height = 1.5,
-    wildness = 1.5,
-    scale = .05
-}) {
+export default function Grass() {
     let [ref, setRef] = useState()
     let { viewport } = useThree()
     let size = useStore(i => i.world.size)
+    let wildness = useStore(i => i.world.grassWildness)
+    let height = useStore(i => i.world.grassHeight)
+    let windScale = useStore(i => i.world.grassWindScale)
+    let grassNoiseScale = useStore(i => i.world.grassNoiseScale)
     let cutTexture = useStore(i => i.world.cutTexture)
     let gapTexture = useStore(i => i.world.gapTexture)
     let cutHeight = useStore(i => i.player.cutHeight)
@@ -32,7 +31,7 @@ export default function Grass({
             size: { value: size, type: "f" },
             windScale: { value: windScale, type: "f" },
             wildness: { value: wildness, type: "f" }, // subraction of base height
-            scale: { value: scale, type: "f" }, // scale of noise of wildness
+            scale: { value: grassNoiseScale, type: "f" }, // scale of noise of wildness
             cutHeight: { value: .15, type: "f" },
             cut: { value: null, type: "t" },
             gap: { value: null, type: "t" },
@@ -90,6 +89,7 @@ export default function Grass({
                     #include <common> 
 
                     varying vec3 vPosition; 
+                    uniform float height; 
                     flat in int vIgnore;  
                 `)
                 shader.fragmentShader = shader.fragmentShader.replace("#include <dithering_fragment>", glsl` 
@@ -99,16 +99,15 @@ export default function Grass({
                     } 
 
                     vec3 top = vec3(255./255., 242./255., 133./255.);
-                    vec3 bottom = vec3(0., 122./255., 100./255.); 
-                    float height = 3.;
+                    vec3 bottom = vec3(0., 122./255., 100./255.);  
 
-                    gl_FragColor = vec4(mix(bottom, top, vPosition.y/ height), clamp(vPosition.y / .25, 0., 1.));
+                    gl_FragColor = vec4(mix(bottom, top, clamp((vPosition.y - 1.) / height, -.25, 1.)), clamp(vPosition.y / .25, 0., 1.));
                 `)
             }
         })
 
         return { uniforms, material }
-    }, [scale, wildness, height, size, windScale])
+    }, [grassNoiseScale, wildness, height, size, windScale])
 
 
     useEffect(() => {
@@ -133,6 +132,11 @@ export default function Grass({
     useEffect(() => {
         uniforms.cutHeight.value = cutHeight
     }, [uniforms, cutHeight])
+
+    useEffect(() => {
+        uniforms.height.value = height
+        uniforms.height.needsUpdate = true
+    }, [uniforms, height])
 
     useEffect(() => {
         uniforms.gap.value = gapTexture

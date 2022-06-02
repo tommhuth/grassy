@@ -2,8 +2,66 @@
 @import "variables.scss";
 @import "typography.scss";
 
-.cdebug {
-    @media (max-width: 900px) {
-        display: none;
+.ui-map-controls {
+    bottom: -3.5em;
+    position: absolute;  
+    padding-bottom: 2em; 
+    left: 2em;
+    z-index: 100;
+    text-shadow: 0 0 .5em black;
+    transition: all .4s;
+
+    &__control {
+        display: flex;
+        gap: .75em;
+        font-size: 22px;
     }
+
+    &__inner {
+        display: flex;
+        gap: 3em;
+    }
+
+    &__list {
+        gap: 2em;
+        flex-direction: row;
+        display: flex;
+    }
+    
+    &:hover {
+        bottom: 0;
+    }
+} 
+
+.ui-player {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25em;
+    top: 2em;
+    right: 2em;
+    text-align: right;
+    z-index: 100;
+    text-shadow: 0 0 .5em black;
+
+    &__label {
+        opacity: .7;
+        font-size: 12px;
+        letter-spacing: .125em;
+        text-transform: uppercase;
+        margin-bottom: .35em;
+    } 
+
+    &__value {
+        font-size: 20px;
+    }
+} 
+
+.title {
+    font-size: 34px;
+    font-weight: normal;
+    line-height: 1.1;
+    text-align: left;
+    margin-bottom: 1em;
 }
+                  

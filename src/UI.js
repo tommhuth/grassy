@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { setBladesActive, setCutHeight, useStore, setWorldSize } from "./data/store"
+import { setBladesActive, setCutHeight, useStore, setWorldSize, setGrassProperty } from "./data/store"
 
 
 export default function UI() {
@@ -21,45 +21,62 @@ export default function UI() {
 
     return (
         <>
-            <ul
-                style={{
-                    position: "absolute",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1em",
-                    bottom: "2em",
-                    textAlign: "right",
-                    left: "2em",
-                    zIndex: 1000000,
-                    textShadow: "0 0 .5em black"
-                }}
-            >
-                <li>
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: "1em", fontSize: 20
-                        }}>
-                        <input value={world.size} type="range" min="30" max="80" step="5" onChange={(e) => setWorldSize(parseInt(e.target.value, 10))} />
+            <div className="ui-map-controls">
+                <h1 className="title">
+                    Untitled space <br />  lawn mower game
+                </h1>
+
+                <ul className="ui-map-controls__list">
+                    <li className="ui-map-controls__control">
+                        <input
+                            value={world.size}
+                            type="range"
+                            min="20"
+                            max="80"
+                            step="5"
+                            onChange={(e) => setWorldSize(parseInt(e.target.value, 10))}
+                        />
                         {world.size} &times; {world.size} m
-                    </div>
-                </li>
-            </ul>
-            <ul
-                style={{
-                    position: "absolute",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1em",
-                    top: "2em",
-                    textAlign: "right",
-                    right: "2em",
-                    zIndex: 1000000,
-                    textShadow: "0 0 .5em black"
-                }}
-            >
+                    </li>
+                    <li className="ui-map-controls__control">
+                        Tame
+                        <input
+                            value={world.grassWildness}
+                            type="range"
+                            min="0"
+                            max="3"
+                            step="0.1"
+                            onChange={(e) => setGrassProperty("grassWildness", parseFloat(e.target.value, 10))}
+                        />
+                        Wild
+                    </li>
+                    <li className="ui-map-controls__control">
+                        <input
+                            value={world.grassHeight}
+                            type="range"
+                            min="0.2"
+                            max="2.8"
+                            step="0.1"
+                            onChange={(e) => setGrassProperty("grassHeight", parseFloat(e.target.value))}
+                        />
+                        {world.grassHeight} m high
+                    </li>
+                    <li className="ui-map-controls__control">
+                        <input
+                            value={world.difficultyLevel}
+                            type="range"
+                            min="0"
+                            max="10"
+                            step="1"
+                            onChange={(e) => setGrassProperty("difficultyLevel", parseFloat(e.target.value))}
+                        />
+                        {world.difficultyLevel} obstacles
+                    </li>
+                </ul>
+            </div>
+            <ul className="ui-player"   >
                 <li>
-                    <div style={{ opacity: .7, fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".25em" }}>
+                    <div className="ui-player__label">
                         Progress
                     </div>
                     <div style={{ fontSize: 20 }}>
@@ -67,11 +84,18 @@ export default function UI() {
                     </div>
                 </li>
                 <li>
-                    <div style={{ opacity: .7, fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".25em" }}>
+                    <div className="ui-player__label">
                         Blades
                     </div>
                     <button
-                        style={{ fontSize: 20, alignItems: "center", display: "inline-flex ", gap: ".5em", cursor: "pointer", textShadow: "0 0 .5em black" }}
+                        className="ui-player__value"
+                        style={{
+                            alignItems: "center",
+                            display: "inline-flex ",
+                            gap: ".5em",
+                            cursor: "pointer",
+                            textShadow: "0 0 .5em black"
+                        }}
                         onClick={() => setBladesActive(!bladesActive)}
                         disabled={bladesHealth === 0}
                     >
@@ -81,7 +105,7 @@ export default function UI() {
                                 height: ".5em",
                                 display: "block",
                                 borderRadius: "50%",
-                                background: bladesActive ? "green" : "red",
+                                background: bladesActive ? "#00ff73" : "#e0005e",
                             }}
                         />
                         {bladesActive ? "Active" : "Disabled"}
@@ -90,21 +114,15 @@ export default function UI() {
                 <li>
                     <label
                         htmlFor="cuth"
-                        style={{
-                            display: "block",
-                            textTransform: "uppercase",
-                            marginBottom: ".25em",
-                            letterSpacing: ".1em",
-                            fontSize: 12,
-                            opacity: .7
-                        }}
+                        className="ui-player__label"
                     >
                         Cut length
                     </label>
                     <div
+                        className="ui-player__value"
                         style={{
                             display: "flex",
-                            gap: "1em", fontSize: 20
+                            gap: "1em",
                         }}
                     >
                         <input
@@ -122,10 +140,10 @@ export default function UI() {
                     </div>
                 </li>
                 <li>
-                    <div style={{ opacity: .7, fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".35em" }}>
+                    <div className="ui-player__label">
                         Health
                     </div>
-                    <div style={{ fontSize: 20 }}>
+                    <div className="ui-player__value">
                         <span
                             style={{
                                 opacity: .5,
@@ -141,10 +159,10 @@ export default function UI() {
                     </div>
                 </li>
                 <li>
-                    <div style={{ opacity: .7, letterSpacing: ".1em", fontSize: 12, textTransform: "uppercase", marginBottom: ".25em" }}>
+                    <div className="ui-player__label">
                         Roadkills
                     </div>
-                    <div style={{ fontSize: 20 }}>
+                    <div className="ui-player__value">
                         {kills}
                     </div>
                 </li>

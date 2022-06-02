@@ -1,7 +1,7 @@
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef } from "react"
 import { Vector3, MeshPhongMaterial } from "three"
-import { reduceBladesHealth, reduceEngineHealth, setBladesActive, setInDanger, setPlayerPosition, useStore } from "./data/store"
+import { reduceBladesHealth, crash, setBladesActive, setInDanger, setPlayerPosition, useStore } from "./data/store"
 import { useModel } from "./hooks"
 import { Shadow } from "@react-three/drei"
 import random from "@huth/random"
@@ -142,14 +142,13 @@ export default function Player() {
         obb.center.set(0, 0, 0)
         obb.rotation.identity()
         obb.applyMatrix4(outerRef.current.matrixWorld)
-
-        outer:
+ 
         for (let obstacle of obstacles) {
             if (aabb.intersectsBox(obstacle.aabb)) {
-                let crash = false
+                let hasCrashed = false
                 let hitSpeed = speed.current
 
-                while (obstacle.obb.intersectsOBB(obb)) {
+                while (obstacle.obb.intersectsOBB(obb)) { 
                     let push = .025
                     let direction = hitDelta.copy(outerRef.current.position)
                         .sub(obstacle.obb.center)
@@ -164,17 +163,17 @@ export default function Player() {
                     outerRef.current.updateMatrixWorld()
                     obb.applyMatrix4(outerRef.current.matrixWorld)
 
-                    crash = true
+                    hasCrashed = true
 
                     break
                 }
 
-                if (crash) {
+                if (hasCrashed) {
                     let damage = Math.ceil(Math.abs(hitSpeed / (hitSpeed > 0 ? vehicle.maxSpeed : vehicle.minSpeed)) * 25)
+ 
+                    crash(damage)
 
-                    reduceEngineHealth(damage)
-
-                    break outer
+                    break
                 }
             }
         }
