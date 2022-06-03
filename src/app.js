@@ -51,7 +51,7 @@ function App() {
             <Obstacle
                 size={[7, 8, 6]}
                 position={[-23, 1, 0]}
-                rotation={-1}
+                rotation={-2.2}
             />
 
             <Only if={Config.DEBUG}>
