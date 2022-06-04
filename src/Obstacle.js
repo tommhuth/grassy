@@ -1,8 +1,11 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react"
-import { Box3, BoxBufferGeometry, Vector3 } from "three"
+import { Box3, Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
-import { addObstalce } from "./data/store"
-import { useModel } from "./hooks"
+import { addObstalce } from "./data/store" 
+ 
+import { useGLTF } from "@react-three/drei"
+
+useGLTF.preload("/models/box.glb")
 
 function Obstacle({
     position: [x, y, z] = [0, 0, 0],
@@ -13,7 +16,7 @@ function Obstacle({
     let obb = useMemo(() => {
         return new OBB()
     }, [])
-    let model = useModel({ name: "box" })
+    const { nodes } = useGLTF("/models/box.glb")
 
     useEffect(() => {
         obb.halfSize = new Vector3(width / 2, height / 2, depth / 2)
@@ -43,10 +46,17 @@ function Obstacle({
 
 
     return (
-        <mesh ref={ref} castShadow receiveShadow scale={[width, height, depth]}>
-            <primitive object={model?.geometry || new BoxBufferGeometry()} attach="geometry" />
-            <meshLambertMaterial color="#777" />
-        </mesh>
+        <group ref={ref} dispose={null}>
+            <mesh
+                scale={[width, height, depth]}
+                castShadow
+                receiveShadow
+                geometry={nodes.Cube.geometry}
+            >
+
+                <meshLambertMaterial color="#777" />
+            </mesh>
+        </group>
     )
 }
 

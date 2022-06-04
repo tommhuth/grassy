@@ -9,7 +9,7 @@
     left: 2em;
     z-index: 100;
     text-shadow: 0 0 .5em black;
-    transition: all .4s;
+    transition: all .4s, transform .6s 2s;
 
     &__control {
         display: flex;
@@ -43,6 +43,7 @@
     text-align: right;
     z-index: 100;
     text-shadow: 0 0 .5em black;
+    transition: transform .6s 3s;
 
     &__label {
         opacity: .7;
@@ -65,3 +66,38 @@
     margin-bottom: 1em;
 }
                   
+#ui-loading {
+    position: absolute;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    --offset: 0;
+    --text-color: rgba(255,255,255,.6);
+    display: flex;
+    transition: color .25s .35s;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    text-transform: uppercase;
+    pointer-events: none;
+
+    &::after,
+    &::before {
+        content: "";
+        position: absolute;
+        transition: all 1.5s .5s;
+        left:0;
+        width: 100%;
+        height: 50%;
+        background-color: var(--dark-green);
+    }
+
+    &::before {
+        top: var(--offset);
+    }
+    &::after {
+        bottom: var(--offset);
+    }
+}

@@ -10,7 +10,7 @@ export default function Controls() {
     let keys = useKeys()
     let crashCounter = useStore(i => i.player.crashCounter)
     let vehicle = useStore(i => i.vehicle)
-    let [crashed, setCrashed] = useState(false) 
+    let [crashed, setCrashed] = useState(false)
 
     useEffect(() => {
         speed.current *= -.5
@@ -27,24 +27,24 @@ export default function Controls() {
         }
     }, [crashed])
 
-    useFrame(() => { 
+    useFrame(() => {
         let turnScale = speed.current > 0 ? speed.current / vehicle.maxSpeed : Math.abs(speed.current / vehicle.minSpeed)
 
-        if (keys.w && !crashed) {
+        if ((keys.KeyW || keys.ArrowUp) && !crashed) {
             speed.current += .0025
-        } else if (keys.s && !crashed) {
+        } else if ((keys.KeyS || keys.ArrowDown) && !crashed) {
             speed.current -= .001
         } else {
             speed.current *= .95
         }
 
-        if (keys.d && !crashed) {
+        if ((keys.KeyA || keys.ArrowLeft) && !crashed) {
             rotation.current -= .025 * turnScale
-        } else if (keys.a && !crashed) {
+        } else if ((keys.KeyD || keys.ArrowRight) && !crashed) {
             rotation.current += .025 * turnScale
         }
 
-        speed.current = clamp(speed.current, vehicle.minSpeed, vehicle.maxSpeed) 
+        speed.current = clamp(speed.current, vehicle.minSpeed, vehicle.maxSpeed)
     }, [keys])
 
     useFrame(() => {

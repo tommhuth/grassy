@@ -1,27 +1,22 @@
 import { useEffect, useRef } from "react"
-import { setBladesActive, setCutHeight, useStore, setWorldSize, setGrassProperty } from "./data/store"
+import { setBladesActive, setCutHeight, useStore, setWorldSize, setGrassProperty, State } from "./data/store"
 
 
 export default function UI() {
     let bladesActive = useStore(i => i.player.bladesActive)
-    let speed = useRef()
     let cutHeight = useStore(i => i.player.cutHeight)
     let completionGrade = useStore(i => i.player.completionGrade)
     let engineHealth = useStore(i => i.player.engineHealth)
     let bladesHealth = useStore(i => i.player.bladesHealth)
     let kills = useStore(i => i.player.kills)
     let world = useStore(i => i.world)
-
-    useEffect(() => {
-        return useStore.subscribe(
-            i => speed.current.innerText = i.toFixed(2),
-            s => s.player.speed
-        )
-    }, [])
+    let state = useStore(i => i.state)
 
     return (
         <>
-            <div className="ui-map-controls">
+            <div className="ui-map-controls" style={{
+                transform: state === State.LOADING ? "translateY(100%)" : undefined
+            }}>
                 <h1 className="title">
                     Untitled space <br />  lawn mower game
                 </h1>
@@ -74,7 +69,12 @@ export default function UI() {
                     </li>
                 </ul>
             </div>
-            <ul className="ui-player"   >
+            <ul
+                className="ui-player"
+                style={{
+                    transform: state === State.LOADING ? "translateX(200%)" : undefined
+                }}
+            >
                 <li>
                     <div className="ui-player__label">
                         Progress

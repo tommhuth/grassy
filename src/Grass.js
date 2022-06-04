@@ -1,13 +1,15 @@
-import { useFrame, useThree } from "@react-three/fiber"
+import { useFrame, useThree, useLoader } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { DoubleSide, Matrix4, Vector3, MeshBasicMaterial, Quaternion, RGBADepthPacking } from "three"
 import { useStore } from "./data/store"
-import { useModel } from "./hooks"
 import grassTransform from "./grassTransform.glsl"
 import random from "@huth/random"
 import { glsl } from "./utils"
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 
 export default function Grass() {
+    let { scene } = useLoader(GLTFLoader, "/models/grass.glb")
+    let model = scene?.children?.[0]
     let [ref, setRef] = useState()
     let { viewport } = useThree()
     let size = useStore(i => i.world.size)
@@ -19,7 +21,6 @@ export default function Grass() {
     let gapTexture = useStore(i => i.world.gapTexture)
     let cutHeight = useStore(i => i.player.cutHeight)
     let playerPositionTexture = useStore(i => i.world.playerPositionTexture)
-    let model = useModel({ name: "grass5" })
     let counter = useRef(0)
     let { material, uniforms } = useMemo(() => {
         let uniforms = {
@@ -107,14 +108,13 @@ export default function Grass() {
         })
 
         return { uniforms, material }
-    }, [grassNoiseScale, wildness, height, size, windScale])
-
+    }, [grassNoiseScale, wildness, height, size, windScale]) 
 
     useEffect(() => {
         let diagonal = Math.sqrt(viewport.width ** 2 + viewport.height ** 2)
 
         uniforms.canvasCross.value = diagonal * .75
-        uniforms.canvasCross.needsUpdate = true  
+        uniforms.canvasCross.needsUpdate = true
     }, [viewport, uniforms, size])
 
     useEffect(() => {
@@ -184,23 +184,18 @@ export default function Grass() {
                     ref.setMatrixAt(i, matrix.compose(position, rotation, scale))
                     i++
                 }
-            } 
+            }
 
             ref.instanceMatrix.needsUpdate = true
         }
     }, [ref, size, model?.geometry])
-
-
-    if (!model) {
-        return null
-    }
 
     return (
         <>
             <instancedMesh
                 position={[0, 0, 0]}
                 ref={setRef}
-                args={[model.geometry, material, size * size]}
+                args={[model?.geometry, material, size * size]}
                 receiveShadow
                 castShadow
             >

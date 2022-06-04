@@ -1,40 +1,17 @@
-import { useEffect, useMemo, useState } from "react"
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
+import { useEffect, useMemo } from "react" 
 import Config from "./Config"
-
-let loader = new GLTFLoader()
-
-export function useModel({ name, onLoad = () => {} }) {
-    let [model, setModel] = useState()
-
-    useEffect(() => {
-        if (!name) {
-            return 
-        }
-
-        loader.load(`/models/${name}.glb`, (res) => {
-            let element = res.scene.children[0] 
-
-            onLoad(element)
-            setModel(element)
-        }, undefined, console.error)
-    }, [name])
-
-    return model
-}
-
-
+ 
 export function useKeys() {
     let keys = useMemo(() => {
         return {}
     }, [])
 
     useEffect(() => {
-        let onKeyDown = ({ key }) => {
-            keys[key] = true
+        let onKeyDown = ({ code }) => {
+            keys[code] = true
         }
-        let onKeyUp = ({ key }) => {
-            delete keys[key]
+        let onKeyUp = ({ code }) => {
+            delete keys[code]
         }
 
         window.addEventListener("keydown", onKeyDown)

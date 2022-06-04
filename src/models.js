@@ -7,19 +7,10 @@ export function useModels(type) {
 }
 
 export function ModelsProvider({ children }) {
-    let [boxRef, setBoxRef] = useState()
     let [sphereRef, setSphereRef] = useState()
 
     return (
-        <context.Provider value={{ box: boxRef, sphere: sphereRef }}>
-            <instancedMesh
-                ref={setBoxRef}
-                args={[undefined, undefined, 50]}
-            >
-                <boxBufferGeometry args={[1, 1, 1, 1, 1, 1]} />
-                <meshPhongMaterial   color="orange" />
-            </instancedMesh>
-
+        <context.Provider value={{ sphere: sphereRef }}>
             <instancedMesh
                 ref={setSphereRef}
                 args={[undefined, undefined, 50]}

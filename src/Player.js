@@ -1,12 +1,13 @@
-import { useFrame } from "@react-three/fiber"
+import { useFrame } from "@react-three/fiber" 
 import { useEffect, useMemo, useRef } from "react"
 import { Vector3, MeshPhongMaterial } from "three"
 import { reduceBladesHealth, crash, setBladesActive, setInDanger, setPlayerPosition, useStore } from "./data/store"
-import { useModel } from "./hooks"
-import { Shadow } from "@react-three/drei"
+import { Shadow, useGLTF   } from "@react-three/drei"
 import random from "@huth/random"
+ 
+useGLTF.preload("/models/craft.glb")
 
-const mats = {
+const materials = {
     metalDark: new MeshPhongMaterial({ color: "#555" }),
     metalRed: new MeshPhongMaterial({ color: "#fff" }),
     metal: new MeshPhongMaterial({ color: "#fff" }),
@@ -14,6 +15,7 @@ const mats = {
 }
 
 export default function Player() {
+    let { nodes } = useGLTF("/models/craft.glb")
     let obstacles = useStore(i => i.obstacles)
     let bladesActive = useStore(i => i.player.bladesActive)
     let [, height] = useStore(i => i.player.size)
@@ -34,20 +36,7 @@ export default function Player() {
     let inDanger = useStore(i => i.player.inDanger)
     let dangerPosition = useMemo(() => new Vector3(), [])
     let playerPosition = useMemo(() => new Vector3(), [])
-    let hitDelta = useMemo(() => new Vector3(), [])
-    let model = useModel({
-        name: "craft_cargoB",
-        onLoad(el) {
-            el.traverse(i => {
-                if (i.isMesh) {
-                    i.castShadow = true
-                    i.receiveShadow = true
-
-                    i.material = mats[i.material.name]
-                }
-            })
-        },
-    })
+    let hitDelta = useMemo(() => new Vector3(), []) 
 
     useEffect(() => {
         return useStore.subscribe(s => speed.current = s, state => state.input.speed)
@@ -105,7 +94,7 @@ export default function Player() {
 
     useFrame(() => {
         if (outerRef.current) {
-            setPlayerPosition([outerRef.current.position.x, outerRef.current.position.y, outerRef.current.position.z])
+            setPlayerPosition([outerRef.current.position.x, outerRef.current.position.y, outerRef.current.position.z]) 
         }
     })
 
@@ -142,13 +131,13 @@ export default function Player() {
         obb.center.set(0, 0, 0)
         obb.rotation.identity()
         obb.applyMatrix4(outerRef.current.matrixWorld)
- 
+
         for (let obstacle of obstacles) {
             if (aabb.intersectsBox(obstacle.aabb)) {
                 let hasCrashed = false
                 let hitSpeed = speed.current
 
-                while (obstacle.obb.intersectsOBB(obb)) { 
+                while (obstacle.obb.intersectsOBB(obb)) {
                     let push = .025
                     let direction = hitDelta.copy(outerRef.current.position)
                         .sub(obstacle.obb.center)
@@ -170,7 +159,7 @@ export default function Player() {
 
                 if (hasCrashed) {
                     let damage = Math.ceil(Math.abs(hitSpeed / (hitSpeed > 0 ? vehicle.maxSpeed : vehicle.minSpeed)) * 25)
- 
+
                     crash(damage)
 
                     break
@@ -200,15 +189,35 @@ export default function Player() {
         } else if (!result && inDanger) {
             setInDanger(false)
         }
-    })
-
-    if (!model) {
-        return null
-    }
+    }) 
 
     return (
         <group ref={outerRef}>
-            <primitive ref={playerRef} object={model} rotation-y={Math.PI} position={[0, 0, 0]} scale={[2, 2, 2]} />
+            <group
+                rotation-y={Math.PI}
+                position={[0, 0, 0]}
+                scale={[2, 2, 2]}
+                dispose={null}
+                ref={playerRef}
+            >
+                <mesh
+                    geometry={nodes.Mesh_craft_cargoB.geometry}
+                    material={materials.metalDark}
+                />
+                <mesh
+                    geometry={nodes.Mesh_craft_cargoB_1.geometry}
+                    material={materials.metal}
+                />
+                <mesh
+                    geometry={nodes.Mesh_craft_cargoB_2.geometry}
+                    material={materials.dark}
+                />
+                <mesh
+                    geometry={nodes.Mesh_craft_cargoB_3.geometry}
+                    material={materials.metalRed}
+                />
+            </group>
+
             <Shadow
                 color={"#00fff7"}
                 ref={shadowRef}

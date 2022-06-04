@@ -26,7 +26,14 @@ export const paths = [
     ])
 ]
 
+export const State = {
+    LOADING: "loading",
+    READY: "ready",
+    GAME_OVER: "game-over",
+}
+
 const store = create(() => ({
+    state: State.LOADING,
     input: {
         speed: 0,
         rotation: 0
@@ -58,8 +65,8 @@ const store = create(() => ({
         turnStrength: .025,
     },
     world: {
-        size: 55,
-        difficultyLevel: 3,
+        size: 50,
+        difficultyLevel: 5,
         cutTexture: null,
         gapTexture: null,
         playerPositionTexture: null,
@@ -79,6 +86,12 @@ export function setGrassProperty(key, value) {
             ...store.getState().world,
             [key]: value,
         }
+    })
+}
+
+export function setState(value) {
+    store.setState({
+        state: value, 
     })
 }
 
@@ -202,10 +215,10 @@ export function addDanger({ position, radius, rotation, aabb }) {
     return id
 }
 
-export function removeDanger(id) { 
+export function removeDanger(id) {
     store.setState({
         dangers: store.getState().dangers.filter(i => i.id !== id)
-    }) 
+    })
 }
 
 export function setInDanger(inDanger) {
