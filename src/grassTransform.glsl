@@ -8,7 +8,7 @@ vec3 grassTransform(vec3 position, vec3 wp) { // worldpos
 
     if (isGap) { 
         p.y = -.1;
-    } else {  
+    } else {   
         float y = 1. - max(texture2D(cut, uv).r - cutHeight, texture2D(playerPosition, uv).r);
 
         float heightEase = clamp(p.y / 2. - .25, 0., y);
@@ -26,9 +26,13 @@ vec3 grassTransform(vec3 position, vec3 wp) { // worldpos
         p.x += wind2;
         p.z += wind2;
 
-        p.y *= y * (height + scaleHeight);
-        
+        p.y *= y * (height + scaleHeight); 
     } 
+
+    vec3 dir =  mousePosition - vec3(wp.x, wp.y, wp.z);
+    float scale = 1. - clamp(length(dir) / 7., 0., 1.);
+
+    p += -normalize(dir) * scale * 2. * mouseEffect ;
 
     return p;
 }

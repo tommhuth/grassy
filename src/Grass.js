@@ -12,6 +12,7 @@ export default function Grass() {
     let model = scene?.children?.[0]
     let [ref, setRef] = useState()
     let { viewport } = useThree()
+    let targetMousePosition = useRef([0, 0, 0])
     let size = useStore(i => i.world.size)
     let wildness = useStore(i => i.world.grassWildness)
     let height = useStore(i => i.world.grassHeight)
@@ -29,6 +30,8 @@ export default function Grass() {
             canvasCross: { value: 0, type: "f" },
             cameraCenterPosition: { value: [0, 0, 0], type: "v3" },
             time: { value: 0, type: "f" },
+            mouseEffect: { value: 0, type: "f" },
+            mousePosition: { value: [0, 0, 0], type: "v3" },
             size: { value: size, type: "f" },
             windScale: { value: windScale, type: "f" },
             wildness: { value: wildness, type: "f" }, // subraction of base height
@@ -50,9 +53,11 @@ export default function Grass() {
                     uniform float windScale;
                     uniform float randomizer;
                     uniform float height;
+                    uniform vec3 mousePosition;
                     uniform float cutHeight;
                     uniform float canvasCross;
                     uniform float wildness;
+                    uniform float mouseEffect;
                     uniform vec3 cameraCenterPosition;
                     uniform float scale;
                     uniform sampler2D cut;
@@ -108,7 +113,7 @@ export default function Grass() {
         })
 
         return { uniforms, material }
-    }, [grassNoiseScale, wildness, height, size, windScale]) 
+    }, [grassNoiseScale, wildness, height, size, windScale])
 
     useEffect(() => {
         let diagonal = Math.sqrt(viewport.width ** 2 + viewport.height ** 2)
@@ -147,13 +152,23 @@ export default function Grass() {
     }, [uniforms, playerPositionTexture])
 
     useFrame(() => {
+        uniforms.mouseEffect.value = Math.max(0, uniforms.mouseEffect.value - .0085)
+        uniforms.mousePosition.value[0] += (targetMousePosition.current[0] - uniforms.mousePosition.value[0]) * .025
+        uniforms.mousePosition.value[2] += (targetMousePosition.current[2] - uniforms.mousePosition.value[2]) * .025
+        uniforms.mousePosition.value[1] = 3
+
         counter.current++
 
-        if (uniforms.cut.value && counter.current % 2 === 0) {
+        if (counter.current % 2 === 0) {
+            uniforms.mousePosition.needsUpdate = true
+            uniforms.mouseEffect.needsUpdate = true 
+        }
+
+        if (uniforms.cut.value && counter.current % 10 === 0) { 
             uniforms.cut.needsUpdate = true
         }
 
-        if (uniforms.playerPosition.value && counter.current % 3 === 0) {
+        if (uniforms.playerPosition.value && counter.current % 5 === 0) {
             uniforms.playerPosition.needsUpdate = true
         }
 
@@ -225,8 +240,10 @@ export default function Grass() {
                                 uniform float windScale;
                                 uniform float height;
                                 uniform float cutHeight;
+                                uniform float mouseEffect;
                                 uniform float wildness;
                                 uniform float scale;
+                                uniform vec3 mousePosition;
                                 uniform sampler2D cut;
                                 uniform sampler2D playerPosition;
                                 uniform sampler2D gap;
@@ -240,7 +257,16 @@ export default function Grass() {
                 />
             </instancedMesh>
 
-            <mesh position={[0, 0, 0]} receiveShadow rotation-x={-Math.PI / 2}>
+            <mesh
+                onPointerMove={({ point }) => {
+                    targetMousePosition.current = [point.x, 4, point.z]
+                    uniforms.mouseEffect.value = Math.min(uniforms.mouseEffect.value + .01, 1)
+                    uniforms.mouseEffect.needsUpdate = true
+                }}
+                position={[0, 0, 0]}
+                receiveShadow
+                rotation-x={-Math.PI / 2}
+            >
                 <meshLambertMaterial color="#888" />
                 <planeBufferGeometry args={[200, 200, 1, 1]} />
             </mesh>

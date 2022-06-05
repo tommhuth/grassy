@@ -52,7 +52,7 @@ export default function UI() {
                             value={world.grassHeight}
                             type="range"
                             min="0.2"
-                            max="2.8"
+                            max="2.5"
                             step="0.1"
                             onChange={(e) => setGrassProperty("grassHeight", parseFloat(e.target.value))}
                         />
