@@ -114,6 +114,8 @@ export default function Grass() {
 
         return { uniforms, material }
     }, [grassNoiseScale, wildness, height, size, windScale])
+    let tid = useRef()
+    let [isMovingMouse, setIsMovingMouse] = useState(false)
 
     useEffect(() => {
         let diagonal = Math.sqrt(viewport.width ** 2 + viewport.height ** 2)
@@ -152,12 +154,13 @@ export default function Grass() {
     }, [uniforms, playerPositionTexture])
 
     useFrame(() => {
-        uniforms.mouseEffect.value = Math.max(0, uniforms.mouseEffect.value - .0085)
+        if (!isMovingMouse) {
+            uniforms.mouseEffect.value *= .99
+        }
+
         uniforms.mousePosition.value[0] += (targetMousePosition.current[0] - uniforms.mousePosition.value[0]) * .025
         uniforms.mousePosition.value[2] += (targetMousePosition.current[2] - uniforms.mousePosition.value[2]) * .025
         uniforms.mousePosition.value[1] = 3
-
-        counter.current++
 
         if (counter.current % 2 === 0) {
             uniforms.mousePosition.needsUpdate = true
@@ -174,6 +177,7 @@ export default function Grass() {
 
         uniforms.time.value += .005
         uniforms.time.needsUpdate = true
+        counter.current++
     })
 
     useEffect(() => {
@@ -259,9 +263,15 @@ export default function Grass() {
 
             <mesh
                 onPointerMove={({ point }) => {
+                    setIsMovingMouse(true)
                     targetMousePosition.current = [point.x, 4, point.z]
                     uniforms.mouseEffect.value = Math.min(uniforms.mouseEffect.value + .01, 1)
                     uniforms.mouseEffect.needsUpdate = true
+
+                    clearTimeout(tid.current)
+                    tid.current = setTimeout(()=> {
+                        setIsMovingMouse(false)
+                    }, 150)
                 }}
                 position={[0, 0, 0]}
                 receiveShadow
