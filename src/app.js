@@ -18,6 +18,7 @@ import Lights from "./Lights"
 import { EffectComposer } from "@react-three/postprocessing"
 import { Suspense, useEffect } from "react"
 import Dangers from "./Dangers"
+import { ModelsProvider } from "./models"
 
 extend({
     PlaneBufferGeometry,
@@ -32,7 +33,7 @@ const uiRoot = domCreateRoot(document.getElementById("ui-root"))
 uiRoot.render(<UI />)
 
 function Loader() {
-    useEffect(()=> {
+    useEffect(() => {
         return () => {
             setState(State.READY)
             document.getElementById("ui-loading").style.setProperty("--offset", "-50%")
@@ -40,13 +41,13 @@ function Loader() {
         }
     }, [])
 
-    return null 
+    return null
 }
 
 function App() {
     return (
-        <>
-            <Suspense fallback={<Loader />}>
+        <Suspense fallback={<Loader />}>
+            <ModelsProvider>
                 <Controls />
                 <Camera />
                 <Grass />
@@ -80,8 +81,8 @@ function App() {
 
                 <Lights />
                 <EffectComposer />
-            </Suspense>
-        </>
+            </ModelsProvider>
+        </Suspense>
     )
 }
 

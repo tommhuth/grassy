@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react"
 import { setBladesActive, setCutHeight, useStore, setWorldSize, setGrassProperty, State } from "./data/store"
 
 
@@ -14,9 +13,12 @@ export default function UI() {
 
     return (
         <>
-            <div className="ui-map-controls" style={{
-                transform: state === State.LOADING ? "translateY(100%)" : undefined
-            }}>
+            <div
+                className="ui-map-controls"
+                style={{
+                    transform: state === State.LOADING ? "translateY(100%)" : undefined
+                }}
+            >
                 <h1 className="title">
                     Untitled space <br />  lawn mower game
                 </h1>
@@ -61,7 +63,7 @@ export default function UI() {
                             value={world.difficultyLevel}
                             type="range"
                             min="0"
-                            max="10"
+                            max="50"
                             step="1"
                             onChange={(e) => setGrassProperty("difficultyLevel", parseFloat(e.target.value))}
                         />

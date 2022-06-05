@@ -14,9 +14,12 @@ export function ModelsProvider({ children }) {
             <instancedMesh
                 ref={setSphereRef}
                 args={[undefined, undefined, 50]}
+                position={[0,0,0]}
+                receiveShadow
+                castShadow
             >
-                <sphereBufferGeometry args={[1, 16, 16]} />
-                <meshPhongMaterial color="gray" />
+                <sphereBufferGeometry args={[1, 14, 14]} />
+                <meshPhongMaterial color="#FFF" />
             </instancedMesh>
             {children}
         </context.Provider>

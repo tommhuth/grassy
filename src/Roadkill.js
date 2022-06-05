@@ -1,6 +1,6 @@
 import { useFrame } from "@react-three/fiber"
 import { useRef, useMemo, useEffect, useState, memo } from "react"
-import { incrementRoadkills, removeRoadkill, reduceEngineHealth, useStore } from "./data/store"
+import { incrementRoadkills, removeRoadkill, reduceEngineHealth, useStore, setTrauma } from "./data/store"
 import { Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
 import animate from "@huth/animate"
@@ -93,6 +93,7 @@ function Roadkill({ id, position, path, startIndex, speed }) {
             setDead(true)
             incrementRoadkills()
             reduceEngineHealth()
+            setTrauma(1, .65)
         }
     })
 

@@ -75,10 +75,30 @@ const store = create(() => ({
         grassNoiseScale: .05,
         grassWindScale: 3,
     },
+    trauma: 0,
+    traumaScale: .2,
     obstacles: [],
     dangers: [],
     roadkill: []
 }))
+
+export function setTrauma(value, scale = .2) {
+    store.setState({
+        trauma: value,
+        traumaScale: scale
+    })
+}
+export function reduceTrauma() {
+    const trauma = store.getState().trauma
+
+    if (trauma === 0) {
+        return
+    }
+
+    store.setState({
+        trauma: Math.max(trauma - .01, 0),
+    })
+}
 
 export function setGrassProperty(key, value) {
     store.setState({
@@ -91,7 +111,7 @@ export function setGrassProperty(key, value) {
 
 export function setState(value) {
     store.setState({
-        state: value, 
+        state: value,
     })
 }
 
@@ -196,7 +216,7 @@ export function removeRoadkill(id) {
     })
 }
 
-export function addDanger({ position, radius, rotation, aabb }) {
+export function addDanger({ position, radius, aabb }) {
     let id = random.id()
 
     store.setState({
@@ -207,7 +227,6 @@ export function addDanger({ position, radius, rotation, aabb }) {
                 position,
                 radius,
                 aabb,
-                rotation
             }
         ]
     })

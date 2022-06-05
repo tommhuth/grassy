@@ -39,9 +39,9 @@ export default function Controls() {
         }
 
         if ((keys.KeyA || keys.ArrowLeft) && !crashed) {
-            rotation.current -= .025 * turnScale
-        } else if ((keys.KeyD || keys.ArrowRight) && !crashed) {
             rotation.current += .025 * turnScale
+        } else if ((keys.KeyD || keys.ArrowRight) && !crashed) {
+            rotation.current -= .025 * turnScale
         }
 
         speed.current = clamp(speed.current, vehicle.minSpeed, vehicle.maxSpeed)

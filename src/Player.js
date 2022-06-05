@@ -1,10 +1,10 @@
-import { useFrame } from "@react-three/fiber" 
+import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef } from "react"
 import { Vector3, MeshPhongMaterial } from "three"
-import { reduceBladesHealth, crash, setBladesActive, setInDanger, setPlayerPosition, useStore } from "./data/store"
-import { Shadow, useGLTF   } from "@react-three/drei"
+import { reduceBladesHealth, crash, setBladesActive, setInDanger, setPlayerPosition, useStore, setTrauma } from "./data/store"
+import { Shadow, useGLTF } from "@react-three/drei"
 import random from "@huth/random"
- 
+
 useGLTF.preload("/models/craft.glb")
 
 const materials = {
@@ -20,8 +20,7 @@ export default function Player() {
     let bladesActive = useStore(i => i.player.bladesActive)
     let [, height] = useStore(i => i.player.size)
     let dangers = useStore(i => i.dangers)
-    let engineHealth = useStore(i => i.player.engineHealth)
-    let bladesHealth = useStore(i => i.player.bladesHealth)
+    let engineHealth = useStore(i => i.player.engineHealth) 
     let vehicle = useStore(i => i.vehicle)
     let obb = useStore(i => i.player.obb)
     let outerRef = useRef()
@@ -36,7 +35,7 @@ export default function Player() {
     let inDanger = useStore(i => i.player.inDanger)
     let dangerPosition = useMemo(() => new Vector3(), [])
     let playerPosition = useMemo(() => new Vector3(), [])
-    let hitDelta = useMemo(() => new Vector3(), []) 
+    let hitDelta = useMemo(() => new Vector3(), [])
 
     useEffect(() => {
         return useStore.subscribe(s => speed.current = s, state => state.input.speed)
@@ -51,13 +50,6 @@ export default function Player() {
             setBladesActive(false)
         }
     }, [engineHealth])
-
-    useEffect(() => {
-        if (bladesHealth === 0) {
-            setBladesActive(false)
-        }
-    }, [bladesHealth])
-
 
     useFrame(({ clock }) => {
         if (!outerRef.current) {
@@ -94,13 +86,16 @@ export default function Player() {
 
     useFrame(() => {
         if (outerRef.current) {
-            setPlayerPosition([outerRef.current.position.x, outerRef.current.position.y, outerRef.current.position.z]) 
+            setPlayerPosition([outerRef.current.position.x, outerRef.current.position.y, outerRef.current.position.z])
         }
     })
 
     useEffect(() => {
         if (inDanger && bladesActive) {
-            let action = () => reduceBladesHealth()
+            let action = () => {
+                reduceBladesHealth()
+                setTrauma(random.float(.75, 1), .1)
+            }
             let id = setInterval(action, 200)
             let onVisibilityChange = () => {
                 if (document.hidden) {
@@ -158,9 +153,11 @@ export default function Player() {
                 }
 
                 if (hasCrashed) {
-                    let damage = Math.ceil(Math.abs(hitSpeed / (hitSpeed > 0 ? vehicle.maxSpeed : vehicle.minSpeed)) * 25)
+                    let maxDamage = 25
+                    let damage = Math.ceil(Math.abs(hitSpeed / (hitSpeed > 0 ? vehicle.maxSpeed : vehicle.minSpeed)) * maxDamage)
 
                     crash(damage)
+                    setTrauma(1, .15)
 
                     break
                 }
@@ -176,12 +173,15 @@ export default function Player() {
         let result = false
 
         for (let danger of dangers) {
-            let distance = danger.aabb.getCenter(dangerPosition).distanceTo(aabb.getCenter(playerPosition))
+            if (aabb.intersectsBox(danger.aabb)) {
+                let distance = danger.aabb.getCenter(dangerPosition).distanceTo(aabb.getCenter(playerPosition))
 
-            if (distance < playerRadius + danger.radius) {
-                result = true
-                break
+                if (distance < playerRadius + danger.radius) {
+                    result = true
+                    break
+                }
             }
+
         }
 
         if (result && !inDanger) {
@@ -189,7 +189,7 @@ export default function Player() {
         } else if (!result && inDanger) {
             setInDanger(false)
         }
-    }) 
+    })
 
     return (
         <group ref={outerRef}>

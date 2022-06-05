@@ -17,10 +17,10 @@ export default function Dangers() {
     let worldSize = useStore(i => i.world.size)
     let difficultyLevel = useStore(i => i.world.difficultyLevel)
     let dangers = useMemo(() => {
-        let nextRadius = cycle([.15, .25, .5, .75, 1])
+        let nextRadius = cycle([.15, .25, .5, .65, .75])
 
         return new Array(difficultyLevel).fill().map(() => {
-            let halfExtends = worldSize / 2 * 1
+            let halfExtends = worldSize / 2 * 1.1
 
             return {
                 id: random.id(),
@@ -28,12 +28,12 @@ export default function Dangers() {
                 position: [random.float(-halfExtends, halfExtends), 0, random.float(-halfExtends, halfExtends)]
             }
         })
-    }, [difficultyLevel, worldSize]) 
+    }, [difficultyLevel, worldSize])  
 
     return (
         <>
-            {dangers.map(i => {
-                return <Danger {...i} key={i.id} />
+            {dangers.map((i, index) => {
+                return <Danger {...i} key={i.id} index={index} />
             })}
         </>
     )
