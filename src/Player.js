@@ -4,12 +4,12 @@ import { Vector3, MeshPhongMaterial } from "three"
 import { reduceBladesHealth, crash, setBladesActive, setInDanger, setPlayerPosition, useStore, setTrauma } from "./data/store"
 import { Shadow, useGLTF } from "@react-three/drei"
 import random from "@huth/random"
-import { white } from "./global"
+import { darkerGray, white } from "./global"
 
 useGLTF.preload("/models/craft.glb")
 
 const materials = {
-    metalDark: new MeshPhongMaterial({ color: "#555" }),
+    metalDark: darkerGray,
     metal: white,
     dark: new MeshPhongMaterial({ color: "#111" })
 }

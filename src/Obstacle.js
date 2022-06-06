@@ -4,7 +4,7 @@ import { OBB } from "three/examples/jsm/math/OBB"
 import { addObstalce } from "./data/store" 
  
 import { useGLTF } from "@react-three/drei"
-import { lightGray } from "./global"
+import { darkerGray, lightGray } from "./global"
 
 useGLTF.preload("/models/box.glb")
  
@@ -54,7 +54,7 @@ function Obstacle({
                 castShadow
                 receiveShadow
                 geometry={nodes.Cube.geometry}
-                material={lightGray}
+                material={darkerGray}
             />
         </group>
     )
