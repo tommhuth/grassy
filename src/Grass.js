@@ -1,6 +1,6 @@
 import { useFrame, useThree, useLoader } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { DoubleSide, Matrix4, Vector3, MeshBasicMaterial, Quaternion, RGBADepthPacking } from "three"
+import { DoubleSide, Matrix4, Vector3, MeshBasicMaterial, Quaternion, RGBADepthPacking, Raycaster, Vector2 } from "three"
 import { useStore } from "./data/store"
 import grassTransform from "./grassTransform.glsl"
 import random from "@huth/random"
@@ -11,7 +11,7 @@ export default function Grass() {
     let { scene } = useLoader(GLTFLoader, "/models/grass.glb")
     let model = scene?.children?.[0]
     let [ref, setRef] = useState()
-    let { viewport } = useThree()
+    let { viewport, camera } = useThree()
     let targetMousePosition = useRef([0, 0, 0])
     let size = useStore(i => i.world.size)
     let wildness = useStore(i => i.world.grassWildness)
@@ -113,9 +113,8 @@ export default function Grass() {
         })
 
         return { uniforms, material }
-    }, [grassNoiseScale, wildness, height, size, windScale])
-    let tid = useRef()
-    let [isMovingMouse, setIsMovingMouse] = useState(false)
+    }, [grassNoiseScale, wildness, height, size, windScale]) 
+    let isMovingMouse = useRef(false)
 
     useEffect(() => {
         let diagonal = Math.sqrt(viewport.width ** 2 + viewport.height ** 2)
@@ -153,8 +152,8 @@ export default function Grass() {
         uniforms.playerPosition.value = playerPositionTexture
     }, [uniforms, playerPositionTexture])
 
-    useFrame(() => { 
-        if (!isMovingMouse) {
+    useFrame(() => {
+        if (!isMovingMouse.current) {
             uniforms.mouseEffect.value *= .99
         }
 
@@ -164,10 +163,10 @@ export default function Grass() {
 
         if (counter.current % 2 === 0) {
             uniforms.mousePosition.needsUpdate = true
-            uniforms.mouseEffect.needsUpdate = true 
+            uniforms.mouseEffect.needsUpdate = true
         }
 
-        if (uniforms.cut.value && counter.current % 10 === 0) { 
+        if (uniforms.cut.value && counter.current % 10 === 0) {
             uniforms.cut.needsUpdate = true
         }
 
@@ -208,6 +207,39 @@ export default function Grass() {
             ref.instanceMatrix.needsUpdate = true
         }
     }, [ref, size, model?.geometry])
+
+    let planeRef = useRef()
+
+    useEffect(() => {
+        let raycaster = new Raycaster()
+        let pointer = new Vector2()
+        let tid
+        let onMouseMove = e => {
+            pointer.x = (e.clientX / window.innerWidth) * 2 - 1
+            pointer.y = -(e.clientY / window.innerHeight) * 2 + 1
+
+            raycaster.setFromCamera(pointer, camera)
+            let [intersection] = raycaster.intersectObject(planeRef.current, false)
+
+            if (intersection) {
+                targetMousePosition.current = [intersection.point.x, 4, intersection.point.z]
+                uniforms.mouseEffect.value = Math.min(uniforms.mouseEffect.value + .01, 1)
+                uniforms.mouseEffect.needsUpdate = true
+                isMovingMouse.current = true
+
+                clearTimeout(tid)
+                tid = setTimeout(() => {
+                    isMovingMouse.current = false
+                }, 150)
+            }
+        }
+
+        window.addEventListener("mousemove", onMouseMove)
+
+        return () => {
+            window.removeEventListener("mousemove", onMouseMove)
+        }
+    }, [camera, uniforms])
 
     return (
         <>
@@ -262,19 +294,9 @@ export default function Grass() {
             </instancedMesh>
 
             <mesh
-                onPointerMove={({ point }) => {
-                    setIsMovingMouse(true)
-                    targetMousePosition.current = [point.x, 4, point.z]
-                    uniforms.mouseEffect.value = Math.min(uniforms.mouseEffect.value + .01, 1)
-                    uniforms.mouseEffect.needsUpdate = true
-
-                    clearTimeout(tid.current)
-                    tid.current = setTimeout(()=> {
-                        setIsMovingMouse(false)
-                    }, 150)
-                }}
                 position={[0, 0, 0]}
                 receiveShadow
+                ref={planeRef}
                 rotation-x={-Math.PI / 2}
             >
                 <meshLambertMaterial color="#888" />

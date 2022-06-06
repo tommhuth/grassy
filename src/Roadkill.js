@@ -10,48 +10,41 @@ function Roadkill({ id, position, path, startIndex, speed }) {
     let ref = useRef()
     let [height] = useState(() => random.float(1.5, 3))
     let index = useRef(startIndex)
-    let [ready, setReady] = useState(false) 
-    let playerPosition = useMemo(() => new Vector3(), [])
-    let playerAabb = useStore(i => i.player.obb)
+    let [ready, setReady] = useState(false)
+    let playerObb = useStore(i => i.player.obb)
     let obb = useMemo(() => new OBB(new Vector3(0, 0, 0), new Vector3(1 / 2, height / 2, 1 / 2)), [height])
     let tick = useRef(0)
 
     useEffect(() => {
-        return useStore.subscribe(
-            i => playerPosition.set(...i),
-            state => state.player.position
-        )
-    }, [playerPosition])
+        let pointNow = path.getPointAt(index.current)
+        let pointNext = path.getPointAt(index.current + speed * 1.5)
 
-    useEffect(() => {
-        let p1 = path.getPointAt(index.current)
-        let p2 = path.getPointAt(index.current + speed * 1.5)
-
-        ref.current.position.x = p1.x
-        ref.current.position.z = p1.z
-        ref.current.lookAt(p2)
+        ref.current.position.x = pointNow.x
+        ref.current.position.z = pointNow.z
+        ref.current.position.y = -6
+        ref.current.lookAt(new Vector3(pointNext.x, -6, pointNext.z))
 
         animate({
-            from: 50,
-            to: position.y,
-            duration: 2000,
-            easing: "easeInOutQuint",
-            render(val) {
-                ref.current.position.y = val
+            from: -6,
+            to: 0,
+            duration: 600,
+            easing: "easeOutQuint",
+            render(value) {
+                ref.current.position.y = value
             },
             end() {
                 setReady(true)
             }
         })
-    }, []) 
+    }, [path, speed, height, position])
 
     useFrame(() => {
         if (path && ref.current && ready) {
             try {
-                let p = path.getPointAt(index.current, position)
+                let point = path.getPointAt(index.current, position)
 
-                ref.current.lookAt(p)
-                ref.current.position.copy(p)
+                ref.current.lookAt(point)
+                ref.current.position.copy(point)
 
                 index.current += speed
             } catch (e) {
@@ -71,7 +64,7 @@ function Roadkill({ id, position, path, startIndex, speed }) {
         obb.rotation.identity()
         obb.applyMatrix4(ref.current.matrixWorld)
 
-        if (playerAabb.intersectsOBB(obb) && tick.current % 6 === 0) { 
+        if (playerObb.intersectsOBB(obb) && tick.current % 6 === 0) {
             incrementRoadkills()
             reduceEngineHealth()
             setTrauma(1, .65)

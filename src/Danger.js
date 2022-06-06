@@ -10,11 +10,14 @@ const _quaternion = new Quaternion()
 
 export default function Danger({ index, radius, position = [0, 0, 0] }) {
     let aabb = useMemo(() => new Box3(), [])
-    let sphereInstance = useModels("sphere") 
+    let sphereInstance = useModels("sphere")
 
     useEffect(() => {
         if (sphereInstance) {
-            aabb.setFromCenterAndSize(_position.set(...position), _scale.set(radius, radius, radius))
+            aabb.setFromCenterAndSize(
+                _position.set(...position),
+                _scale.set(radius, radius, radius)
+            )
 
             let id = addDanger({ position, aabb, radius })
 

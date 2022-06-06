@@ -1,6 +1,6 @@
 import "../assets/styles/app.scss"
 
-import { createRoot as r3fCreateRoot, extend, events } from "@react-three/fiber"
+import { createRoot as r3fCreateRoot, extend } from "@react-three/fiber"
 import { createRoot as domCreateRoot } from "react-dom/client"
 import { paths, setState, State } from "./data/store"
 import Player from "./Player"
@@ -102,8 +102,7 @@ window.addEventListener("resize", () => {
             near: -100,
             far: 500
         },
-        dpr: window.devicePixelRatio === 1 ? .7 : window.devicePixelRatio * .35,
-        events,
+        dpr: window.devicePixelRatio === 1 ? .7 : window.devicePixelRatio * .45,
         gl: {
             antialias: false,
             depth: true,

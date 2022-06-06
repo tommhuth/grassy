@@ -61,7 +61,7 @@ const store = create(() => ({
         friction: .85,
         lightness: .8,
         bladesPenalty: .4,
-        maxSpeed: .1,
+        maxSpeed: .15,
         minSpeed: -.05,
         turnStrength: .025,
     },
@@ -80,7 +80,7 @@ const store = create(() => ({
     traumaScale: .2,
     obstacles: [],
     dangers: [],
-    roadkill: []
+    roadkills: []
 }))
 
 export function setTrauma(value, scale = .2) {
@@ -183,24 +183,30 @@ export function setCutHeight(height) {
     })
 }
 
+
+export function incrementRoadkills() {
+    store.setState({
+        player: {
+            ...store.getState().player,
+            kills: store.getState().player.kills + 1
+        }
+    })
+}
+
 let i = 0
 
-export function addRoadkill() {
-    if (store.getState().roadkill.length) {
-        return false
-    }
-
+export function addRoadkill() { 
     let speed = random.pick(-.00075, .00075)
     let speedScale = random.float(.5, 1.5)
-    let path = random.pick(...paths)
+    let path = paths[i]
     let startIndex = speed > 0 ? .0001 : .9999
     let position = path.getPointAt(startIndex, new Vector3())
 
     i = (i + 1) % paths.length
 
     store.setState({
-        roadkill: [
-            ...store.getState().roadkill,
+        roadkills: [
+            ...store.getState().roadkills,
             {
                 id: random.id(),
                 position,
@@ -212,18 +218,9 @@ export function addRoadkill() {
     })
 }
 
-export function incrementRoadkills() {
-    store.setState({
-        player: {
-            ...store.getState().player,
-            kills: store.getState().player.kills + 1
-        }
-    })
-}
-
 export function removeRoadkill(id) {
     store.setState({
-        roadkill: store.getState().roadkill.filter(i => i.id !== id),
+        roadkills: store.getState().roadkills.filter(i => i.id !== id),
     })
 }
 

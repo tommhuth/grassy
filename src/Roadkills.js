@@ -1,26 +1,30 @@
-import random from "@huth/random"
 import { useEffect } from "react"
 import { addRoadkill, useStore } from "./data/store"
 import Roadkill from "./Roadkill"
 
-
 export default function Roadkills() {
-    let roadkill = useStore(i => i.roadkill)
+    let roadkills = useStore(i => i.roadkills)
 
     useEffect(() => {
-        let tid
-        let add = () => { 
-            addRoadkill()
-
-            tid = setTimeout(add, random.integer(1000 * 40, 1000 * 60))
+        let spawnRoadkill = () => setInterval(addRoadkill, 18 * 1000)
+        let iid = spawnRoadkill()
+        let onVisibilityChange = () => { 
+            if (document.hidden) {
+                clearInterval(iid)
+            } else {
+                iid = spawnRoadkill()
+            }
         }
-        
-        add()
+
+        addRoadkill()
+
+        window.addEventListener("visibilitychange", onVisibilityChange)
 
         return () => {
-            clearTimeout(tid)
+            clearInterval(iid)
+            window.removeEventListener("visibilitychange", onVisibilityChange)
         }
-    }, []) 
+    }, [])
 
-    return roadkill.map(i => <Roadkill key={i.id} {...i} />)
+    return roadkills.map(i => <Roadkill key={i.id} {...i} />)
 } 

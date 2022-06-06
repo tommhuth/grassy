@@ -17,7 +17,7 @@ export default function GrassSim({
     let bladesActive = useStore(i => i.player.bladesActive)
     let bladesHealth = useStore(i => i.player.bladesHealth)
     let cutHeight = useStore(i => i.player.cutHeight)
-    let roadkill = useStore(i => i.roadkill)
+    let roadkills = useStore(i => i.roadkills)
     let dangers = useStore(i => i.dangers)
     let obstacles = useStore(i => i.obstacles)
     let playerPosition = useRef([0, 0, 0])
@@ -81,7 +81,7 @@ export default function GrassSim({
         let dt = Date.now() - lastPlayerPositionChange.current
 
         // only keep rendering .5 second after last position change
-        if (dt < .5 * 1000 || roadkill.length) {
+        if (dt < .5 * 1000 || roadkills.length) {
             let width = (playerWidth / worldSize * size) * .95
             let depth = (playerDepth / worldSize * size) * .95
             let context = playerPositionCanvas.getContext("2d")
@@ -98,9 +98,9 @@ export default function GrassSim({
             context.translate(-x, -y)
             context.fillRect(x - width / 2, y - depth / 2, width, depth)
 
-            for (let r of roadkill) {
-                let x = (r.position?.x + worldSize / 2) / worldSize * size
-                let z = (r.position?.z + worldSize / 2) / worldSize * size
+            for (let roadkill of roadkills) {
+                let x = (roadkill.position?.x + worldSize / 2) / worldSize * size
+                let z = (roadkill.position?.z + worldSize / 2) / worldSize * size
 
                 context.resetTransform()
                 context.fillStyle = "rgb(255, 0,0)"
@@ -111,7 +111,7 @@ export default function GrassSim({
 
             playerPositionTexture.needsUpdate = true
         }
-    }, [playerPositionCanvas, roadkill, playerPositionTexture, worldSize, size, playerWidth, playerDepth])
+    }, [playerPositionCanvas, roadkills, playerPositionTexture, worldSize, size, playerWidth, playerDepth])
     let renderGap = useCallback(() => {
         let context = gapCanvas.getContext("2d")
 
@@ -165,9 +165,9 @@ export default function GrassSim({
         }
 
         return Math.min(filled / mapSize, 1) * 100
-    }, [completionCanvas, cutCanvas, mapSize, completionFidelity])
+    }, [completionCanvas, cutCanvas, mapSize, completionFidelity]) 
 
-    useEffect(() => {  
+    useEffect(() => {
         clearTimeout(tid.current)
         tid.current = setTimeout(() => {
             let context = completionCanvas.getContext("2d")

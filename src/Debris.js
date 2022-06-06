@@ -1,8 +1,8 @@
 import random from "@huth/random"
 import { useFrame } from "@react-three/fiber"
-import {   useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { Matrix4, Quaternion, Vector3 } from "three"
-import {  useStore } from "./data/store"
+import { useStore } from "./data/store"
 
 let _matrix = new Matrix4()
 let _quat = new Quaternion()
@@ -11,16 +11,21 @@ let _scale = new Vector3()
 let _y = new Vector3(0, 1, 0)
 
 export default function Debris() {
-    let [instance, setInstance] = useState() 
+    let [instance, setInstance] = useState()
     let debrisPosition = useStore(i => i.player.debrisPosition)
-    let count = 30
+    let size = 30
+    let totalCount = size * 3
+    let i = useRef(0)
     let bits = useMemo(() => {
         if (debrisPosition === null) {
             return []
         }
 
-        return new Array(count).fill().map(() => {
+        return new Array(size).fill().map(() => {
+            i.current++
+
             return {
+                index: i.current % (totalCount),
                 position: [
                     debrisPosition[0] + random.float(-1, 1),
                     random.float(0, 4),
@@ -32,9 +37,9 @@ export default function Debris() {
                 size: random.float(.2, .6)
             }
         })
-    }, [debrisPosition, count]) 
+    }, [debrisPosition, totalCount, size])
 
-    useFrame(() => { 
+    useFrame(() => {
         for (let i = 0; i < bits.length; i++) {
             let bit = bits[i]
 
@@ -51,14 +56,14 @@ export default function Debris() {
                 bit.speed *= .97
             }
 
-            instance.setMatrixAt(i, _matrix.compose(
+            instance.setMatrixAt(bit.index, _matrix.compose(
                 _position.set(...bit.position),
                 _quat.setFromAxisAngle(_y, bit.rotation),
                 _scale.set(bit.size, bit.size, bit.size)
             ))
 
             instance.instanceMatrix.needsUpdate = true
-        } 
+        }
     })
 
     return (
@@ -66,7 +71,7 @@ export default function Debris() {
             castShadow
             receiveShadow
             ref={setInstance}
-            args={[undefined, undefined, count]}
+            args={[undefined, undefined, totalCount]}
         >
             <boxBufferGeometry attach="geometry" args={[1, 1, 1, 1, 1, 1]} />
             <meshLambertMaterial color="#FFF" />
