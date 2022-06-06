@@ -2,8 +2,7 @@ const webpack = require("webpack")
 const path = require("path")
 const uuid = require("uuid")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
-const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const WebpackPwaManifest = require("webpack-pwa-manifest")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin") 
 const CopyWebpackPlugin = require("copy-webpack-plugin")
 const { InjectManifest } = require("workbox-webpack-plugin")
 
@@ -23,44 +22,13 @@ module.exports = (env, options) => {
             rev
         }),
         new CopyWebpackPlugin({
-            patterns: [
-                {
-                    from: path.join(__dirname, "assets", "splashscreens"),
-                    to: "splashscreens/[name]." + rev + ".[ext]"
-                },
+            patterns: [ 
                 {
                     from: path.join(__dirname, "assets", "models"),
                     to: "models/[name].[ext]"
                 } 
             ]
-        }),
-        new WebpackPwaManifest({
-            name: "React boilplate",
-            short_name: "React boilplate",
-            background_color: "#FFF",
-            theme_color: "#000",
-            orientation: "portrait",
-            start_url: "/",
-            display: "fullscreen",
-            inject: true,
-            ios: {
-                "apple-mobile-web-app-status-bar-style": "black-translucent"
-            },
-            filename: "./manifest-[contenthash:6].json",
-            icons: [
-                {
-                    src: path.join("assets", "icons/pwa-icon.png"),
-                    destination: "images",
-                    sizes: [192, 512]
-                },
-                {
-                    src: path.join("assets", "icons/pwa-icon.png"),
-                    destination: "images",
-                    ios: true,
-                    sizes: [120, 180]
-                }
-            ]
-        })
+        }), 
     ] 
 
     if (!options.watch) {
