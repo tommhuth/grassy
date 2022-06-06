@@ -1,11 +1,13 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react"
-import { Box3, Vector3 } from "three"
+import { Box3, MeshLambertMaterial, Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
 import { addObstalce } from "./data/store" 
  
 import { useGLTF } from "@react-three/drei"
+import { lightGray } from "./global"
 
 useGLTF.preload("/models/box.glb")
+ 
 
 function Obstacle({
     position: [x, y, z] = [0, 0, 0],
@@ -52,10 +54,8 @@ function Obstacle({
                 castShadow
                 receiveShadow
                 geometry={nodes.Cube.geometry}
-            >
-
-                <meshLambertMaterial color="#777" />
-            </mesh>
+                material={lightGray}
+            />
         </group>
     )
 }

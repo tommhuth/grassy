@@ -4,12 +4,13 @@ import { Vector3, MeshPhongMaterial } from "three"
 import { reduceBladesHealth, crash, setBladesActive, setInDanger, setPlayerPosition, useStore, setTrauma } from "./data/store"
 import { Shadow, useGLTF } from "@react-three/drei"
 import random from "@huth/random"
+import { white } from "./global"
 
 useGLTF.preload("/models/craft.glb")
 
 const materials = {
-    metalDark: new MeshPhongMaterial({ color: "#555" }), 
-    metal: new MeshPhongMaterial({ color: "#fff" }),
+    metalDark: new MeshPhongMaterial({ color: "#555" }),
+    metal: white,
     dark: new MeshPhongMaterial({ color: "#111" })
 }
 
@@ -19,7 +20,7 @@ export default function Player() {
     let bladesActive = useStore(i => i.player.bladesActive)
     let [, height] = useStore(i => i.player.size)
     let dangers = useStore(i => i.dangers)
-    let engineHealth = useStore(i => i.player.engineHealth) 
+    let engineHealth = useStore(i => i.player.engineHealth)
     let vehicle = useStore(i => i.vehicle)
     let obb = useStore(i => i.player.obb)
     let outerRef = useRef()

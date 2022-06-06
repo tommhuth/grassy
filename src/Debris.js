@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber"
 import { useMemo, useRef, useState } from "react"
 import { Matrix4, Quaternion, Vector3 } from "three"
 import { useStore } from "./data/store"
+import { box, white } from "./global"
 
 let _matrix = new Matrix4()
 let _quat = new Quaternion()
@@ -70,11 +71,9 @@ export default function Debris() {
         <instancedMesh
             castShadow
             receiveShadow
-            ref={setInstance}
-            args={[undefined, undefined, totalCount]}
-        >
-            <boxBufferGeometry attach="geometry" args={[1, 1, 1, 1, 1, 1]} />
-            <meshLambertMaterial color="#FFF" />
+            ref={setInstance} 
+            args={[box, white, totalCount]}
+        >  
         </instancedMesh>
     )
 }
