@@ -40,6 +40,7 @@ const store = create(() => ({
     },
     player: {
         position: [0, .75, 0],
+        debrisPosition: null,
         rotation: 0,
         speed: 0,
         completionGrade: 0,
@@ -88,6 +89,16 @@ export function setTrauma(value, scale = .2) {
         traumaScale: scale
     })
 }
+
+export function setDebrisPosition(position) {
+    store.setState({
+        player: { 
+            ...store.getState().player,
+            debrisPosition: position
+        }
+    })
+}
+
 export function reduceTrauma() {
     const trauma = store.getState().trauma
 

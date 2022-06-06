@@ -1,6 +1,6 @@
 import { useFrame } from "@react-three/fiber"
 import { useRef, useMemo, useEffect, useState, memo } from "react"
-import { incrementRoadkills, removeRoadkill, reduceEngineHealth, useStore, setTrauma } from "./data/store"
+import { incrementRoadkills, removeRoadkill, reduceEngineHealth, useStore, setTrauma, setDebrisPosition } from "./data/store"
 import { Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
 import animate from "@huth/animate"
@@ -10,8 +10,7 @@ function Roadkill({ id, position, path, startIndex, speed }) {
     let ref = useRef()
     let [height] = useState(() => random.float(1.5, 3))
     let index = useRef(startIndex)
-    let [ready, setReady] = useState(false)
-    let [dead, setDead] = useState(false)
+    let [ready, setReady] = useState(false) 
     let playerPosition = useMemo(() => new Vector3(), [])
     let playerAabb = useStore(i => i.player.obb)
     let obb = useMemo(() => new OBB(new Vector3(0, 0, 0), new Vector3(1 / 2, height / 2, 1 / 2)), [height])
@@ -44,27 +43,10 @@ function Roadkill({ id, position, path, startIndex, speed }) {
                 setReady(true)
             }
         })
-    }, [])
-
-    useEffect(() => {
-        if (dead) {
-            animate({
-                from: ref.current.position.y,
-                to: 50,
-                duration: 700,
-                easing: "easeInQuart",
-                render(val) {
-                    ref.current.position.y = val
-                },
-                end() {
-                    removeRoadkill(id)
-                }
-            })
-        }
-    }, [dead, id])
+    }, []) 
 
     useFrame(() => {
-        if (path && ref.current && ready && !dead) {
+        if (path && ref.current && ready) {
             try {
                 let p = path.getPointAt(index.current, position)
 
@@ -74,13 +56,13 @@ function Roadkill({ id, position, path, startIndex, speed }) {
                 index.current += speed
             } catch (e) {
                 // must be out of bounds
-                setDead(true)
+                removeRoadkill(id)
             }
         }
     })
 
     useFrame(() => {
-        if (!ready || dead) {
+        if (!ready) {
             return
         }
 
@@ -89,11 +71,12 @@ function Roadkill({ id, position, path, startIndex, speed }) {
         obb.rotation.identity()
         obb.applyMatrix4(ref.current.matrixWorld)
 
-        if (playerAabb.intersectsOBB(obb) && tick.current % 6 === 0) {
-            setDead(true)
+        if (playerAabb.intersectsOBB(obb) && tick.current % 6 === 0) { 
             incrementRoadkills()
             reduceEngineHealth()
             setTrauma(1, .65)
+            setDebrisPosition(ref.current.position.toArray())
+            removeRoadkill(id)
         }
     })
 

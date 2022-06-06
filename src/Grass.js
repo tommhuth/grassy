@@ -153,7 +153,7 @@ export default function Grass() {
         uniforms.playerPosition.value = playerPositionTexture
     }, [uniforms, playerPositionTexture])
 
-    useFrame(() => {
+    useFrame(() => { 
         if (!isMovingMouse) {
             uniforms.mouseEffect.value *= .99
         }

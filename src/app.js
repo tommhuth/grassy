@@ -19,6 +19,7 @@ import { EffectComposer } from "@react-three/postprocessing"
 import { Suspense, useEffect } from "react"
 import Dangers from "./Dangers"
 import { ModelsProvider } from "./models"
+import Debris from "./Debris"
 
 extend({
     PlaneBufferGeometry,
@@ -48,6 +49,7 @@ function App() {
     return (
         <Suspense fallback={<Loader />}>
             <ModelsProvider>
+                <Debris />
                 <Controls />
                 <Camera />
                 <Grass />

@@ -8,10 +8,9 @@ import random from "@huth/random"
 useGLTF.preload("/models/craft.glb")
 
 const materials = {
-    metalDark: new MeshPhongMaterial({ color: "#555" }),
-    metalRed: new MeshPhongMaterial({ color: "#fff" }),
+    metalDark: new MeshPhongMaterial({ color: "#555" }), 
     metal: new MeshPhongMaterial({ color: "#fff" }),
-    dark: new MeshPhongMaterial({ color: "#222" })
+    dark: new MeshPhongMaterial({ color: "#111" })
 }
 
 export default function Player() {
@@ -203,18 +202,26 @@ export default function Player() {
                 <mesh
                     geometry={nodes.Mesh_craft_cargoB.geometry}
                     material={materials.metalDark}
+                    castShadow
+                    receiveShadow
                 />
                 <mesh
                     geometry={nodes.Mesh_craft_cargoB_1.geometry}
                     material={materials.metal}
+                    castShadow
+                    receiveShadow
                 />
                 <mesh
                     geometry={nodes.Mesh_craft_cargoB_2.geometry}
                     material={materials.dark}
+                    castShadow
+                    receiveShadow
                 />
                 <mesh
                     geometry={nodes.Mesh_craft_cargoB_3.geometry}
-                    material={materials.metalRed}
+                    material={materials.metal}
+                    castShadow
+                    receiveShadow
                 />
             </group>
 
