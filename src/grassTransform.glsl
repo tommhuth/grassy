@@ -1,5 +1,8 @@
 @import ./noise;
 
+float easeInOutQuad(float x) {
+    return x < 0.5 ? 2. * x * x : 1. - pow(-2. * x + 2., 2.) / 2.;
+}
  
 vec3 grassTransform(vec3 position, vec3 wp) { // worldpos
     vec3 p = vec3(position.xyz); 
@@ -30,9 +33,9 @@ vec3 grassTransform(vec3 position, vec3 wp) { // worldpos
     } 
 
     vec3 dir =  mousePosition - vec3(wp.x, wp.y, wp.z);
-    float scale = 1. - clamp(length(dir) / 7., 0., 1.);
+    float scale = 1. - clamp(length(dir) / 8., 0., 1.); 
 
-    p += -normalize(dir) * scale * 2. * mouseEffect ;
+    p += -normalize(dir) * easeInOutQuad(scale) * 2. * mouseEffect ;
 
     return p;
 }
