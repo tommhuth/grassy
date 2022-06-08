@@ -27,6 +27,7 @@ export default function Debris() {
 
             return {
                 index: i.current % (totalCount),
+                tick: 0,
                 position: [
                     debrisPosition[0] + random.float(-1, 1),
                     random.float(0, 4),
@@ -41,28 +42,43 @@ export default function Debris() {
     }, [debrisPosition, totalCount, size])
 
     useFrame(() => {
+        let mustUpdate = false
+
         for (let i = 0; i < bits.length; i++) {
             let bit = bits[i]
 
             bit.gravity -= .01
             bit.position[0] += Math.cos(bit.rotation) * bit.speed
-            bit.position[1] += bit.gravity
             bit.position[2] -= Math.sin(bit.rotation) * bit.speed
 
             if (bit.position[1] <= bit.size / 2) {
-                bit.position[1] = bit.size / 2
                 bit.gravity *= -.45
                 bit.speed *= .8
             } else {
                 bit.speed *= .97
             }
 
-            instance.setMatrixAt(bit.index, _matrix.compose(
-                _position.set(...bit.position),
-                _quat.setFromAxisAngle(_y, bit.rotation),
-                _scale.set(bit.size, bit.size, bit.size)
-            ))
+            if (bit.speed > .0001) {
+                bit.position[1] = Math.max(bit.position[1] + bit.gravity, bit.size / 2)
+            } else {
+                bit.tick++
 
+                if (bit.tick > 60 * 10) {
+                    bit.position[1] += (-bit.size / 2 - 1 - bit.position[1]) * ((i / bits.length) * .05 + .02)
+                }
+            }
+
+            if (bit.tick < 60 * (10 + 2)) {
+                instance.setMatrixAt(bit.index, _matrix.compose(
+                    _position.set(...bit.position),
+                    _quat.setFromAxisAngle(_y, bit.rotation),
+                    _scale.set(bit.size, bit.size, bit.size)
+                ))
+                mustUpdate = true
+            }
+        }
+
+        if (mustUpdate) {
             instance.instanceMatrix.needsUpdate = true
         }
     })
@@ -71,9 +87,9 @@ export default function Debris() {
         <instancedMesh
             castShadow
             receiveShadow
-            ref={setInstance} 
+            ref={setInstance}
             args={[box, white, totalCount]}
-        >  
+        >
         </instancedMesh>
     )
 }
