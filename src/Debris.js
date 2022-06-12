@@ -13,16 +13,15 @@ let _y = new Vector3(0, 1, 0)
 
 export default function Debris() {
     let [instance, setInstance] = useState()
-    let debrisPosition = useStore(i => i.player.debrisPosition)
-    let size = 30
-    let totalCount = size * 3
+    let debrisPosition = useStore(i => i.player.debrisPosition) 
+    let totalCount = 200
     let i = useRef(0)
     let bits = useMemo(() => {
         if (debrisPosition === null) {
             return []
         }
 
-        return new Array(size).fill().map(() => {
+        return new Array(random.integer(20, 30)).fill().map(() => {
             i.current++
 
             return {
@@ -39,7 +38,7 @@ export default function Debris() {
                 size: random.float(.2, .6)
             }
         })
-    }, [debrisPosition, totalCount, size])
+    }, [debrisPosition, totalCount])
 
     useFrame(() => {
         let mustUpdate = false
