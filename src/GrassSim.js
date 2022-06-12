@@ -30,39 +30,21 @@ export default function GrassSim({
     let cutTexture = useMemo(() => {
         let texture = new CanvasTexture(cutCanvas)
 
-        /*
-        texture.generateMipmaps = false 
-        texture.magFilter = LinearFilter
-        texture.minFilter = LinearFilter
-        */
-
         return texture
     }, [cutCanvas])
     let gapTexture = useMemo(() => {
         let texture = new CanvasTexture(gapCanvas)
-
-        /*
-        texture.generateMipmaps = false 
-        texture.magFilter = LinearFilter
-        texture.minFilter = LinearFilter
-        */
 
         return texture
     }, [gapCanvas])
     let playerPositionTexture = useMemo(() => {
         let texture = new CanvasTexture(playerPositionCanvas)
 
-        /*
-        texture.generateMipmaps = false 
-        texture.magFilter = LinearFilter
-        texture.minFilter = LinearFilter
-        */
-
         return texture
     }, [playerPositionCanvas])
     let renderCut = useCallback(() => {
         if (cid.current % 20 === 0) {
-            let context = cutCanvas.getContext("2d")
+            let context = cutCanvas.getContext("2d", { alpha: false })
 
             let cutSize = (playerWidth / worldSize * size) * .95
             let x = (playerPosition.current[0] + worldSize / 2) / worldSize * size
@@ -84,7 +66,7 @@ export default function GrassSim({
         if (dt < .5 * 1000 || roadkills.length) {
             let width = (playerWidth / worldSize * size) * .95
             let depth = (playerDepth / worldSize * size) * .95
-            let context = playerPositionCanvas.getContext("2d")
+            let context = playerPositionCanvas.getContext("2d", { alpha: false })
             let x = (playerPosition.current[0] + worldSize / 2) / worldSize * size
             let y = (playerPosition.current[2] + worldSize / 2) / worldSize * size
 
@@ -94,7 +76,7 @@ export default function GrassSim({
 
             context.fillStyle = "rgb(255, 0,0)"
             context.translate(x, y)
-            context.rotate(-playerRotation.current + Math.PI/2)
+            context.rotate(-playerRotation.current + Math.PI / 2)
             context.translate(-x, -y)
             context.fillRect(x - width / 2, y - depth / 2, width, depth)
 
@@ -113,7 +95,7 @@ export default function GrassSim({
         }
     }, [playerPositionCanvas, roadkills, playerPositionTexture, worldSize, size, playerWidth, playerDepth])
     let renderGap = useCallback(() => {
-        let context = gapCanvas.getContext("2d")
+        let context = gapCanvas.getContext("2d", { alpha: false })
 
         context.clearRect(0, 0, size, size)
         context.fillStyle = "rgb(255, 0, 0)"
@@ -131,7 +113,7 @@ export default function GrassSim({
             context.translate(-x, -z)
             context.beginPath()
             context.fillRect(x - width / 2, z - depth / 2, width, depth)
-        
+
         }
 
         context.resetTransform()
@@ -151,7 +133,7 @@ export default function GrassSim({
     }, [gapCanvas, dangers, obstacles, gapTexture, worldSize, size])
     let getCompletionGrade = useCallback(() => {
         let filled = 0
-        let context = completionCanvas.getContext("2d")
+        let context = completionCanvas.getContext("2d", { alpha: false })
 
         context.clearRect(0, 0, completionFidelity, completionFidelity)
         context.drawImage(cutCanvas, 0, 0, completionFidelity, completionFidelity)
@@ -165,12 +147,12 @@ export default function GrassSim({
         }
 
         return Math.min(filled / mapSize, 1) * 100
-    }, [completionCanvas, cutCanvas, mapSize, completionFidelity]) 
+    }, [completionCanvas, cutCanvas, mapSize, completionFidelity])
 
     useEffect(() => {
         clearTimeout(tid.current)
         tid.current = setTimeout(() => {
-            let context = completionCanvas.getContext("2d")
+            let context = completionCanvas.getContext("2d", { alpha: false })
             let exempt = 0
 
             context.clearRect(0, 0, completionFidelity, completionFidelity)
@@ -203,7 +185,7 @@ export default function GrassSim({
         cutTexture.needsUpdate = true
         setCompletionGrade(0)
     }, [cutHeight, worldSize, cutCanvas, cutTexture, size])
-    
+
 
     useEffect(() => {
         let updateCompletionGrade = () => {
