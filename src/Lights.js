@@ -36,7 +36,7 @@ export default function Lights() {
                     // not sure if this makes sense
                     let size = Math.sqrt(viewport.width ** 2 + viewport.height ** 2) / 2 
 
-                    size *= .85
+                    size *= .9
 
                     self.shadow.camera.right = size
                     self.shadow.camera.left = -size
