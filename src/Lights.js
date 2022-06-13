@@ -24,13 +24,13 @@ export default function Lights() {
 
     return (
         <>
-            <hemisphereLight groundColor={0xa5c7b0} color={0xafe3d4} intensity={.5} />
+            <hemisphereLight groundColor={0xa5c7b0} color={0xafe3d4} intensity={.2} />
             <directionalLight
                 ref={ref}
                 color={0xffffff}
                 position={[0, 0, 0]}
                 target-position={[-8, -14, -6]}
-                intensity={.25}
+                intensity={.35}
                 castShadow
                 onUpdate={self => {
                     // not sure if this makes sense
@@ -47,6 +47,7 @@ export default function Lights() {
                     self.shadow.mapSize.set(384, 384)
                     self.updateMatrixWorld()
                     self.shadow.needsUpdate = true
+                    self.shadow.bias = 0.001
                 }}
             />
         </>
