@@ -1,10 +1,10 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react"
-import { Box3, MeshLambertMaterial, Vector3 } from "three"
+import { Box3, Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
 import { addObstalce } from "./data/store" 
  
 import { useGLTF } from "@react-three/drei"
-import { darkerGray, lightGray } from "./global"
+import { darkerGray } from "./global"
 
 useGLTF.preload("/models/box.glb")
  

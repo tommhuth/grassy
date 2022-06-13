@@ -5,7 +5,7 @@ import { Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
 import animate from "@huth/animate"
 import random from "@huth/random"
-import { box, lightGray, white } from "./global"
+import { box, white } from "./global"
 
 function Roadkill({ id, position, path, startIndex, speed }) {
     let ref = useRef()
