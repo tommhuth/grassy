@@ -10,13 +10,25 @@ export default function UI() {
     let kills = useStore(i => i.player.kills)
     let world = useStore(i => i.world)
     let state = useStore(i => i.state)
+    let isDead = engineHealth === 0
 
     return (
         <>
+            <a
+                className="ui-gamer-over"
+                style={{
+                    display: isDead ? "block" : undefined,
+                }}
+                href="/"
+                onClick={() => window.location.reload()}
+            >
+                You dead
+            </a>
             <div
                 className="ui-map-controls"
                 style={{
-                    transform: state === State.LOADING ? "translateY(100%)" : undefined
+                    transform: state === State.LOADING ? "translateY(100%)" : undefined,
+                    display: isDead ? "none" : undefined,
                 }}
             >
                 <h1 className="title">
@@ -27,6 +39,7 @@ export default function UI() {
                     <li className="ui-map-controls__control">
                         <input
                             value={world.size}
+                            disabled={isDead}
                             type="range"
                             min="20"
                             max="80"
@@ -39,6 +52,7 @@ export default function UI() {
                         Tame
                         <input
                             value={world.grassWildness}
+                            disabled={isDead}
                             type="range"
                             min="0"
                             max="3"
@@ -50,6 +64,7 @@ export default function UI() {
                     <li className="ui-map-controls__control">
                         <input
                             value={world.grassHeight}
+                            disabled={isDead}
                             type="range"
                             min="0.2"
                             max="2.5"
@@ -61,6 +76,7 @@ export default function UI() {
                     <li className="ui-map-controls__control">
                         <input
                             value={world.difficultyLevel}
+                            disabled={isDead}
                             type="range"
                             min="0"
                             max="50"
@@ -74,7 +90,8 @@ export default function UI() {
             <ul
                 className="ui-player"
                 style={{
-                    transform: state === State.LOADING ? "translateX(200%)" : undefined
+                    transform: state === State.LOADING ? "translateX(200%)" : undefined,
+                    display: isDead ? "none" : undefined,
                 }}
             >
                 <li>
@@ -95,11 +112,10 @@ export default function UI() {
                             alignItems: "center",
                             display: "inline-flex ",
                             gap: ".5em",
-                            cursor: "pointer",
                             textShadow: "0 0 .5em black"
                         }}
                         onClick={() => setBladesActive(!bladesActive)}
-                        disabled={bladesHealth === 0}
+                        disabled={bladesHealth === 0 || isDead}
                     >
                         <span
                             style={{
@@ -131,6 +147,7 @@ export default function UI() {
                             id="cuth"
                             type="range"
                             value={cutHeight}
+                            disabled={isDead}
                             min={.05}
                             max={.3}
                             step={.05}

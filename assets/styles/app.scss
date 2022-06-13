@@ -2,6 +2,20 @@
 @import "variables.scss";
 @import "typography.scss";
 
+
+body::after {
+    content: "";
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    z-index: 10000000000000;
+    top:0;
+    left:0;
+    pointer-events: none;
+    display: block;  
+    background: linear-gradient(to top left, rgba(rgb(0, 34, 255), .1), rgba(green, .05)) ;
+}
+
 .ui-map-controls {
     bottom: -3.5em;
     position: absolute;  
@@ -100,4 +114,21 @@
     &::after {
         bottom: var(--offset);
     }
+}
+
+.ui-gamer-over {
+    position: absolute;
+    top:50%;
+    left:50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 20px;
+    text-transform: uppercase;
+    display: none;
+    letter-spacing: .25em;
+    text-shadow: 0 .15em .5em rgba(#000, .85);
+}
+
+button:not(:disabled) {
+    cursor: pointer;
 }

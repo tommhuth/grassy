@@ -60,8 +60,13 @@ export default function Player() {
 
         outerRef.current.position.x += Math.cos(rotation.current) * speed.current * bladesPenalty.current
         outerRef.current.position.z -= Math.sin(rotation.current) * speed.current * bladesPenalty.current
-        playerRef.current.position.y = height / 2 + Math.cos(clock.getElapsedTime() * 2) * .15
         outerRef.current.rotation.y = rotation.current + Math.PI / 2
+
+        if(engineHealth > 0) {
+            playerRef.current.position.y = height / 2 + Math.cos(clock.getElapsedTime() * 2) * .15
+        } else {
+            playerRef.current.position.y += (-.5 - playerRef.current.position.y) * .05
+        }
     })
 
     useFrame(() => {

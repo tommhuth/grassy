@@ -300,7 +300,7 @@ export default function Grass() {
                 rotation-x={-Math.PI / 2}
             >
                 <meshLambertMaterial color="#888" />
-                <planeBufferGeometry args={[200, 200, 1, 1]} />
+                <planeBufferGeometry args={[1000, 1000, 1, 1]} />
             </mesh>
         </>
     )
