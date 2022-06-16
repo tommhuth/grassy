@@ -98,20 +98,35 @@ window.addEventListener("resize", () => {
         linear: true,
         shadows: true,
         camera: {
-            zoom: window.matchMedia("(max-width: 800px)").matches ? 34 : 40,
+            zoom: window.matchMedia("(max-width: 800px)").matches ? 28 : 40,
             near: -50,
             far: 100
         },
-        dpr: window.devicePixelRatio === 1 ? .7 : window.devicePixelRatio * .45,
+        dpr: getDpr(),
         gl: {
             antialias: false,
             depth: true,
             stencil: false,
-            alpha: false
+            alpha: false,
+            powerPreference:"high-performance"
         }
     })
 
     canvasRoot.render(<App />)
 })
+
+function getDpr() {
+    if(window.devicePixelRatio >= 3) {
+        return window.devicePixelRatio * .75
+    }
+
+    if(window.devicePixelRatio >= 2) {
+        return window.devicePixelRatio * .6
+    }
+
+    if (window.devicePixelRatio === 1) {
+        return .85
+    }
+}
 
 window.dispatchEvent(new Event("resize"))

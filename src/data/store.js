@@ -66,7 +66,7 @@ const store = create(() => ({
         turnStrength: .025,
     },
     world: {
-        size: 50,
+        size: window.matchMedia("(max-width: 800px)").matches? 45 : 50,
         difficultyLevel: 5,
         cutTexture: null,
         gapTexture: null,

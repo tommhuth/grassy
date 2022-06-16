@@ -1,5 +1,5 @@
 import { useFrame, useThree } from "@react-three/fiber"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react" 
 import { useStore } from "./data/store"
 
 export default function Lights() {
@@ -8,13 +8,13 @@ export default function Lights() {
     let { scene, viewport } = useThree()
 
     useEffect(() => {
-        scene.add(ref.current.target) 
+        scene.add(ref.current.target)  
     }, [scene])
 
     useFrame(() => {
         counter.current++
 
-        if (counter.current % 45 === 0) {
+        if (counter.current % 30 === 0) {
             let position = useStore.getState().player.position
 
             ref.current.position.set(...position)
@@ -36,7 +36,7 @@ export default function Lights() {
                     // not sure if this makes sense
                     let size = Math.sqrt(viewport.width ** 2 + viewport.height ** 2) / 2 
 
-                    size *= .9
+                    size *= 1
 
                     self.shadow.camera.right = size
                     self.shadow.camera.left = -size

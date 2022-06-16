@@ -1,6 +1,6 @@
 import { useFrame, useThree, useLoader } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { DoubleSide, Matrix4, Vector3, MeshBasicMaterial, Quaternion, RGBADepthPacking, Raycaster, Vector2 } from "three"
+import { Matrix4, Vector3, MeshBasicMaterial, Quaternion, Raycaster, Vector2, RGBADepthPacking, DoubleSide } from "three"
 import { useStore } from "./data/store"
 import grassTransform from "./grassTransform.glsl"
 import random from "@huth/random"
@@ -44,6 +44,7 @@ export default function Grass() {
         let material = new MeshBasicMaterial({
             wireframe: false,
             transparent: true,
+            precision: "mediump",
             side: DoubleSide,
             onBeforeCompile(shader) {
                 shader.vertexShader = shader.vertexShader.replace("#include <common>", glsl`
@@ -99,7 +100,6 @@ export default function Grass() {
                     flat in int vIgnore;  
                 `)
                 shader.fragmentShader = shader.fragmentShader.replace("#include <dithering_fragment>", glsl` 
-
                     if (vIgnore == 1) {
                         discard;
                     } 
@@ -113,13 +113,58 @@ export default function Grass() {
         })
 
         return { uniforms, material }
-    }, [grassNoiseScale, wildness, height, size, windScale]) 
+    }, [grassNoiseScale, wildness, height, size, windScale])
     let isMovingMouse = useRef(false)
+    let planeRef = useRef()
+    let shouldCastShadow = !window.matchMedia("(max-width:800px)").matches
+    let customDepthMaterial = (
+        <meshDepthMaterial
+            attach="customDepthMaterial"
+            args={[{
+                depthPacking: RGBADepthPacking,
+                alphaTest: .5,
+                onBeforeCompile(shader) {
+                    const chunk = glsl`
+                        #include <begin_vertex>
+
+                        vec4 globalPosition = instanceMatrix * vec4(position, 1.);
+
+                        globalPosition = modelMatrix * globalPosition; 
+                        transformed = grassTransform(position, globalPosition.xyz);
+                    `
+
+                    shader.uniforms = {
+                        ...shader.uniforms,
+                        ...uniforms
+                    }
+
+                    shader.vertexShader = glsl`
+                        uniform float time;
+                        uniform float randomizer;
+                        uniform float windScale;
+                        uniform float height;
+                        uniform float cutHeight;
+                        uniform float mouseEffect;
+                        uniform float wildness;
+                        uniform float scale;
+                        uniform vec3 mousePosition;
+                        uniform sampler2D cut;
+                        uniform sampler2D playerPosition;
+                        uniform sampler2D gap;
+                        uniform float size;
+
+                        ${grassTransform}
+                        ${shader.vertexShader}
+                    `.replace("#include <begin_vertex>", chunk)
+                },
+            }]}
+        />
+    )
 
     useEffect(() => {
         let diagonal = Math.sqrt(viewport.width ** 2 + viewport.height ** 2)
 
-        uniforms.canvasCross.value = diagonal * .75
+        uniforms.canvasCross.value = diagonal * .9
         uniforms.canvasCross.needsUpdate = true
     }, [viewport, uniforms, size])
 
@@ -151,6 +196,7 @@ export default function Grass() {
     useEffect(() => {
         uniforms.playerPosition.value = playerPositionTexture
     }, [uniforms, playerPositionTexture])
+
 
     useFrame(() => {
         if (!isMovingMouse.current) {
@@ -208,8 +254,6 @@ export default function Grass() {
         }
     }, [ref, size, model?.geometry])
 
-    let planeRef = useRef()
-
     useEffect(() => {
         let raycaster = new Raycaster()
         let pointer = new Vector2()
@@ -247,50 +291,9 @@ export default function Grass() {
                 position={[0, 0, 0]}
                 ref={setRef}
                 args={[model?.geometry, material, size * size]}
-                receiveShadow
-                castShadow
+                castShadow={shouldCastShadow}
             >
-                <meshDepthMaterial
-                    attach="customDepthMaterial"
-                    args={[{
-                        depthPacking: RGBADepthPacking,
-                        alphaTest: .5,
-                        onBeforeCompile(shader) {
-                            const chunk = glsl`
-                                #include <begin_vertex>
-
-                                vec4 globalPosition = instanceMatrix * vec4(position, 1.);
-            
-                                globalPosition = modelMatrix * globalPosition; 
-                                transformed = grassTransform(position, globalPosition.xyz);
-                            `
-
-                            shader.uniforms = {
-                                ...shader.uniforms,
-                                ...uniforms
-                            }
-
-                            shader.vertexShader = glsl`
-                                uniform float time;
-                                uniform float randomizer;
-                                uniform float windScale;
-                                uniform float height;
-                                uniform float cutHeight;
-                                uniform float mouseEffect;
-                                uniform float wildness;
-                                uniform float scale;
-                                uniform vec3 mousePosition;
-                                uniform sampler2D cut;
-                                uniform sampler2D playerPosition;
-                                uniform sampler2D gap;
-                                uniform float size;
-
-                                ${grassTransform}
-                                ${shader.vertexShader}
-                            `.replace("#include <begin_vertex>", chunk)
-                        },
-                    }]}
-                />
+                {shouldCastShadow ? customDepthMaterial : null}
             </instancedMesh>
 
             <mesh
@@ -304,4 +307,4 @@ export default function Grass() {
             </mesh>
         </>
     )
-}
+} 

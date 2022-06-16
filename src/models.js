@@ -19,7 +19,7 @@ export function ModelsProvider({ children }) {
                 castShadow
             >
                 <sphereBufferGeometry args={[1, 14, 14]} />
-                <meshPhongMaterial color="#FFF" />
+                <meshLambertMaterial color="#FFF" />
             </instancedMesh>
             {children}
         </context.Provider>

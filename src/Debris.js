@@ -88,7 +88,6 @@ export default function Debris() {
             receiveShadow
             ref={setInstance}
             args={[box, white, totalCount]}
-        >
-        </instancedMesh>
+        />
     )
 }

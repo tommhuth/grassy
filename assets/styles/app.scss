@@ -40,12 +40,15 @@ body::after {
         gap: 2em;
         flex-direction: row;
         display: flex;
+        @media (max-width: 900px) {
+            display: none;   
+        }
     }
     
     &:hover {
         bottom: 0;
     }
-} 
+}  
 
 .ui-player {
     position: absolute;
@@ -59,16 +62,28 @@ body::after {
     text-shadow: 0 0 .5em black;
     transition: transform .6s 3s;
 
+    @media (max-width: 900px) {
+        gap: .75em;
+    }
+
     &__label {
         opacity: .7;
         font-size: 12px;
         letter-spacing: .125em;
         text-transform: uppercase;
         margin-bottom: .35em;
+
+        @media (max-width: 900px) {
+            font-size: 10px;
+        }
     } 
 
     &__value {
         font-size: 20px;
+
+        @media (max-width: 900px) {
+            font-size: 14px;
+        }
     }
 } 
 
@@ -78,6 +93,11 @@ body::after {
     line-height: 1.1;
     text-align: left;
     margin-bottom: 1em;
+
+    @media (max-width: 900px) {
+        font-size: 22px;
+        margin-bottom: 3em;
+    }
 }
                   
 #ui-loading {
@@ -125,7 +145,7 @@ body::after {
     font-size: 20px;
     text-transform: uppercase;
     display: none;
-    letter-spacing: .25em;
+    letter-spacing: .1em;
     text-shadow: 0 .15em .5em rgba(#000, .85);
 }
 

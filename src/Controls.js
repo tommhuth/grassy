@@ -14,9 +14,40 @@ export default function Controls() {
     let [crashed, setCrashed] = useState(false)
 
     useEffect(() => {
+        let startX = 0
+        let totalRotation = 0
+        let deltaRotation = 0
+        let onTouchStart = (e) => {
+            keys.KeyW = true
+            startX = e.touches[0].clientX
+        }
+        let onTouchMove = (e) => {
+            let currentRotation = (e.touches[0].clientX - startX) / (window.innerWidth * .2) * .5
+
+            rotation.current = currentRotation + totalRotation
+            deltaRotation = currentRotation
+        }
+        let onTouchEnd = () => {
+            keys.KeyW = false
+            totalRotation += deltaRotation
+        }
+
+        window.addEventListener("touchstart", onTouchStart)
+        window.addEventListener("touchmove", onTouchMove)
+        window.addEventListener("touchend", onTouchEnd)
+
+        return () => {
+            window.removeEventListener("touchstart", onTouchStart)
+            window.removeEventListener("touchmove", onTouchMove)
+            window.removeEventListener("touchend", onTouchEnd)
+        }
+    }, [keys])
+
+    useEffect(() => {
         speed.current *= -.5
         setCrashed(true)
     }, [crashCounter])
+
 
     useEffect(() => {
         if (crashed) {
@@ -29,9 +60,9 @@ export default function Controls() {
     }, [crashed])
 
     useFrame(() => {
-        let isDead = engineHealth === 0 
+        let isDead = engineHealth === 0
         let turnScale = speed.current > 0 ? speed.current / vehicle.maxSpeed : Math.abs(speed.current / vehicle.minSpeed)
- 
+
         if ((keys.KeyW || keys.ArrowUp) && !crashed && !isDead) {
             speed.current += .0025
         } else if ((keys.KeyS || keys.ArrowDown) && !crashed && !isDead) {
