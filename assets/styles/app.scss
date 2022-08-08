@@ -16,14 +16,28 @@ body::after {
     background: linear-gradient(to top left, rgba(rgb(0, 34, 255), .1), rgba(green, .05)) ;
 }
 
+svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
 .ui-map-controls {
-    bottom: -3.5em;
-    position: absolute;  
-    padding-bottom: 2em; 
+    bottom: 2em;
+    position: absolute;   
     left: 2em;
+    right: 2em;
     z-index: 100;
+    white-space: nowrap; 
     text-shadow: 0 0 .5em black;
-    transition: all .4s, transform .6s 2s;
+    transition: all .4s, transform .6s;
+    display: flex;
+    gap: 2em;
+    justify-items: center;
+
+    svg {
+        width: 2em;
+    }
 
     &__control {
         display: flex;
@@ -38,16 +52,14 @@ body::after {
 
     &__list {
         gap: 2em;
-        flex-direction: row;
-        display: flex;
-        @media (max-width: 900px) {
-            display: none;   
+        flex-wrap: wrap;
+        flex-direction: row;   
+        display: flex;   
+
+        @media (max-width: 900px) { 
+            gap: 1em;
         }
-    }
-    
-    &:hover {
-        bottom: 0;
-    }
+    } 
 }  
 
 .ui-player {
@@ -60,7 +72,7 @@ body::after {
     text-align: right;
     z-index: 100;
     text-shadow: 0 0 .5em black;
-    transition: transform .6s 3s;
+    transition: transform .6s;
 
     @media (max-width: 900px) {
         gap: .75em;
@@ -93,6 +105,12 @@ body::after {
     line-height: 1.1;
     text-align: left;
     margin-bottom: 1em;
+
+    &--big {
+        font-size: 40px;
+        margin-bottom: .5em;
+        text-shadow: 0 0 .5em rgba(black, 1);
+    }
 
     @media (max-width: 900px) {
         font-size: 22px;
@@ -151,4 +169,56 @@ body::after {
 
 button:not(:disabled) {
     cursor: pointer;
+}
+
+.ui-intro {
+    position: absolute;
+    left: 20%;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all .4s;
+    animation: introin .75s 1s backwards;
+}
+
+@keyframes introin {
+    from {
+        opacity: 0;
+        margin-left: -1em;
+    }
+    to {
+        opacity: 1;
+        margin-left: 0;
+    }
+}
+
+.button {
+    border: 1px solid rgba(white, .4);
+    font-size: 15px;
+    letter-spacing: .1em;
+    padding: .65em 1.25em;
+    border-radius: 2px;
+    text-shadow: 0 0 .5em rgba(black, .5);
+    text-transform: uppercase;
+
+    &:hover {
+        background-color: white;
+        color: var(--dark-green);
+        text-shadow: none;
+    }
+}
+
+#pad {
+    position: fixed;
+    left: 0em;
+    top: 0em;
+    color: black;
+    font-size: .5em;
+    font-family: 'Courier New', Courier, monospace;
+    white-space: pre;
+    line-height: 1;
+    z-index: 1111111111;
+    padding: 1em;
+    background-color: rgba(#fff, .9);
+    outline: 1px solid red;
+    display: none;
 }

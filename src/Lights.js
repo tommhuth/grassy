@@ -44,7 +44,7 @@ export default function Lights() {
                     self.shadow.camera.bottom = -size
                     self.shadow.camera.near = -size
                     self.shadow.camera.far = size
-                    self.shadow.mapSize.set(384, 384)
+                    self.shadow.mapSize.set(256, 256)
                     self.updateMatrixWorld()
                     self.shadow.needsUpdate = true
                     self.shadow.bias = 0.001

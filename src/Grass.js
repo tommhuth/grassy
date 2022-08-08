@@ -1,6 +1,6 @@
 import { useFrame, useThree, useLoader } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Matrix4, Vector3, MeshBasicMaterial, Quaternion, Raycaster, Vector2, RGBADepthPacking, DoubleSide } from "three"
+import { Matrix4, Vector3, MeshBasicMaterial, Quaternion, Raycaster, Vector2, DoubleSide } from "three"
 import { useStore } from "./data/store"
 import grassTransform from "./grassTransform.glsl"
 import random from "@huth/random"
@@ -75,16 +75,14 @@ export default function Grass() {
             
                     vec4 globalPosition = instanceMatrix *  vec4(position, 1.);
             
-                    globalPosition = modelMatrix * globalPosition;
-            
-                    transformed =  grassTransform(position, globalPosition.xyz) ; 
+                    globalPosition = modelMatrix * globalPosition; 
 
-                    vPosition = transformed;
-
-                    if (length(cameraCenterPosition - globalPosition.xyz) > canvasCross) {
+                    if (length(cameraCenterPosition - globalPosition.xyz) > canvasCross * .75) {
                         vIgnore = 1;
                     } else {
-                        vIgnore = 0;
+                        vIgnore = 0; 
+                        transformed =  grassTransform(position, globalPosition.xyz);  
+                        vPosition = transformed;
                     }
                 `)
                 shader.uniforms = {
@@ -116,50 +114,7 @@ export default function Grass() {
     }, [grassNoiseScale, wildness, height, size, windScale])
     let isMovingMouse = useRef(false)
     let planeRef = useRef()
-    let shouldCastShadow = !window.matchMedia("(max-width:800px)").matches
-    let customDepthMaterial = (
-        <meshDepthMaterial
-            attach="customDepthMaterial"
-            args={[{
-                depthPacking: RGBADepthPacking,
-                alphaTest: .5,
-                onBeforeCompile(shader) {
-                    const chunk = glsl`
-                        #include <begin_vertex>
-
-                        vec4 globalPosition = instanceMatrix * vec4(position, 1.);
-
-                        globalPosition = modelMatrix * globalPosition; 
-                        transformed = grassTransform(position, globalPosition.xyz);
-                    `
-
-                    shader.uniforms = {
-                        ...shader.uniforms,
-                        ...uniforms
-                    }
-
-                    shader.vertexShader = glsl`
-                        uniform float time;
-                        uniform float randomizer;
-                        uniform float windScale;
-                        uniform float height;
-                        uniform float cutHeight;
-                        uniform float mouseEffect;
-                        uniform float wildness;
-                        uniform float scale;
-                        uniform vec3 mousePosition;
-                        uniform sampler2D cut;
-                        uniform sampler2D playerPosition;
-                        uniform sampler2D gap;
-                        uniform float size;
-
-                        ${grassTransform}
-                        ${shader.vertexShader}
-                    `.replace("#include <begin_vertex>", chunk)
-                },
-            }]}
-        />
-    )
+    let shouldCastShadow = false
 
     useEffect(() => {
         let diagonal = Math.sqrt(viewport.width ** 2 + viewport.height ** 2)
@@ -292,9 +247,7 @@ export default function Grass() {
                 ref={setRef}
                 args={[model?.geometry, material, size * size]}
                 castShadow={shouldCastShadow}
-            >
-                {shouldCastShadow ? customDepthMaterial : null}
-            </instancedMesh>
+            />
 
             <mesh
                 position={[0, 0, 0]}
@@ -307,4 +260,54 @@ export default function Grass() {
             </mesh>
         </>
     )
-} 
+}
+
+
+/*
+
+
+   let customDepthMaterial = (
+        <meshDepthMaterial
+            attach="customDepthMaterial"
+            args={[{
+                depthPacking: RGBADepthPacking,
+                alphaTest: .5,
+                onBeforeCompile(shader) {
+                    const chunk = glsl`
+                        #include <begin_vertex>
+
+                        vec4 globalPosition = instanceMatrix * vec4(position, 1.);
+
+                        globalPosition = modelMatrix * globalPosition; 
+                        transformed = grassTransform(position, globalPosition.xyz);
+                    `
+
+                    shader.uniforms = {
+                        ...shader.uniforms,
+                        ...uniforms
+                    }
+
+                    shader.vertexShader = glsl`
+                        uniform float time;
+                        uniform float randomizer;
+                        uniform float windScale;
+                        uniform float height;
+                        uniform float cutHeight;
+                        uniform float mouseEffect;
+                        uniform float wildness;
+                        uniform float scale;
+                        uniform vec3 mousePosition;
+                        uniform sampler2D cut;
+                        uniform sampler2D playerPosition;
+                        uniform sampler2D gap;
+                        uniform float size;
+
+                        ${grassTransform}
+                        ${shader.vertexShader}
+                    `.replace("#include <begin_vertex>", chunk)
+                },
+            }]}
+        />
+    )
+
+    */

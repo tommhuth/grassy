@@ -61,12 +61,12 @@ function App() {
 
                 <Obstacle
                     size={[5, 5, 5]}
-                    position={[15, 1, 15]}
+                    position={[13, 1, 13]}
                     rotation={.35}
                 />
                 <Obstacle
                     size={[7, 8, 6]}
-                    position={[-23, 1, 0]}
+                    position={[-20, 1, 0]}
                     rotation={-2.2}
                 />
 
@@ -114,10 +114,10 @@ window.addEventListener("resize", () => {
 
     canvasRoot.render(<App />)
 })
-
+ 
 function getDpr() {
     if(window.devicePixelRatio >= 3) {
-        return window.devicePixelRatio * .75
+        return window.devicePixelRatio * .5
     }
 
     if(window.devicePixelRatio >= 2) {
@@ -127,6 +127,8 @@ function getDpr() {
     if (window.devicePixelRatio === 1) {
         return .85
     }
+
+    return window.devicePixelRatio * .75
 }
 
 window.dispatchEvent(new Event("resize"))

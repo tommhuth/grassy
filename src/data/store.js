@@ -34,6 +34,7 @@ export const State = {
 
 const store = create(() => ({
     state: State.LOADING,
+    intro: true,
     input: {
         speed: 0,
         rotation: 0
@@ -66,7 +67,7 @@ const store = create(() => ({
         turnStrength: .025,
     },
     world: {
-        size: window.matchMedia("(max-width: 800px)").matches? 45 : 50,
+        size: window.matchMedia("(max-width: 800px)").matches? 40 : 40,
         difficultyLevel: 5,
         cutTexture: null,
         gapTexture: null,
@@ -82,6 +83,12 @@ const store = create(() => ({
     dangers: [],
     roadkills: []
 }))
+ 
+export function start() {
+    store.setState({
+        intro: false,  
+    })
+}
 
 export function setTrauma(value, scale = .2) {
     store.setState({
