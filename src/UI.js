@@ -83,8 +83,8 @@ export default function UI() {
                             disabled={isDead}
                             type="range"
                             min="0"
-                            max="3"
-                            step="0.1"
+                            max="1"
+                            step="0.01"
                             onChange={(e) => setGrassProperty("grassWildness", parseFloat(e.target.value, 10))}
                         />
                         Wild
@@ -94,12 +94,12 @@ export default function UI() {
                             value={world.grassHeight}
                             disabled={isDead}
                             type="range"
-                            min="0.2"
-                            max="2.5"
-                            step="0.1"
+                            min="0.5"
+                            max="3"
+                            step="0.05"
                             onChange={(e) => setGrassProperty("grassHeight", parseFloat(e.target.value))}
                         />
-                        {world.grassHeight} m high
+                        {world.grassHeight * 2.5} m high
                     </li>
                     <li className="ui-map-controls__control">
                         <input

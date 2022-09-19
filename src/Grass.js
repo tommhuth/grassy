@@ -1,6 +1,6 @@
 import { useFrame, useThree, useLoader } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Matrix4, Vector3, MeshBasicMaterial, Quaternion, Raycaster, Vector2, DoubleSide } from "three"
+import { Matrix4, Vector3, MeshBasicMaterial, Quaternion, Raycaster, Vector2 } from "three"
 import { useStore } from "./data/store"
 import grassTransform from "./grassTransform.glsl"
 import random from "@huth/random"
@@ -15,56 +15,50 @@ export default function Grass() {
     let targetMousePosition = useRef([0, 0, 0])
     let size = useStore(i => i.world.size)
     let wildness = useStore(i => i.world.grassWildness)
-    let height = useStore(i => i.world.grassHeight)
-    let windScale = useStore(i => i.world.grassWindScale)
-    let grassNoiseScale = useStore(i => i.world.grassNoiseScale)
+    let height = useStore(i => i.world.grassHeight)  
     let cutTexture = useStore(i => i.world.cutTexture)
     let gapTexture = useStore(i => i.world.gapTexture)
     let cutHeight = useStore(i => i.player.cutHeight)
     let playerPositionTexture = useStore(i => i.world.playerPositionTexture)
-    let counter = useRef(0)
+    let counter = useRef(0) 
+    let partScaler = 1.25
+    let partSize = 9.5
+    let partCount = Math.round(size/partSize)
     let { material, uniforms } = useMemo(() => {
         let uniforms = {
-            height: { value: height, type: "f" },
-            randomizer: { value: Math.random(), type: "f" },
-            canvasCross: { value: 0, type: "f" },
-            cameraCenterPosition: { value: [0, 0, 0], type: "v3" },
-            time: { value: 0, type: "f" },
-            mouseEffect: { value: 0, type: "f" },
-            mousePosition: { value: [0, 0, 0], type: "v3" },
-            size: { value: size, type: "f" },
-            windScale: { value: windScale, type: "f" },
-            wildness: { value: wildness, type: "f" }, // subraction of base height
-            scale: { value: grassNoiseScale, type: "f" }, // scale of noise of wildness
-            cutHeight: { value: .15, type: "f" },
-            cut: { value: null, type: "t" },
-            gap: { value: null, type: "t" },
-            playerPosition: { value: null, type: "t" }
+            uHeight: { value: height, type: "f" }, 
+            uCanvasCross: { value: 0, type: "f" },
+            uCameraCenterPosition: { value: [0, 0, 0], type: "v3" },
+            uTime: { value: 0, type: "f" },
+            uMouseEffect: { value: 0, type: "f" },
+            uMousePosition: { value: [0, 0, 0], type: "v3" },
+            uSize: { value: size, type: "f" }, 
+            uWildness: { value: wildness, type: "f" }, // scale of noise height 
+            uCutHeight: { value: .45, type: "f" }, // 0 - 1 scale
+            uCut: { value: null, type: "t" },
+            uGap: { value: null, type: "t" },
+            uPlayerPosition: { value: null, type: "t" }
         }
         let material = new MeshBasicMaterial({
             wireframe: false,
             transparent: true,
-            precision: "mediump",
-            side: DoubleSide,
+            precision: "mediump", 
             onBeforeCompile(shader) {
                 shader.vertexShader = shader.vertexShader.replace("#include <common>", glsl`
                     #include <common>
                     
-                    uniform float time; 
-                    uniform float windScale;
-                    uniform float randomizer;
-                    uniform float height;
-                    uniform vec3 mousePosition;
-                    uniform float cutHeight;
-                    uniform float canvasCross;
-                    uniform float wildness;
-                    uniform float mouseEffect;
-                    uniform vec3 cameraCenterPosition;
-                    uniform float scale;
-                    uniform sampler2D cut;
-                    uniform sampler2D playerPosition;
-                    uniform sampler2D gap;
-                    uniform float size;  
+                    uniform float uTime;   
+                    uniform float uHeight;
+                    uniform vec3 uMousePosition;
+                    uniform float uCutHeight;
+                    uniform float uCanvasCross;
+                    uniform float uWildness;
+                    uniform float uMouseEffect;
+                    uniform vec3 uCameraCenterPosition; 
+                    uniform sampler2D uCut;
+                    uniform sampler2D uPlayerPosition;
+                    uniform sampler2D uGap;
+                    uniform float uSize;  
                     varying vec3 vPosition;
                     flat out int vIgnore;
 
@@ -77,11 +71,11 @@ export default function Grass() {
             
                     globalPosition = modelMatrix * globalPosition; 
 
-                    if (length(cameraCenterPosition - globalPosition.xyz) > canvasCross * .75) {
+                    if (length(uCameraCenterPosition - globalPosition.xyz) > uCanvasCross * .75) {
                         vIgnore = 1;
                     } else {
                         vIgnore = 0; 
-                        transformed =  grassTransform(position, globalPosition.xyz);  
+                        transformed = grassTransform(position, globalPosition.xyz);  
                         vPosition = transformed;
                     }
                 `)
@@ -94,7 +88,7 @@ export default function Grass() {
                     #include <common> 
 
                     varying vec3 vPosition; 
-                    uniform float height; 
+                    uniform float uHeight; 
                     flat in int vIgnore;  
                 `)
                 shader.fragmentShader = shader.fragmentShader.replace("#include <dithering_fragment>", glsl` 
@@ -105,94 +99,95 @@ export default function Grass() {
                     vec3 top = vec3(255./255., 242./255., 133./255.);
                     vec3 bottom = vec3(0., 122./255., 100./255.);  
 
-                    gl_FragColor = vec4(mix(bottom, top, clamp((vPosition.y - 1.) / height, -.25, 1.)), clamp(vPosition.y / .25, 0., 1.));
+                    gl_FragColor = vec4(
+                        mix(bottom, top, clamp((vPosition.y ) / (1.5 * uHeight), -.25, 1.)), 
+                        clamp(vPosition.y / .25, 0., 1.)
+                    );
                 `)
             }
         })
 
         return { uniforms, material }
-    }, [grassNoiseScale, wildness, height, size, windScale])
+    }, [wildness, height, size])
     let isMovingMouse = useRef(false)
-    let planeRef = useRef()
-    let shouldCastShadow = false
+    let planeRef = useRef()  
 
     useEffect(() => {
         let diagonal = Math.sqrt(viewport.width ** 2 + viewport.height ** 2)
 
-        uniforms.canvasCross.value = diagonal * .9
-        uniforms.canvasCross.needsUpdate = true
+        uniforms.uCanvasCross.value = diagonal * .9
+        uniforms.uCanvasCross.needsUpdate = true
     }, [viewport, uniforms, size])
 
     useEffect(() => {
         useStore.subscribe(position => {
-            uniforms.cameraCenterPosition.value = [position[0] + 2, 0, position[2] - 2]
-            uniforms.cameraCenterPosition.needsUpdate = true
+            uniforms.uCameraCenterPosition.value = [position[0] + 2, 0, position[2] - 2]
+            uniforms.uCameraCenterPosition.needsUpdate = true
         }, state => state.player.position)
     }, [uniforms,])
 
     useEffect(() => {
-        uniforms.cut.value = cutTexture
+        uniforms.uCut.value = cutTexture
     }, [uniforms, cutTexture])
 
 
     useEffect(() => {
-        uniforms.cutHeight.value = cutHeight
+        uniforms.uCutHeight.value = cutHeight
     }, [uniforms, cutHeight])
 
     useEffect(() => {
-        uniforms.height.value = height
-        uniforms.height.needsUpdate = true
+        uniforms.uHeight.value = height
+        uniforms.uHeight.needsUpdate = true
     }, [uniforms, height])
 
     useEffect(() => {
-        uniforms.gap.value = gapTexture
+        uniforms.uGap.value = gapTexture
     }, [uniforms, gapTexture])
 
     useEffect(() => {
-        uniforms.playerPosition.value = playerPositionTexture
+        uniforms.uPlayerPosition.value = playerPositionTexture
     }, [uniforms, playerPositionTexture])
 
 
     useFrame(() => {
         if (!isMovingMouse.current) {
-            uniforms.mouseEffect.value *= .99
+            uniforms.uMouseEffect.value *= .99
         }
 
-        uniforms.mousePosition.value[0] += (targetMousePosition.current[0] - uniforms.mousePosition.value[0]) * .025
-        uniforms.mousePosition.value[2] += (targetMousePosition.current[2] - uniforms.mousePosition.value[2]) * .025
-        uniforms.mousePosition.value[1] = 3
+        uniforms.uMousePosition.value[0] += (targetMousePosition.current[0] - uniforms.uMousePosition.value[0]) * .025
+        uniforms.uMousePosition.value[2] += (targetMousePosition.current[2] - uniforms.uMousePosition.value[2]) * .025
+        uniforms.uMousePosition.value[1] = 3
 
         if (counter.current % 2 === 0) {
-            uniforms.mousePosition.needsUpdate = true
-            uniforms.mouseEffect.needsUpdate = true
+            uniforms.uMousePosition.needsUpdate = true
+            uniforms.uMouseEffect.needsUpdate = true
         }
 
-        if (uniforms.cut.value && counter.current % 10 === 0) {
-            uniforms.cut.needsUpdate = true
+        if (uniforms.uCut.value && counter.current % 10 === 0) {
+            uniforms.uCut.needsUpdate = true
         }
 
-        if (uniforms.playerPosition.value && counter.current % 5 === 0) {
-            uniforms.playerPosition.needsUpdate = true
+        if (uniforms.uPlayerPosition.value && counter.current % 5 === 0) {
+            uniforms.uPlayerPosition.needsUpdate = true
         }
 
-        uniforms.time.value += .005
-        uniforms.time.needsUpdate = true
+        uniforms.uTime.value += .005
+        uniforms.uTime.needsUpdate = true
         counter.current++
     })
 
     useEffect(() => {
-        if (ref && model?.geometry) {
-            let partSize = 3.75
+        if (ref && model?.geometry) {  
             let i = 0
             let matrix = new Matrix4()
             let position = new Vector3()
-            let scale = new Vector3(1, 1, 1)
+            let scale = new Vector3(1, 1, 1).multiplyScalar(partScaler)
             let rotation = new Quaternion()
             let y = new Vector3(0, 1, 0)
 
-            for (let x = 0; x < Math.floor(size / partSize); x += 1) {
-                for (let z = 0; z < Math.floor(size / partSize); z += 1) {
-                    rotation.setFromAxisAngle(y, random.float(.1, .75))
+            for (let x = 0; x < partCount; x += 1) {
+                for (let z = 0; z <partCount; z += 1) {
+                    rotation.setFromAxisAngle(y, random.float(-.5, 0))
 
                     position.set(
                         partSize * x - (size) / 2 + partSize / 2,
@@ -207,7 +202,7 @@ export default function Grass() {
 
             ref.instanceMatrix.needsUpdate = true
         }
-    }, [ref, size, model?.geometry])
+    }, [ref, size, model?.geometry, partScaler, partSize, partCount]) 
 
     useEffect(() => {
         let raycaster = new Raycaster()
@@ -245,8 +240,8 @@ export default function Grass() {
             <instancedMesh
                 position={[0, 0, 0]}
                 ref={setRef}
-                args={[model?.geometry, material, size * size]}
-                castShadow={shouldCastShadow}
+                args={[model?.geometry, material, partCount * partCount]}
+                castShadow={false}
             />
 
             <mesh
