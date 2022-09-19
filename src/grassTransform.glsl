@@ -36,11 +36,11 @@ vec3 grassTransform(vec3 position, vec3 wp) {
         p.z += wind2; 
     } 
 
-    vec3 direction = uMousePosition - wp.xyz;
-    float radius = 8.;
+    vec3 direction = uMousePosition - vec3(wp.x, 0., wp.z);
+    float radius = 10.;
     float scale = 1. - clamp(length(direction) / radius, 0., 1.); 
 
-    p += -normalize(direction) * easeInOutQuad(scale) * 2. * uMouseEffect ;
+    p += -normalize(direction) * easeInOutQuad(scale) * 2. * uMouseEffect * ((p.y + .25) / (naturalHeight * uHeight));
 
     return p;
 }

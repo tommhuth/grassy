@@ -217,8 +217,8 @@ export default function Grass() {
 
             if (intersection) {
                 targetMousePosition.current = [intersection.point.x, 4, intersection.point.z]
-                uniforms.mouseEffect.value = Math.min(uniforms.mouseEffect.value + .01, 1)
-                uniforms.mouseEffect.needsUpdate = true
+                uniforms.uMouseEffect.value = Math.min(uniforms.uMouseEffect.value + .01, 1)
+                uniforms.uMouseEffect.needsUpdate = true
                 isMovingMouse.current = true
 
                 clearTimeout(tid)
