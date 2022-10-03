@@ -107,7 +107,7 @@ export default function UI() {
                             disabled={isDead}
                             type="range"
                             min="0"
-                            max="50"
+                            max="15"
                             step="1"
                             onChange={(e) => setGrassProperty("difficultyLevel", parseFloat(e.target.value))}
                         />

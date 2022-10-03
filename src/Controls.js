@@ -68,13 +68,14 @@ export default function Controls() {
         }
         let onGamepadDisconnected = () => {
             setControllerId(null)
-        }
+        } 
 
         window.addEventListener("gamepadconnected", onGamepadConnected)
         window.addEventListener("gamepaddisconnected", onGamepadDisconnected)
         window.addEventListener("touchstart", onTouchStart)
         window.addEventListener("touchmove", onTouchMove)
         window.addEventListener("touchend", onTouchEnd)
+        window.addEventListener("keydown", start)
 
         return () => {
             window.removeEventListener("touchstart", onTouchStart)
@@ -82,6 +83,7 @@ export default function Controls() {
             window.removeEventListener("touchend", onTouchEnd)
             window.removeEventListener("gamepadconnected", onGamepadConnected)
             window.removeEventListener("gamepaddisconnected", onGamepadDisconnected)
+            window.removeEventListener("keydown", start)
         }
     }, [controllerId, keys])
 

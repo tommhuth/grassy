@@ -39,13 +39,12 @@ const store = create(() => ({
         speed: 0,
         rotation: 0
     },
-    player: {
-        position: [0, .75, 0],
-        debrisPosition: null,
-        rotation: 0,
+    player: { 
+        debrisPosition: null, 
         speed: 0,
         completionGrade: 0,
         aabb: new Box3(),
+        mesh: null,
         obb: new OBB(new Vector3(0, 0, 0), new Vector3(playerSize[0] / 2, playerSize[1] / 2, playerSize[2] / 2)),
         radius: 2,
         size: playerSize,
@@ -148,6 +147,15 @@ export function crash(amount) {
             ...state.player,
             crashCounter: state.player.crashCounter + 1,
             engineHealth: Math.max(state.player.engineHealth - amount, 0)
+        }
+    })
+}
+
+export function setPlayerMesh(mesh) {
+    store.setState({
+        player: {
+            ...store.getState().player,
+            mesh
         }
     })
 }

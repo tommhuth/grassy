@@ -15,13 +15,13 @@ export default function Camera({ offset = [30, 30, -30], startPosition = [30, 30
     }, [camera, ...offset])
 
     useFrame(() => {
-        let position = useStore.getState().player.position
+        let position = useStore.getState().player.mesh.position
         let trauma = useStore.getState().trauma ** 3 
         let traumaScale = useStore.getState().traumaScale  
 
         if (state === State.READY) {
-            target.current[2] += (position[2] + offset[2] - target.current[2]) * .05
-            target.current[0] += (position[0] + offset[0] - target.current[0]) * .05
+            target.current[2] += (position.z + offset[2] - target.current[2]) * .05
+            target.current[0] += (position.x + offset[0] - target.current[0]) * .05
 
             camera.position.x = target.current[0] + Math.random() * trauma * traumaScale
             camera.position.z = target.current[2] + Math.random() * trauma * traumaScale

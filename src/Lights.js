@@ -12,13 +12,13 @@ export default function Lights() {
     }, [scene])
 
     useFrame(() => {
+        let playerMesh = useStore.getState().player.mesh
+
         counter.current++
 
-        if (counter.current % 30 === 0) {
-            let position = useStore.getState().player.position
-
-            ref.current.position.set(...position)
-            ref.current.target.position.set(position[0] - 8, position[1] - 14, position[2] - 6)
+        if (counter.current % 30 === 0 && playerMesh) {  
+            ref.current.position.copy(playerMesh.position)
+            ref.current.target.position.set(playerMesh.position.x - 8, playerMesh.position.y - 14, playerMesh.position.z - 6)
         } 
     })
 

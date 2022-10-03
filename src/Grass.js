@@ -119,12 +119,15 @@ export default function Grass() {
         uniforms.uCanvasCross.needsUpdate = true
     }, [viewport, uniforms, size])
 
-    useEffect(() => {
-        useStore.subscribe(position => {
-            uniforms.uCameraCenterPosition.value = [position[0] + 2, 0, position[2] - 2]
+    useFrame(()=> {
+        let mesh = useStore.getState().player.mesh
+
+        if (mesh) { 
+            uniforms.uCameraCenterPosition.value = mesh.position.toArray()
+            uniforms.uCameraCenterPosition.value[1] = 0
             uniforms.uCameraCenterPosition.needsUpdate = true
-        }, state => state.player.position)
-    }, [uniforms,])
+        } 
+    })
 
     useEffect(() => {
         uniforms.uCut.value = cutTexture
@@ -187,7 +190,7 @@ export default function Grass() {
 
             for (let x = 0; x < partCount; x += 1) {
                 for (let z = 0; z <partCount; z += 1) {
-                    rotation.setFromAxisAngle(y, random.float(-.5, 0))
+                    rotation.setFromAxisAngle(y, random.float(-.25, 0))
 
                     position.set(
                         partSize * x - (size) / 2 + partSize / 2,
@@ -256,53 +259,3 @@ export default function Grass() {
         </>
     )
 }
-
-
-/*
-
-
-   let customDepthMaterial = (
-        <meshDepthMaterial
-            attach="customDepthMaterial"
-            args={[{
-                depthPacking: RGBADepthPacking,
-                alphaTest: .5,
-                onBeforeCompile(shader) {
-                    const chunk = glsl`
-                        #include <begin_vertex>
-
-                        vec4 globalPosition = instanceMatrix * vec4(position, 1.);
-
-                        globalPosition = modelMatrix * globalPosition; 
-                        transformed = grassTransform(position, globalPosition.xyz);
-                    `
-
-                    shader.uniforms = {
-                        ...shader.uniforms,
-                        ...uniforms
-                    }
-
-                    shader.vertexShader = glsl`
-                        uniform float time;
-                        uniform float randomizer;
-                        uniform float windScale;
-                        uniform float height;
-                        uniform float cutHeight;
-                        uniform float mouseEffect;
-                        uniform float wildness;
-                        uniform float scale;
-                        uniform vec3 mousePosition;
-                        uniform sampler2D cut;
-                        uniform sampler2D playerPosition;
-                        uniform sampler2D gap;
-                        uniform float size;
-
-                        ${grassTransform}
-                        ${shader.vertexShader}
-                    `.replace("#include <begin_vertex>", chunk)
-                },
-            }]}
-        />
-    )
-
-    */

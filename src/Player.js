@@ -1,7 +1,7 @@
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef } from "react"
 import { Vector3, MeshPhongMaterial } from "three"
-import { reduceBladesHealth, crash, setBladesActive, setInDanger, setPlayerPosition, useStore, setTrauma } from "./data/store"
+import { reduceBladesHealth, crash, setBladesActive, setInDanger, useStore, setTrauma, setPlayerMesh } from "./data/store"
 import { Shadow, useGLTF } from "@react-three/drei"
 import random from "@huth/random"
 import { darkerGray, white } from "./global"
@@ -15,6 +15,7 @@ const materials = {
 }
 
 export default function Player() {
+    let mesh = useStore(i => i.player.mesh)
     let { nodes } = useGLTF("/models/craft.glb")
     let obstacles = useStore(i => i.obstacles)
     let bladesActive = useStore(i => i.player.bladesActive)
@@ -22,19 +23,16 @@ export default function Player() {
     let dangers = useStore(i => i.dangers)
     let engineHealth = useStore(i => i.player.engineHealth)
     let vehicle = useStore(i => i.vehicle)
-    let obb = useStore(i => i.player.obb)
-    let outerRef = useRef()
+    let obb = useStore(i => i.player.obb) 
+    let aabb = useStore(i => i.player.aabb)
     let speed = useRef(0)
     let rotation = useRef(0)
-    let tick = useRef(0)
-    let playerRef = useRef(0)
+    let tick = useRef(0) 
     let shadowRef = useRef(0)
     let bladesPenalty = useRef(1)
-    let aabb = useStore(i => i.player.aabb)
     let playerRadius = useStore(i => i.player.radius)
     let inDanger = useStore(i => i.player.inDanger)
-    let dangerPosition = useMemo(() => new Vector3(), [])
-    let playerPosition = useMemo(() => new Vector3(), [])
+    let dangerPosition = useMemo(() => new Vector3(), []) 
     let hitDelta = useMemo(() => new Vector3(), [])
 
     useEffect(() => {
@@ -52,20 +50,20 @@ export default function Player() {
     }, [engineHealth])
 
     useFrame(({ clock }) => {
-        if (!outerRef.current) {
+        if (!mesh) {
             return
         }
 
         bladesPenalty.current += ((bladesActive ? vehicle.bladesPenalty : 1) - bladesPenalty.current) * .05
 
-        outerRef.current.position.x += Math.cos(rotation.current) * speed.current * bladesPenalty.current
-        outerRef.current.position.z -= Math.sin(rotation.current) * speed.current * bladesPenalty.current
-        outerRef.current.rotation.y = rotation.current + Math.PI / 2
+        mesh.position.x += Math.cos(rotation.current) * speed.current * bladesPenalty.current
+        mesh.position.z -= Math.sin(rotation.current) * speed.current * bladesPenalty.current
+        mesh.rotation.y = rotation.current + Math.PI / 2
 
-        if(engineHealth > 0) {
-            playerRef.current.position.y = height / 2 + Math.cos(clock.getElapsedTime() * 2) * .15
+        if (engineHealth > 0) {
+            mesh.position.y = height / 2 + Math.cos(clock.getElapsedTime() * 2) * .15
         } else {
-            playerRef.current.position.y += (-.5 - playerRef.current.position.y) * .05
+            mesh.position.y += (-.5 - mesh.position.y) * .05
         }
     })
 
@@ -87,13 +85,7 @@ export default function Player() {
             shadowRef.current.scale.set(size, size, size)
             shadowRef.current.material.opacity = random.float(.4, .65) * scale
         }
-    })
-
-    useFrame(() => {
-        if (outerRef.current) {
-            setPlayerPosition([outerRef.current.position.x, outerRef.current.position.y, outerRef.current.position.z])
-        }
-    })
+    }) 
 
     useEffect(() => {
         if (inDanger && bladesActive) {
@@ -123,34 +115,34 @@ export default function Player() {
     useFrame(() => {
         tick.current++
 
-        if (!outerRef.current || tick.current % 2 !== 0) {
+        if (!mesh || tick.current % 2 !== 0) {
             return
         }
 
-        aabb.setFromObject(outerRef.current)
+        aabb.setFromObject(mesh)
         obb.center.set(0, 0, 0)
         obb.rotation.identity()
-        obb.applyMatrix4(outerRef.current.matrixWorld)
+        obb.applyMatrix4(mesh.matrixWorld)
 
         for (let obstacle of obstacles) {
             if (aabb.intersectsBox(obstacle.aabb)) {
                 let hasCrashed = false
-                let hitSpeed = speed.current
+                let hitSpeed = speed.current 
 
                 while (obstacle.obb.intersectsOBB(obb)) {
                     let push = .025
-                    let direction = hitDelta.copy(outerRef.current.position)
+                    let direction = hitDelta.copy(mesh.position)
                         .sub(obstacle.obb.center)
                         .normalize()
                         .multiplyScalar(push)
 
-                    outerRef.current.position.x += direction.x
-                    outerRef.current.position.z += direction.z
+                    mesh.position.x += direction.x
+                    mesh.position.z += direction.z
 
                     obb.center.set(0, 0, 0)
                     obb.rotation.identity()
-                    outerRef.current.updateMatrixWorld()
-                    obb.applyMatrix4(outerRef.current.matrixWorld)
+                    mesh.updateMatrixWorld()
+                    obb.applyMatrix4(mesh.matrixWorld)
 
                     hasCrashed = true
 
@@ -171,15 +163,19 @@ export default function Player() {
     })
 
     useFrame(() => {
-        if (!outerRef.current) {
+        let mesh = useStore.getState().player.mesh
+
+        if (!mesh) {
             return
         }
 
-        let result = false
+        let result = false 
 
         for (let danger of dangers) {
             if (aabb.intersectsBox(danger.aabb)) {
-                let distance = danger.aabb.getCenter(dangerPosition).distanceTo(aabb.getCenter(playerPosition))
+                let distance = danger.aabb.getCenter(dangerPosition).distanceTo(aabb.getCenter(mesh.position))
+
+                console.log(distance)
 
                 if (distance < playerRadius + danger.radius) {
                     result = true
@@ -197,13 +193,14 @@ export default function Player() {
     })
 
     return (
-        <group ref={outerRef}>
+        <group 
+            ref={ref => ref && setPlayerMesh(ref)}
+        >
             <group
                 rotation-y={Math.PI}
                 position={[0, 0, 0]}
                 scale={[2, 2, 2]}
-                dispose={null}
-                ref={playerRef}
+                dispose={null} 
             >
                 <mesh
                     geometry={nodes.Mesh_craft_cargoB.geometry}

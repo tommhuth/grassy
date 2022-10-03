@@ -4,13 +4,11 @@ import { CanvasTexture } from "three"
 import { setCompletionGrade, setupWorld, useStore } from "./data/store"
 import { useCanvas } from "./hooks"
 
-
 export default function GrassSim({
     size = 128,
     completionFidelity = 48
 }) {
     let tid = useRef()
-    let cid = useRef(0)
     let [playerWidth, , playerDepth] = useStore(i => i.player.size)
     let [mapSize, setMapSize] = useState(0)
     let worldSize = useStore(i => i.world.size)
@@ -20,9 +18,7 @@ export default function GrassSim({
     let roadkills = useStore(i => i.roadkills)
     let dangers = useStore(i => i.dangers)
     let obstacles = useStore(i => i.obstacles)
-    let playerPosition = useRef([0, 0, 0])
     let playerRotation = useRef(0)
-    let lastPlayerPositionChange = useRef(0)
     let playerPositionCanvas = useCanvas({ size, x: size * 2 + 20, y: 0 })
     let gapCanvas = useCanvas({ size, x: 0, y: 0 })
     let cutCanvas = useCanvas({ size, x: size + 10, y: 0 })
@@ -43,12 +39,14 @@ export default function GrassSim({
         return texture
     }, [playerPositionCanvas])
     let renderCut = useCallback(() => {
-        if (cid.current % 20 === 0) {
+        let playerMesh = useStore.getState().player.mesh
+
+        if (playerMesh) {
             let context = cutCanvas.getContext("2d", { alpha: false })
 
             let cutSize = (playerWidth / worldSize * size) * .95
-            let x = (playerPosition.current[0] + worldSize / 2) / worldSize * size
-            let y = (playerPosition.current[2] + worldSize / 2) / worldSize * size
+            let x = (playerMesh.position.x + worldSize / 2) / worldSize * size
+            let y = (playerMesh.position.z + worldSize / 2) / worldSize * size
 
             context.beginPath()
             context.fillStyle = "rgb(255, 0, 0)"
@@ -56,49 +54,44 @@ export default function GrassSim({
             context.fill()
             cutTexture.needsUpdate = true
         }
-
-        cid.current++
     }, [cutCanvas, cutTexture, worldSize, playerWidth, size])
-    let renderPlayerPosition = useCallback(() => {
-        let dt = Date.now() - lastPlayerPositionChange.current
+    let renderPositions = useCallback(() => {
+        let playerMesh = useStore.getState().player.mesh
+        let width = (playerWidth / worldSize * size) * .95
+        let depth = (playerDepth / worldSize * size) * .95
+        let context = playerPositionCanvas.getContext("2d", { alpha: false })
+        let x = (playerMesh.position.x + worldSize / 2) / worldSize * size
+        let y = (playerMesh.position.z + worldSize / 2) / worldSize * size
 
-        // only keep rendering .5 second after last position change
-        if (dt < .5 * 1000 || roadkills.length) {
-            let width = (playerWidth / worldSize * size) * .95
-            let depth = (playerDepth / worldSize * size) * .95
-            let context = playerPositionCanvas.getContext("2d", { alpha: false })
-            let x = (playerPosition.current[0] + worldSize / 2) / worldSize * size
-            let y = (playerPosition.current[2] + worldSize / 2) / worldSize * size
+        context.fillStyle = "rgba(0, 0, 0, .05)"
+        context.fillRect(0, 0, size, size)
 
-            context.resetTransform()
-            context.fillStyle = "rgba(0, 0, 0, .025)"
-            context.fillRect(0, 0, size, size)
+        context.translate(x, y)
+        context.rotate(-playerRotation.current + Math.PI / 2)
+        context.translate(-x, -y)
+        context.fillStyle = "rgb(255, 0, 0)"
+        context.fillRect(x - width / 2, y - depth / 2, width, depth)
+        context.resetTransform()
+        context.beginPath()
 
-            context.fillStyle = "rgb(255, 0,0)"
-            context.translate(x, y)
-            context.rotate(-playerRotation.current + Math.PI / 2)
-            context.translate(-x, -y)
-            context.fillRect(x - width / 2, y - depth / 2, width, depth)
+        for (let roadkill of roadkills) {
+            let x = (roadkill.position?.x + worldSize / 2) / worldSize * size
+            let z = (roadkill.position?.z + worldSize / 2) / worldSize * size
 
-            for (let roadkill of roadkills) {
-                let x = (roadkill.position?.x + worldSize / 2) / worldSize * size
-                let z = (roadkill.position?.z + worldSize / 2) / worldSize * size
-
-                context.resetTransform()
-                context.fillStyle = "rgb(255, 0,0)"
-                context.beginPath()
-                context.arc(x, z, 2, 0, Math.PI * 2)
-                context.fill()
-            }
-
-            playerPositionTexture.needsUpdate = true
+            context.moveTo(x, z)
+            context.arc(x, z, 2, 0, Math.PI * 2)
         }
+
+        context.fill()
+
+        playerPositionTexture.needsUpdate = true
     }, [playerPositionCanvas, roadkills, playerPositionTexture, worldSize, size, playerWidth, playerDepth])
     let renderGap = useCallback(() => {
         let context = gapCanvas.getContext("2d", { alpha: false })
 
         context.clearRect(0, 0, size, size)
         context.fillStyle = "rgb(255, 0, 0)"
+        context.beginPath()
 
         for (let obstacle of obstacles) {
             let buffer = .2
@@ -111,9 +104,7 @@ export default function GrassSim({
             context.translate(x, z)
             context.rotate(-obstacle.rotation)
             context.translate(-x, -z)
-            context.beginPath()
-            context.fillRect(x - width / 2, z - depth / 2, width, depth)
-
+            context.rect(x - width / 2, z - depth / 2, width, depth)
         }
 
         context.resetTransform()
@@ -124,10 +115,11 @@ export default function GrassSim({
             let z = (danger.position[2] + worldSize / 2) / worldSize * size
             let width = ((danger.radius + buffer) / worldSize) * size
 
-            context.beginPath()
+            context.moveTo(x, z)
             context.arc(x, z, width, 0, Math.PI * 2)
-            context.fill()
         }
+
+        context.fill()
 
         gapTexture.needsUpdate = true
     }, [gapCanvas, dangers, obstacles, gapTexture, worldSize, size])
@@ -217,16 +209,6 @@ export default function GrassSim({
     useEffect(() => {
         return useStore.subscribe(
             i => {
-                playerPosition.current = i
-                lastPlayerPositionChange.current = Date.now()
-            },
-            s => s.player.position
-        )
-    }, [])
-
-    useEffect(() => {
-        return useStore.subscribe(
-            i => {
                 playerRotation.current = i
             },
             s => s.input.rotation
@@ -237,12 +219,16 @@ export default function GrassSim({
         renderGap()
     }, [renderGap])
 
-    useFrame(() => {
-        if (bladesActive && bladesHealth > 0) {
+    useFrame(({ clock }) => {
+        let time = Math.round(clock.getElapsedTime() * 60)
+
+        if (bladesActive && bladesHealth > 0 &&   time % 2 === 0) {
             renderCut()
         }
 
-        renderPlayerPosition()
+        if (time % 3 === 0 ) {
+            renderPositions()
+        }
     })
 
     return null
