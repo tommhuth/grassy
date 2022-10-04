@@ -1,13 +1,15 @@
 import { useFrame, useThree, useLoader } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Matrix4, Vector3, MeshBasicMaterial, Quaternion, Raycaster, Vector2 } from "three"
+import { Matrix4, Vector3, MeshBasicMaterial, Quaternion, Raycaster, Vector2, TextureLoader } from "three"
 import { useStore } from "../data/store"
 import grassTransform from "../utils/shaders/grassTransform.glsl"
 import random from "@huth/random"
 import { glsl } from "../utils/utils"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
+import { plane } from "../utils/global"
 
 export default function Grass() {
+    let shadowMap = useLoader(TextureLoader, "/textures/dropshadow.png")
     let { scene } = useLoader(GLTFLoader, "/models/grass.glb")
     let model = scene?.children?.[0]
     let [ref, setRef] = useState()
@@ -247,14 +249,24 @@ export default function Grass() {
                 castShadow={false}
             />
 
+            <mesh 
+                rotation-x={-Math.PI / 2}
+                position={[-size * .025, .01, -size * .025]}
+                geometry={plane}
+                scale={[size * 1.225, size * 1.225, 1]}
+            > 
+                <meshBasicMaterial map={shadowMap} transparent opacity={.4} />
+            </mesh> 
+
             <mesh
                 position={[0, 0, 0]}
                 receiveShadow
                 ref={planeRef}
                 rotation-x={-Math.PI / 2}
+                scale={[1000, 1000, 1]}
+                geometry={plane}
             >
-                <meshLambertMaterial color="#888" />
-                <planeBufferGeometry args={[1000, 1000, 1, 1]} />
+                <meshLambertMaterial color="#888" /> 
             </mesh>
         </>
     )

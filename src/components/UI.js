@@ -76,8 +76,8 @@ export default function UI() {
                             value={world.size}
                             disabled={isDead}
                             type="range"
-                            min="20"
-                            max="80"
+                            min="25"
+                            max="50"
                             step="5"
                             onChange={(e) => setWorldSize(parseInt(e.target.value, 10))}
                         />

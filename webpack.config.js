@@ -2,7 +2,7 @@ const webpack = require("webpack")
 const path = require("path")
 const uuid = require("uuid")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
-const MiniCssExtractPlugin = require("mini-css-extract-plugin") 
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
 const { InjectManifest } = require("workbox-webpack-plugin")
 
@@ -22,20 +22,24 @@ module.exports = (env, options) => {
             rev
         }),
         new CopyWebpackPlugin({
-            patterns: [ 
+            patterns: [
                 {
                     from: path.join(__dirname, "assets", "models"),
                     to: "models/[name].[ext]"
-                } 
+                },
+                {
+                    from: path.join(__dirname, "assets", "textures"),
+                    to: "textures/[name].[ext]"
+                }
             ]
-        }), 
-    ] 
+        }),
+    ]
 
     if (!options.watch) {
         plugins.push(new InjectManifest({
             swSrc: "./src/serviceworker.js",
             swDest: "serviceworker.js",
-            exclude: ["serviceworker.js"], 
+            exclude: ["serviceworker.js"],
         }))
     }
 
