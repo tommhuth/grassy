@@ -15,24 +15,24 @@ export default function Grass() {
     let targetMousePosition = useRef([0, 0, 0])
     let size = useStore(i => i.world.size)
     let wildness = useStore(i => i.world.grassWildness)
-    let height = useStore(i => i.world.grassHeight)  
+    let height = useStore(i => i.world.grassHeight)
     let cutTexture = useStore(i => i.world.cutTexture)
     let gapTexture = useStore(i => i.world.gapTexture)
     let cutHeight = useStore(i => i.player.cutHeight)
     let playerPositionTexture = useStore(i => i.world.playerPositionTexture)
-    let counter = useRef(0) 
+    let counter = useRef(0)
     let partScaler = 1.25
     let partSize = 9.5
-    let partCount = Math.round(size/partSize)
+    let partCount = Math.round(size / partSize)
     let { material, uniforms } = useMemo(() => {
         let uniforms = {
-            uHeight: { value: height, type: "f" }, 
+            uHeight: { value: height, type: "f" },
             uCanvasCross: { value: 0, type: "f" },
             uCameraCenterPosition: { value: [0, 0, 0], type: "v3" },
             uTime: { value: 0, type: "f" },
             uMouseEffect: { value: 0, type: "f" },
             uMousePosition: { value: [0, 0, 0], type: "v3" },
-            uSize: { value: size, type: "f" }, 
+            uSize: { value: size, type: "f" },
             uWildness: { value: wildness, type: "f" }, // scale of noise height 
             uCutHeight: { value: .45, type: "f" }, // 0 - 1 scale
             uCut: { value: null, type: "t" },
@@ -42,7 +42,7 @@ export default function Grass() {
         let material = new MeshBasicMaterial({
             wireframe: false,
             transparent: true,
-            precision: "mediump", 
+            precision: "mediump",
             onBeforeCompile(shader) {
                 shader.vertexShader = shader.vertexShader.replace("#include <common>", glsl`
                     #include <common>
@@ -110,7 +110,7 @@ export default function Grass() {
         return { uniforms, material }
     }, [wildness, height, size])
     let isMovingMouse = useRef(false)
-    let planeRef = useRef()  
+    let planeRef = useRef() 
 
     useEffect(() => {
         let diagonal = Math.sqrt(viewport.width ** 2 + viewport.height ** 2)
@@ -119,14 +119,14 @@ export default function Grass() {
         uniforms.uCanvasCross.needsUpdate = true
     }, [viewport, uniforms, size])
 
-    useFrame(()=> {
+    useFrame(() => {
         let mesh = useStore.getState().player.mesh
 
-        if (mesh) { 
+        if (mesh) {
             uniforms.uCameraCenterPosition.value = mesh.position.toArray()
             uniforms.uCameraCenterPosition.value[1] = 0
             uniforms.uCameraCenterPosition.needsUpdate = true
-        } 
+        }
     })
 
     useEffect(() => {
@@ -180,7 +180,7 @@ export default function Grass() {
     })
 
     useEffect(() => {
-        if (ref && model?.geometry) {  
+        if (ref && model?.geometry) {
             let i = 0
             let matrix = new Matrix4()
             let position = new Vector3()
@@ -189,7 +189,7 @@ export default function Grass() {
             let y = new Vector3(0, 1, 0)
 
             for (let x = 0; x < partCount; x += 1) {
-                for (let z = 0; z <partCount; z += 1) {
+                for (let z = 0; z < partCount; z += 1) {
                     rotation.setFromAxisAngle(y, random.float(-.25, 0))
 
                     position.set(
@@ -205,7 +205,7 @@ export default function Grass() {
 
             ref.instanceMatrix.needsUpdate = true
         }
-    }, [ref, size, model?.geometry, partScaler, partSize, partCount]) 
+    }, [ref, size, model?.geometry, partScaler, partSize, partCount])
 
     useEffect(() => {
         let raycaster = new Raycaster()
