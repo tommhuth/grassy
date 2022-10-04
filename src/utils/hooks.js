@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react" 
-import Config from "./Config"
+import Config from "../Config"
  
 export function useKeys() {
     let keys = useMemo(() => {

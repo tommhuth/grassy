@@ -1,10 +1,10 @@
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef } from "react"
 import { Vector3, MeshPhongMaterial } from "three"
-import { reduceBladesHealth, crash, setBladesActive, setInDanger, useStore, setTrauma, setPlayerMesh } from "./data/store"
+import { reduceBladesHealth, crash, setBladesActive, setInDanger, useStore, setTrauma, setPlayerMesh } from "../data/store"
 import { Shadow, useGLTF } from "@react-three/drei"
 import random from "@huth/random"
-import { darkerGray, white } from "./global"
+import { darkerGray, white } from "../utils/global"
 
 useGLTF.preload("/models/craft.glb")
 

@@ -1,8 +1,8 @@
 import { useFrame } from "@react-three/fiber"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { CanvasTexture } from "three"
-import { setCompletionGrade, setupWorld, useStore } from "./data/store"
-import { useCanvas } from "./hooks"
+import { setCompletionGrade, setupWorld, useStore } from "../data/store"
+import { useCanvas } from "../utils/hooks"
 
 export default function GrassSim({
     size = 128,

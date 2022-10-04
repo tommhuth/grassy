@@ -1,24 +1,25 @@
 import { createContext, useContext, useState } from "react"
 
-const context = createContext()
+const context = createContext({ sphere: [null, null] })
 
 export function useModels(type) {
     return useContext(context)[type]
 }
 
 export function ModelsProvider({ children }) {
-    let [sphereRef, setSphereRef] = useState()
+    let [sphereInstance, setSphereInstance] = useState()
+    let sphereCount = 15
 
     return (
-        <context.Provider value={{ sphere: sphereRef }}>
+        <context.Provider value={{ sphere: [sphereInstance, sphereCount] }}>
             <instancedMesh
-                ref={setSphereRef}
-                args={[undefined, undefined, 50]}
-                position={[0,0,0]}
+                ref={setSphereInstance}
+                args={[undefined, undefined, sphereCount]}
+                position={[0, 0, 0]}
                 receiveShadow
                 castShadow
             >
-                <sphereBufferGeometry args={[1, 14, 14]} />
+                <sphereBufferGeometry args={[1, 12, 12]} />
                 <meshLambertMaterial color="#FFF" />
             </instancedMesh>
             {children}

@@ -1,10 +1,10 @@
 import { useFrame, useThree, useLoader } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Matrix4, Vector3, MeshBasicMaterial, Quaternion, Raycaster, Vector2 } from "three"
-import { useStore } from "./data/store"
-import grassTransform from "./grassTransform.glsl"
+import { useStore } from "../data/store"
+import grassTransform from "../utils/shaders/grassTransform.glsl"
 import random from "@huth/random"
-import { glsl } from "./utils"
+import { glsl } from "../utils/utils"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 
 export default function Grass() {

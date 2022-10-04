@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { addRoadkill, useStore } from "./data/store"
+import { addRoadkill, useStore } from "../data/store"
 import Roadkill from "./Roadkill"
 
 export default function Roadkills() {

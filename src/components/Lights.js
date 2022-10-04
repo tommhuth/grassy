@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useRef } from "react" 
-import { useStore } from "./data/store"
+import { useStore } from "../data/store"
 
 export default function Lights() {
     let ref = useRef()

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react"
 import { Box3, Matrix4, Quaternion, Vector3 } from "three"
-import { addDanger, removeDanger } from "./data/store"
-import { useModels } from "./models"
+import { addDanger, removeDanger } from "../data/store"
+import { useModels } from "../utils/models"
 
 const _matrix = new Matrix4()
 const _position = new Vector3()
@@ -10,7 +10,7 @@ const _quaternion = new Quaternion()
 
 export default function Danger({ index, radius, position = [0, 0, 0] }) {
     let aabb = useMemo(() => new Box3(), [])
-    let sphereInstance = useModels("sphere")
+    let [sphereInstance] = useModels("sphere")
 
     useEffect(() => {
         if (sphereInstance) {

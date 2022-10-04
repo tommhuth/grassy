@@ -1,8 +1,8 @@
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { clamp } from "three/src/math/MathUtils"
-import { setBladesActive, setRotation, setSpeed, start, useStore } from "./data/store"
-import { useKeys } from "./hooks"
+import { setBladesActive, setRotation, setSpeed, start, useStore } from "../data/store"
+import { useKeys } from "../utils/hooks"
 
 // https://beej.us/blog/data/javascript-gamepad/
 function setDeadzone(x, y, deadzone = 0.25) {

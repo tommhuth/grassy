@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import { setBladesActive, setCutHeight, useStore, setWorldSize, setGrassProperty, State, start } from "./data/store"
-
+import { setBladesActive, setCutHeight, useStore, setWorldSize, setGrassProperty, State, start } from "../data/store"
+import { useModels } from "../utils/models"
 
 export default function UI() {
     let bladesActive = useStore(i => i.player.bladesActive)
@@ -12,13 +12,20 @@ export default function UI() {
     let world = useStore(i => i.world)
     let state = useStore(i => i.state)
     let intro = useStore(i => i.intro)
-    const [controls, setControls ] = useState(false)
+    let [controls, setControls] = useState(false)
     let isDead = engineHealth === 0
+    let [, sphereCount] = useModels("sphere")
 
     useEffect(() => {
-        window.addEventListener("click", () => {
+        let onClick = () => {
             start()
-        })
+        }
+
+        window.addEventListener("click", onClick)
+
+        return () => {
+            window.removeEventListener("click", onClick)
+        }
     }, [])
 
     return (
@@ -51,7 +58,7 @@ export default function UI() {
                 }}
             >
                 <button onClick={() => setControls(i => !i)}>
-                    <svg   viewBox="0 0 700 600">
+                    <svg viewBox="0 0 700 600">
                         <g fill="currentColor">
                             <path d="m186.67 396.67c-6.1914 0-12.125 2.457-16.5 6.832s-6.8359 10.312-6.8359 16.5v70c0 8.3359 4.4492 16.039 11.668 20.207s16.113 4.168 23.332 0 11.668-11.871 11.668-20.207v-70c0-6.1875-2.457-12.125-6.8359-16.5-4.375-4.375-10.309-6.832-16.496-6.832z" />
                             <path d="m233.33 326.67h-23.332v-256.67c0-8.3359-4.4492-16.039-11.668-20.207s-16.113-4.168-23.332 0-11.668 11.871-11.668 20.207v256.67h-23.332c-8.3359 0-16.039 4.4453-20.207 11.664s-4.168 16.117 0 23.336 11.871 11.664 20.207 11.664h93.332c8.3359 0 16.039-4.4453 20.207-11.664 4.168-7.2188 4.168-16.117 0-23.336-4.168-7.2188-11.871-11.664-20.207-11.664z" />
@@ -63,7 +70,7 @@ export default function UI() {
                     </svg>
                 </button>
 
-                <ul className="ui-map-controls__list" style={{ display : controls ? undefined: "none" }}>
+                <ul className="ui-map-controls__list" style={{ display: controls ? undefined : "none" }}>
                     <li className="ui-map-controls__control">
                         <input
                             value={world.size}
@@ -107,7 +114,7 @@ export default function UI() {
                             disabled={isDead}
                             type="range"
                             min="0"
-                            max="15"
+                            max={sphereCount}
                             step="1"
                             onChange={(e) => setGrassProperty("difficultyLevel", parseFloat(e.target.value))}
                         />

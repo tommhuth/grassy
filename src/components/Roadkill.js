@@ -1,11 +1,11 @@
 import { useFrame } from "@react-three/fiber"
 import { useRef, useMemo, useEffect, useState, memo } from "react"
-import { incrementRoadkills, removeRoadkill, reduceEngineHealth, useStore, setTrauma, setDebrisPosition } from "./data/store"
+import { incrementRoadkills, removeRoadkill, reduceEngineHealth, useStore, setTrauma, setDebrisPosition } from "../data/store"
 import { Vector3 } from "three"
 import { OBB } from "three/examples/jsm/math/OBB"
 import animate from "@huth/animate"
 import random from "@huth/random"
-import { box, white } from "./global"
+import { box, white } from "../utils/global"
 
 function Roadkill({ id, position, path, startIndex, speed }) {
     let ref = useRef()

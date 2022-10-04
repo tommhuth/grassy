@@ -1,7 +1,7 @@
 import random from "@huth/random"
 import { useMemo } from "react"
 import Danger from "./Danger"
-import { useStore } from "./data/store"
+import { useStore } from "../data/store"
 
 function cycle(list = []) {
     let i = 0

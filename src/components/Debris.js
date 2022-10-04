@@ -2,8 +2,8 @@ import random from "@huth/random"
 import { useFrame } from "@react-three/fiber"
 import { useMemo, useRef, useState } from "react"
 import { Matrix4, Quaternion, Vector3 } from "three"
-import { useStore } from "./data/store"
-import { box, white } from "./global"
+import { useStore } from "../data/store"
+import { box, white } from "../utils/global"
 
 let _matrix = new Matrix4()
 let _quat = new Quaternion()

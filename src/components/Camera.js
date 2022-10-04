@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber"
 import { useLayoutEffect, useRef } from "react"
-import { reduceTrauma, State, useStore } from "./data/store"
+import { reduceTrauma, State, useStore } from "../data/store"
 
 
 export default function Camera({ offset = [30, 30, -30], startPosition = [30, 30, -30] }) {
