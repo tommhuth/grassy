@@ -1,0 +1,20 @@
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+@theme {
+    --animate-blink: blink .85s infinite;
+}
+
+@keyframes blink {
+
+    0%,
+    50%,
+    100% {
+        opacity: 1;
+    }
+
+    25%,
+    75% {
+        opacity: .25;
+    }
+}

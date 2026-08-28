@@ -1,0 +1,53 @@
+:root {
+    --text-color: #fff;
+    --background-color: #000;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    outline: none;
+    text-decoration: none;
+    list-style: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none !important;
+    background-color: transparent;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0) !important;
+    touch-action: none;
+    overscroll-behavior: none;
+}
+
+html {
+    background-color: var(--background-color);
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 1em;
+    color: var(--text-color);
+    height: 100%;
+}
+
+.standalone {
+    height: 100vh !important;
+}
+
+.standalone body,
+.standalone #canvas {
+    height: 100vh !important;
+}
+
+.visually-hidden {
+    position: absolute;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    width: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+}

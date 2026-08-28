@@ -1,2 +1,3 @@
-# Grassy
-WIP space lawn mower
+# R3F boilerplate
+
+React Three Fiber + Cannonjs + Vite
