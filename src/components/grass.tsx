@@ -1,20 +1,19 @@
-import grassUrl from "@assets/models/grass.glb"
+import grassModel from "@assets/models/grass.glb"
 import { setMatrixAt } from "@data/utils"
 import random from "@huth/random"
 import { useGLTF } from "@react-three/drei"
-import { useFrame, useThree } from "@react-three/fiber"
+import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { DoubleSide, InstancedMesh, Plane, Raycaster, ShaderMaterial, Vector2, Vector3 } from "three"
+import { DoubleSide, InstancedMesh, ShaderMaterial } from "three"
 import easings from "@src/shaders/easings.glsl"
 import utils from "@src/shaders/utils.glsl"
 import noise from "@src/shaders/noise.glsl"
-import { cutTexture, grasscount, grassstep, overlapTexture, textsize, worldsize } from "./grasssim"
+import { cutTexture, grasscount, grassstep, overlapTexture, worldsize } from "./grasssim"
 import { useShader } from "@data/hooks"
 
 const grassHeight = 1.5
 const grassWildness = .975 // scale of noise height
-const cutHeight = .15 // 0 - 1 scale
-const occlusionRadius = 1.25 // world units the occlusion averages over
+const cutHeight = .15 // 0 - 1 scale 
 
 const shared = /* glsl */`
     uniform sampler2D uCutMap;
@@ -24,10 +23,7 @@ const shared = /* glsl */`
     uniform float uHeight;
     uniform float uWildness;
     uniform float uCutHeight;
-    uniform float uOcclusionLod;
-    uniform float uMouseEffect;
-    uniform vec3 uMousePosition;
-    varying vec3 vPosition;
+    uniform float uOcclusionLod; 
     varying vec3 vWorldPosition;
     varying float vOcclusion;
 
@@ -39,26 +35,26 @@ const shared = /* glsl */`
 const vertexShader = /* glsl */`
     ${shared}
     
+    // from model, position of grass blade
     attribute vec3 _bladepos;
 
     void main() {
-        vec3 wp = (modelMatrix * instanceMatrix * vec4(_bladepos, 1.)).xyz;
-        vec3 wp2 = (modelMatrix * instanceMatrix * vec4(position, 1.)).xyz;
+        vec3 bladePosition = (modelMatrix * instanceMatrix * vec4(_bladepos, 1.)).xyz; 
 
-        vWorldPosition = wp2;
+        // three flips the y coord of textures 
+        vec2 mapUv = (bladePosition.xz * vec2(1., -1.) + uWorldSize / 2.) / uWorldSize;
 
-        // three flips the y coord of textures
-        vec2 tuv = vec2((wp.x + uWorldSize / 2.) / uWorldSize, (-wp.z + uWorldSize / 2.) / uWorldSize);
-        vec4 overlap = texture2D(uOverlapMap, tuv);
+        vec4 overlap = texture2D(uOverlapMap, mapUv);
         // uv.y is 1 at the blade root, 0 at the tip 
         float bladeProgress = 1. - uv.y;
         float bladeMeshHeight = 2.73; // tallest blade in the mesh, only to put uCutHeight in mesh units
         // red channel = obstacles
         float gap = step(.05, overlap.r);
         // green channel = player trail, cut map = mowed
-        float pushGrade = max(overlap.g, texture2D(uCutMap, tuv).r);
+        float pushGrade = max(overlap.g, texture2D(uCutMap, mapUv).r);
        
-        float baseHeightNoise = 1. - (noise(wp.xz * .05) * .5 + .5) * uWildness;
+        // height variation
+        float baseHeightNoise = 1. - (noise(bladePosition.xz * .05) * .5 + .5) * uWildness;
         float bladeScale = max(
             (1. - pushGrade)
                 * baseHeightNoise
@@ -67,43 +63,39 @@ const vertexShader = /* glsl */`
             uCutHeight
         );
 
-        // one taper for wind + mouse: 0 at the root, 1 at the tip of every blade
+        // taper for wind: 0 at the root, 1 at the tip of every blade
         float heightEase = pow(bladeProgress, 1.5);
         float sway = heightEase * bladeScale / uHeight;
-        float baseWindNoise = noise(wp.xz * .025 + uTime) * .5 
-            + noise(wp.xz * .1 + uTime * 1.5) * .25;
-        float wind = baseWindNoise * (1. - gap);
-
-        vec3 direction = uMousePosition - vec3(wp.x, 0., wp.z);
-        float radius = 10.;
-        float dist = length(direction);
-        float mouseScale = 1. - clamp(dist / radius, 0., 1.);
-
+        float baseWindNoise = noise(bladePosition.xz * .025 + uTime) * .5 
+            + noise(bladePosition.xz * .1 + uTime * 1.5) * .25;
+        float wind = baseWindNoise * (1. - gap); 
         // every horizontal push, at full sway, in one vector
-        vec3 bend = vec3(wind, 0., wind)
-            - (direction / dist) * easeInOutQuad(mouseScale) * 2. * uMouseEffect;
+        vec3 bend = vec3(wind, 0., wind);
 
+        float y = mix(position.y * bladeScale, -.1, gap);
         vec3 transformed = vec3(
             position.x,
-            mix(position.y * bladeScale, -.1, gap),
-            position.z
-        ) + bend * sway;
+            y,
+            position.z 
+        ) + bend * sway; 
 
-        vPosition = transformed;
-
-         // same push signal averaged over a neighbourhood; mip level n covers ~2^n texels.
-        // three compiles this as GLSL ES 3.00, so it is textureLod, not texture2DLod
+        // sample lower res texture for auto soften map sample
         float pushSoft = max(
-            textureLod(uOverlapMap, tuv, uOcclusionLod).g,
-            textureLod(uCutMap, tuv, uOcclusionLod).r
+            textureLod(uOverlapMap, mapUv, uOcclusionLod).g,
+            textureLod(uCutMap, mapUv, uOcclusionLod).r
         );
-        // deliberately keyed to the scaled height, not bladeProgress: tall blades then run
-        // unoccluded over their top third, short ones stay dark all the way up
+        
+        // darken lower part of blade
         vOcclusion = baseHeightNoise
             * (1. - pushSoft)
-            * easeOutQuart(map(transformed.y, 0., bladeMeshHeight, 1., 0.));
+            * easeOutQuart(map(transformed.y, 0., bladeMeshHeight, 1., 0.)); 
 
-        gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(transformed, 1.);
+        vWorldPosition = (modelMatrix * instanceMatrix * vec4(position, 1.)).xyz;
+
+        gl_Position = projectionMatrix 
+            * modelViewMatrix 
+            * instanceMatrix 
+            * vec4(transformed, 1.);
     }
 `
 
@@ -123,7 +115,7 @@ const fragmentShader = /* glsl */`
                 vec3(180. / 255., 235. / 255., 53. / 255.), 
                 noise(vWorldPosition * .8) * .5 + .5
             ),
-            clamp(vPosition.y / (1.5 * uHeight), -.25, 1.)
+            clamp(vWorldPosition.y / (1.5 * uHeight), -.25, 1.)
         );
 
         gl_FragColor.rgb = mix(
@@ -134,26 +126,25 @@ const fragmentShader = /* glsl */`
     }
 `
 
-const _plane = new Plane(new Vector3(0, 1, 0), 0)
-const _pointer = new Vector2()
-const _hit = new Vector3()
-
 export default function Grass() {
     const [instance, setRef] = useState<InstancedMesh | null>(null)
-    const { nodes } = useGLTF(grassUrl)
-    const { camera } = useThree()
+    const { nodes } = useGLTF(grassModel)
     const materialRef = useRef<ShaderMaterial>(null)
-    const targetMousePosition = useRef<[number, number, number]>([0, 0, 0])
-    const isMovingMouse = useRef(false)
     const { onBeforeCompile } = useShader({
         uniforms: {
             uWorldSize: { value: worldsize },
             uWildness: { value: grassWildness },
+            uOcclusionLod: { value: 5 },
+            uCutMap: { value: cutTexture },
+            uOverlapMap: { value: overlapTexture },
         },
         shared: /* glsl */`
-            varying vec3 vWorldPosition;
-            uniform float uWildness;
+            varying vec3 vWorldPosition; 
             uniform float uWorldSize;
+            uniform float uWildness; 
+            uniform float uOcclusionLod; 
+            uniform sampler2D uCutMap;
+            uniform sampler2D uOverlapMap;
         `,
         vertex: {
             main: /* glsl */`
@@ -167,18 +158,24 @@ export default function Grass() {
             `,
             main: /* glsl */`
                 vec3 darken = vec3(0. / 255., 5. / 255., 5. / 255.);
-                float extra = 3.;
-                float size = uWorldSize / 2. - extra * .25;
+                float fadeDistance = 3.;
+                float size = uWorldSize / 2. - fadeDistance * .25;
                 float n = (1. - (noise(vWorldPosition.xz * .05) * .5 + .5) * uWildness)
-                        * map(vWorldPosition.x, size, size + extra, 1., 0.)
-                        * map(vWorldPosition.x, -size - extra, -size, 0., 1.)
-                        * map(vWorldPosition.z, size, size + extra, 1., 0.)
-                        * map(vWorldPosition.z, -size - extra, -size, 0., 1.);
+                        * map(vWorldPosition.x, size, size + fadeDistance, 1., 0.)
+                        * map(vWorldPosition.x, -size - fadeDistance, -size, 0., 1.)
+                        * map(vWorldPosition.z, size, size + fadeDistance, 1., 0.)
+                        * map(vWorldPosition.z, -size - fadeDistance, -size, 0., 1.);
+
+                vec2 mapUv = (vWorldPosition.xz * vec2(1., -1.) + uWorldSize / 2.) / uWorldSize;
+                float pushSoft = max(
+                    textureLod(uOverlapMap, mapUv, uOcclusionLod).g,
+                    textureLod(uCutMap, mapUv, uOcclusionLod).r
+                );
 
                 gl_FragColor.rgb = mix(
                     gl_FragColor.rgb,
                     darken,
-                    smoothstep(.0, 1., n)
+                    smoothstep(.0, 1., n * (1. - pushSoft))
                 );
             `
         }
@@ -192,10 +189,8 @@ export default function Grass() {
             uHeight: { value: grassHeight },
             uWildness: { value: grassWildness },
             uCutHeight: { value: cutHeight },
-            // texels per world unit is textsize / worldsize, and mip level n covers ~2^n texels
+            // mip map level, 0-9
             uOcclusionLod: { value: 5 },
-            uMouseEffect: { value: 0 },
-            uMousePosition: { value: [0, 0, 0] },
         }
     }, [])
 
@@ -204,7 +199,6 @@ export default function Grass() {
             return
         }
 
-        // centre the grid on the origin: the outermost patch centres sit at +/- half the span
         let offset = (grasscount - 1) * grassstep / 2
 
         for (let xi = 0; xi < grasscount; xi++) {
@@ -213,64 +207,19 @@ export default function Grass() {
                     instance,
                     index: xi * grasscount + zi,
                     position: [xi * grassstep - offset, 0, zi * grassstep - offset],
-                    // rotation: [0, random.float(-.5, .5), 0],
+                    rotation: [0, random.float(-.5, .5), 0],
                     scale: 1
                 })
             }
         }
     }, [instance])
 
-    useEffect(() => {
-        let raycaster = new Raycaster()
-        let tid: ReturnType<typeof setTimeout>
-
-        let onPointerMove = (e: PointerEvent) => {
-            if (e.pointerType !== "mouse") return
-
-            _pointer.x = (e.clientX / window.innerWidth) * 2 - 1
-            _pointer.y = -(e.clientY / window.innerHeight) * 2 + 1
-
-            raycaster.setFromCamera(_pointer, camera)
-
-            if (materialRef.current && raycaster.ray.intersectPlane(_plane, _hit)) {
-                let { uMouseEffect } = materialRef.current.uniforms
-
-                targetMousePosition.current = [_hit.x, 4, _hit.z]
-                uMouseEffect.value = Math.min(uMouseEffect.value + .01, 1)
-                isMovingMouse.current = true
-
-                clearTimeout(tid)
-                tid = setTimeout(() => {
-                    isMovingMouse.current = false
-                }, 150)
-            }
-        }
-
-        window.addEventListener("pointermove", onPointerMove)
-
-        return () => {
-            clearTimeout(tid)
-            window.removeEventListener("pointermove", onPointerMove)
-        }
-    }, [camera])
-
     useFrame((state, delta) => {
         if (!materialRef.current) {
             return
         }
 
-        let { uMousePosition, uMouseEffect, uTime } = materialRef.current.uniforms
-        let mouse = uMousePosition.value
-
-        if (!isMovingMouse.current) {
-            uMouseEffect.value *= 1 - delta * .6
-        }
-
-        mouse[0] += (targetMousePosition.current[0] - mouse[0]) * delta * 1.5
-        mouse[2] += (targetMousePosition.current[2] - mouse[2]) * delta * 1.5
-        mouse[1] = 3
-
-        uTime.value += delta * .3
+        materialRef.current.uniforms.uTime.value += delta * .3
     })
 
     return (
@@ -296,4 +245,4 @@ export default function Grass() {
     )
 }
 
-useGLTF.preload(grassUrl)
+useGLTF.preload(grassModel)

@@ -1,7 +1,7 @@
 import { setState, store, useStore } from "@data/store"
 import { CanvasTexture } from "three"
 import Worker from "../worker?worker"
-import { AnalyzeEvent, AnalyzeResultEvent } from "@src/worker"
+import { AnalyzeResultEvent } from "@src/worker"
 
 const worker = new Worker()
 
@@ -11,7 +11,7 @@ setInterval(() => {
     let context = canvas.overlap.getContext("2d", { willReadFrequently: false })
     let overlapImage = context?.getImageData(0, 0, textsize, textsize)
 
-    if (!cutImage || !overlapImage) return
+    if (!cutImage || !overlapImage || !store.getState().player.active) return
 
     worker.postMessage(
         {
