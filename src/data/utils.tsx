@@ -1,8 +1,13 @@
 import { Tuple2, Tuple3, Tuple4 } from "@src/types/global"
 import { BufferAttribute, BufferGeometry, Color, ColorRepresentation, Euler, InstancedMesh, Matrix4, Quaternion, Vector3 } from "three"
-import { clamp as threeClamp, mapLinear as map } from "three/src/math/MathUtils.js"
+import { clamp as threeClamp, mapLinear } from "three/src/math/MathUtils.js"
 
-export { map }
+export function map(x: number, a1: number, a2: number, b1: number, b2: number) {
+    const min = Math.min(a1, a2)
+    const max = Math.max(a1, a2)
+
+    return mapLinear(clamp(x, min, max), a1, a2, b1, b2)
+}
 
 export function ndelta(delta: number) {
     const nDelta = clamp(delta, 0, 1 / 15)

@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react"
 import { DirectionalLight } from "three"
 
 // direction the light travels, relative to the player
-const lightOffset = [-8, -14, -6] as const
+const lightOffset = [-10, -7, -6] as const
 // how often (in frames) the shadow camera is moved along with the player
 const updateInterval = 10
 
@@ -52,11 +52,11 @@ export default function Lights() {
                 target-position={[...lightOffset]}
                 intensity={1}
                 castShadow
-                shadow-radius={3}
+                shadow-radius={4}
                 shadow-bias={-.005}
+                shadow-camera-mapSize={[512, 512]}
                 onUpdate={self => {
-                    // cover the visible diagonal, nothing more
-                    let size = Math.sqrt(viewport.width ** 2 + viewport.height ** 2) / 2
+                    let size = Math.max(viewport.width, + viewport.height)
 
                     self.shadow.camera.right = size
                     self.shadow.camera.left = -size
@@ -65,7 +65,6 @@ export default function Lights() {
                     self.shadow.camera.near = -size
                     self.shadow.camera.far = size
                     self.shadow.camera.updateProjectionMatrix()
-                    self.shadow.mapSize.set(512, 512)
                     self.shadow.needsUpdate = true
                     self.updateMatrixWorld()
                 }}

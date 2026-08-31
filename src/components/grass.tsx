@@ -4,7 +4,7 @@ import random from "@huth/random"
 import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { DoubleSide, InstancedMesh, ShaderMaterial } from "three"
+import { DoubleSide, InstancedMesh, ShaderMaterial, UniformsLib, UniformsUtils } from "three"
 import easings from "@src/shaders/easings.glsl"
 import utils from "@src/shaders/utils.glsl"
 import noise from "@src/shaders/noise.glsl"
@@ -36,11 +36,14 @@ const shared = /* glsl */`
 
 const vertexShader = /* glsl */`
     ${shared}
+
+    #include <common>
+    #include <shadowmap_pars_vertex>
     
     // from model, position of grass blade
     attribute vec3 _bladepos;
 
-    void main() {
+    void main() {   
         vec3 bladePosition = (modelMatrix * instanceMatrix * vec4(_bladepos, 1.)).xyz; 
 
         // three flips the y coord of textures 
@@ -101,6 +104,13 @@ const vertexShader = /* glsl */`
 
         vWorldPosition = (modelMatrix * instanceMatrix * vec4(position, 1.)).xyz;
 
+        // shadow coord has to follow the displaced blade, not the model position
+        vec4 worldPosition = modelMatrix * instanceMatrix * vec4(transformed, 1.);
+        // the model has normals, so HAS_NORMAL is defined and the chunk expects this
+        vec3 transformedNormal = normalMatrix * normal;
+
+        #include <shadowmap_vertex>
+
         gl_Position = projectionMatrix 
             * modelViewMatrix 
             * instanceMatrix 
@@ -111,7 +121,19 @@ const vertexShader = /* glsl */`
 const fragmentShader = /* glsl */`
     ${shared}
 
+    #include <packing>
+    #include <shadowmap_pars_fragment>
+
     void main() {
+        float shadow = getShadow(
+            directionalShadowMap[0],
+            directionalLightShadows[0].shadowMapSize,
+            directionalLightShadows[0].shadowIntensity,
+            directionalLightShadows[0].shadowBias,
+            directionalLightShadows[0].shadowRadius,
+            vDirectionalShadowCoord[0]
+        );
+
         vec3 top = vec3(255. / 255., 242. / 255., 133. / 255.);
         vec3 bottom = vec3(0., 122. / 255., 100. / 255.);
         vec3 darken =  vec3(0. / 255., 10. / 255., 60. / 255.);
@@ -131,6 +153,12 @@ const fragmentShader = /* glsl */`
             gl_FragColor.rgb,
             gl_FragColor.rgb * darken, 
             smoothstep(.1, 1., vOcclusion)
+        );
+
+         gl_FragColor.rgb = mix(
+            gl_FragColor.rgb * .25,
+            gl_FragColor.rgb,
+            shadow
         );
     }
 `
@@ -191,6 +219,8 @@ export default function Grass() {
     })
     const uniforms = useMemo(() => {
         return {
+            // needed by the shadowmap chunks, filled in by the renderer
+            ...UniformsUtils.clone(UniformsLib.lights),
             uCutMap: { value: cutTexture },
             uOverlapMap: { value: overlapTexture },
             uWorldSize: { value: worldsize },
@@ -237,14 +267,13 @@ export default function Grass() {
     return (
         <>
             <instancedMesh
-                castShadow={false}
-                receiveShadow={false}
                 ref={setRef}
                 args={[nodes.patch.geometry, undefined, grasscount * grasscount]}
             >
                 <shaderMaterial
                     ref={materialRef}
                     attach="material"
+                    lights
                     uniforms={uniforms}
                     vertexShader={vertexShader}
                     fragmentShader={fragmentShader}
