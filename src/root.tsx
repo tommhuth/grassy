@@ -5,17 +5,19 @@ import { createRoot, RenderProps } from "@react-three/fiber"
 import Ui from "./ui/ui"
 import { clamp } from "@data/utils"
 
+export const BASE_ZOOM = 70
+
 function getConfiguration() {
     return {
         camera: {
-            zoom: 70,
+            zoom: BASE_ZOOM,
             near: -15,
             far: 150,
             position: [0, 0, 0],
         },
         flat: true,
         orthographic: true,
-        shadows: false,
+        shadows: "variance",
         dpr: clamp(window.devicePixelRatio * .75, 1, 2),
         size: {
             width: window.innerWidth,

@@ -11,6 +11,7 @@ import Player from "@components/player"
 import { worldsize } from "@components/grasssim"
 import { Mesh } from "three"
 import Grass from "@components/grass"
+import Lights from "@components/lights"
 
 extend(extensions)
 
@@ -29,7 +30,7 @@ function BoxObstacle({ obb, size, position, rotation }: BoxObstacle) {
     })
 
     return (
-        <mesh position={position} rotation-y={rotation} ref={ref}>
+        <mesh position={position} rotation-y={rotation} ref={ref} castShadow receiveShadow>
             <boxGeometry args={[...size]} />
             <meshPhongMaterial />
         </mesh>
@@ -41,6 +42,8 @@ function RockObstacle({ radius, position, rotation }: RockObstacle) {
         <mesh
             position={position}
             rotation-y={rotation}
+            castShadow
+            receiveShadow
         >
             <sphereGeometry args={[radius, 16, 16]} />
             <meshPhongMaterial />
@@ -70,11 +73,7 @@ export default function App() {
             <Player />
             <Grass />
 
-            <directionalLight
-                position={[10, 5, 6]}
-                intensity={1}
-            />
-            <ambientLight intensity={.5} />
+            <Lights />
 
 
             {obstacles.map(i => {

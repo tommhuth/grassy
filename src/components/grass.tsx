@@ -24,6 +24,8 @@ const shared = /* glsl */`
     uniform float uWildness;
     uniform float uCutHeight;
     uniform float uOcclusionLod; 
+    uniform float uMouseEffect;
+    uniform vec3 uMousePosition;
     varying vec3 vWorldPosition;
     varying float vOcclusion;
 
@@ -63,16 +65,23 @@ const vertexShader = /* glsl */`
             uCutHeight
         );
 
-        // taper for wind: 0 at the root, 1 at the tip of every blade
+        float y = mix(position.y * bladeScale, -.1, gap);
+        // one taper for wind + mouse: 0 at the root, 1 at the tip of every blade
         float heightEase = pow(bladeProgress, 1.5);
         float sway = heightEase * bladeScale / uHeight;
         float baseWindNoise = noise(bladePosition.xz * .025 + uTime) * .5 
             + noise(bladePosition.xz * .1 + uTime * 1.5) * .25;
         float wind = baseWindNoise * (1. - gap); 
-        // every horizontal push, at full sway, in one vector
-        vec3 bend = vec3(wind, 0., wind);
 
-        float y = mix(position.y * bladeScale, -.1, gap);
+        vec3 direction = uMousePosition - vec3(bladePosition.x, 0., bladePosition.z);
+        float radius = 10.;
+        float dist = length(direction);
+        float mouseScale = 1. - clamp(dist / radius, 0., 1.);
+
+        // every horizontal push, at full sway, in one vector
+        vec3 bend = vec3(wind, 0., wind)
+            - (direction / dist) * easeInOutQuad(mouseScale) * 2. * uMouseEffect;
+
         vec3 transformed = vec3(
             position.x,
             y,
@@ -158,7 +167,7 @@ export default function Grass() {
             `,
             main: /* glsl */`
                 vec3 darken = vec3(0. / 255., 5. / 255., 5. / 255.);
-                float fadeDistance = 3.;
+                float fadeDistance = 4.;
                 float size = uWorldSize / 2. - fadeDistance * .25;
                 float n = (1. - (noise(vWorldPosition.xz * .05) * .5 + .5) * uWildness)
                         * map(vWorldPosition.x, size, size + fadeDistance, 1., 0.)
@@ -191,6 +200,8 @@ export default function Grass() {
             uCutHeight: { value: cutHeight },
             // mip map level, 0-9
             uOcclusionLod: { value: 5 },
+            uMouseEffect: { value: 0 },
+            uMousePosition: { value: [0, 0, 0] },
         }
     }, [])
 
@@ -214,6 +225,7 @@ export default function Grass() {
         }
     }, [instance])
 
+
     useFrame((state, delta) => {
         if (!materialRef.current) {
             return
@@ -225,6 +237,8 @@ export default function Grass() {
     return (
         <>
             <instancedMesh
+                castShadow={false}
+                receiveShadow={false}
                 ref={setRef}
                 args={[nodes.patch.geometry, undefined, grasscount * grasscount]}
             >
@@ -237,9 +251,12 @@ export default function Grass() {
                     side={DoubleSide}
                 />
             </instancedMesh>
-            <mesh position={[0, -.05, 0]}>
+            <mesh position={[0, -.05, 0]} receiveShadow>
                 <boxGeometry args={[200, .1, 200]} />
-                <meshPhongMaterial onBeforeCompile={onBeforeCompile} color={"#333"} />
+                <meshLambertMaterial
+                    onBeforeCompile={onBeforeCompile}
+                    color={"#333"}
+                />
             </mesh></>
 
     )

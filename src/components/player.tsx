@@ -2,7 +2,7 @@ import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import craftUrl from "@assets/models/craft.glb"
 import { BoxObstacle, RoadkillObstacle, RockObstacle, setState, store, useStore } from "@data/store"
-import { Mesh, MeshPhongMaterial, Object3D, Sphere, Vector3 } from "three"
+import { MeshPhongMaterial, Object3D, Sphere, Vector3 } from "three"
 import { useControls } from "@src/hooks/use-controls"
 import { OBB } from "three/examples/jsm/Addons.js"
 

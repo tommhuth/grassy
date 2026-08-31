@@ -5,10 +5,11 @@ import {
     SphereGeometry,
     InstancedMesh,
     ShaderMaterial,
+    HemisphereLight,
 } from "three"
 
 export default {
     Group, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial,
     Mesh, BoxGeometry, AmbientLight, DirectionalLight, Color, SphereGeometry,
-    InstancedMesh, ShaderMaterial
+    InstancedMesh, ShaderMaterial, HemisphereLight
 }
