@@ -13,6 +13,7 @@ interface Obstacle {
 export interface RockObstacle extends Obstacle {
     type: "rock"
     radius: number
+    variant: number
 }
 
 export interface BoxObstacle extends Obstacle {
@@ -46,27 +47,53 @@ const store = create(
         loading: true,
         obstacles: [
             {
-                type: "box",
-                obb: new OBB(new Vector3(10, 0, 10)),
-                position: [10, 0, 10],
-                size: [4, 4, 4],
-                rotation: 1,
-                id: "4"
-            },
-            {
                 type: "rock",
                 radius: 2,
                 position: [0, 0, 5],
                 rotation: 0,
-                id: "5"
+                id: "5",
+                variant: 1
             },
             {
                 type: "rock",
                 radius: .25,
                 position: [-5, 0, 5],
-                rotation: 0,
-                id: "52"
-            }
+                rotation: 1,
+                id: "52",
+                variant: 2
+            },
+            {
+                type: "rock",
+                radius: 3.25,
+                position: [15, 0, -10],
+                rotation: 1,
+                id: "152",
+                variant: 4
+            },
+            {
+                type: "rock",
+                radius: 2.5,
+                position: [17, 0, 20],
+                rotation: 1,
+                id: "1512",
+                variant: 5
+            },
+            {
+                type: "rock",
+                radius: 1,
+                position: [22, 0, 21],
+                rotation: 1,
+                id: "15s12",
+                variant: 6
+            },
+            {
+                type: "rock",
+                radius: 1.25,
+                position: [-15, 0, -10],
+                rotation: 1,
+                id: "15112",
+                variant: 7
+            },
         ],
         player: {
             size: [2.35, 1, 1.35],

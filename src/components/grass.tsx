@@ -163,10 +163,7 @@ const fragmentShader = /* glsl */`
     }
 `
 
-export default function Grass() {
-    const [instance, setRef] = useState<InstancedMesh | null>(null)
-    const { nodes } = useGLTF(grassModel)
-    const materialRef = useRef<ShaderMaterial>(null)
+function Ground() {
     const { onBeforeCompile } = useShader({
         uniforms: {
             uWorldSize: { value: worldsize },
@@ -194,7 +191,7 @@ export default function Grass() {
                 ${utils}
             `,
             main: /* glsl */`
-                vec3 darken = vec3(0. / 255., 5. / 255., 5. / 255.);
+                vec3 darken = vec3(0. / 255., 5. / 255., 15. / 255.);
                 float fadeDistance = 4.;
                 float size = uWorldSize / 2. - fadeDistance * .25;
                 float n = (1. - (noise(vWorldPosition.xz * .05) * .5 + .5) * uWildness)
@@ -217,6 +214,23 @@ export default function Grass() {
             `
         }
     })
+
+    return (
+
+        <mesh position={[0, -.05, 0]} receiveShadow>
+            <boxGeometry args={[200, .1, 200]} />
+            <meshLambertMaterial
+                onBeforeCompile={onBeforeCompile}
+                color={"#2c414d"}
+            />
+        </mesh>
+    )
+}
+
+export default function Grass() {
+    const [instance, setRef] = useState<InstancedMesh | null>(null)
+    const { nodes } = useGLTF(grassModel)
+    const materialRef = useRef<ShaderMaterial>(null)
     const uniforms = useMemo(() => {
         return {
             // needed by the shadowmap chunks, filled in by the renderer
@@ -255,7 +269,6 @@ export default function Grass() {
         }
     }, [instance])
 
-
     useFrame((state, delta) => {
         if (!materialRef.current) {
             return
@@ -280,13 +293,8 @@ export default function Grass() {
                     side={DoubleSide}
                 />
             </instancedMesh>
-            <mesh position={[0, -.05, 0]} receiveShadow>
-                <boxGeometry args={[200, .1, 200]} />
-                <meshLambertMaterial
-                    onBeforeCompile={onBeforeCompile}
-                    color={"#333"}
-                />
-            </mesh></>
+            <Ground />
+        </>
 
     )
 }

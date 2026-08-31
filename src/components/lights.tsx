@@ -41,16 +41,16 @@ export default function Lights() {
     return (
         <>
             <hemisphereLight
-                groundColor={"#a5c7b0"}
-                color={"#afe3d4"}
+                groundColor="#75e6ff"
+                color="#4f809c"
                 intensity={.6}
             />
             <directionalLight
                 ref={light}
-                color={"#fff"}
+                color={"#ebfffc"}
                 position={[0, 0, 0]}
                 target-position={[...lightOffset]}
-                intensity={1}
+                intensity={1.5}
                 castShadow
                 shadow-radius={4}
                 shadow-bias={-.005}

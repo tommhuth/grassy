@@ -2,16 +2,16 @@ import { extend, useFrame } from "@react-three/fiber"
 import { Perf } from "r3f-perf"
 import { useEffect, useRef } from "react"
 import config from "@data/config"
-import type { BoxObstacle, RockObstacle } from "@data/store"
+import type { BoxObstacle } from "@data/store"
 import { setState, useStore } from "@data/store"
 import useFramerateReady from "@src/hooks/use-framerate-ready"
 import extensions from "./extensions"
 import Camera from "./components/camera"
 import Player from "@components/player"
-import { worldsize } from "@components/grasssim"
 import { Mesh } from "three"
 import Grass from "@components/grass"
 import Lights from "@components/lights"
+import RockObstacle from "@components/rock-obstacle"
 
 extend(extensions)
 
@@ -37,19 +37,6 @@ function BoxObstacle({ obb, size, position, rotation }: BoxObstacle) {
     )
 }
 
-function RockObstacle({ radius, position, rotation }: RockObstacle) {
-    return (
-        <mesh
-            position={position}
-            rotation-y={rotation}
-            castShadow
-            receiveShadow
-        >
-            <sphereGeometry args={[radius, 16, 16]} />
-            <meshPhongMaterial />
-        </mesh>
-    )
-}
 
 export default function App() {
     const loading = useStore(i => i.loading)

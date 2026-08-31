@@ -5,7 +5,7 @@ import { createRoot, RenderProps } from "@react-three/fiber"
 import Ui from "./ui/ui"
 import { clamp } from "@data/utils"
 
-export const BASE_ZOOM = 65
+export const BASE_ZOOM = 68
 
 function getConfiguration() {
     return {
