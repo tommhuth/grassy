@@ -6,7 +6,7 @@ import { Vector2, Vector3 } from "three"
 import { useStore } from "@data/store"
 
 const config = {
-    acceleration: 1,
+    acceleration: 2,
     turnSpeed: 2,
     turnDamp: 15,
     maxSpeed: 4,
