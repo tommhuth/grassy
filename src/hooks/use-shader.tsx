@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from "react"
 import { IUniform, WebGLRenderer, WebGLProgramParametersWithUniforms } from "three"
-import { glsl } from "./utils"
 import random from "@huth/random"
 
 export interface ShaderPart {
@@ -55,29 +54,29 @@ export function useShader<T extends UniformsRecord>({
             ...uniforms
         }
 
-        shader.vertexShader = shader.vertexShader.replace("#include <common>", glsl`
+        shader.vertexShader = shader.vertexShader.replace("#include <common>", /* glsl */`
             #include <common>
             
             ${shared}
-            ${vertex.head}  
+            ${vertex?.head ?? ""}  
         `)
-        shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", glsl`
+        shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", /* glsl */`
             #include <begin_vertex>
     
-            ${vertex?.main}  
+            ${vertex?.main ?? ""}  
         `)
-        shader.fragmentShader = shader.fragmentShader.replace("#include <common>", glsl`
+        shader.fragmentShader = shader.fragmentShader.replace("#include <common>", /* glsl */`
             #include <common>
 
             ${shared}
-            ${fragment?.head}  
+            ${fragment?.head ?? ""}  
         `)
-        shader.fragmentShader = shader.fragmentShader.replace("#include <dithering_fragment>", glsl`
+        shader.fragmentShader = shader.fragmentShader.replace("#include <dithering_fragment>", /* glsl */`
             #include <dithering_fragment> 
 
-            ${fragment?.main}  
+            ${fragment?.main ?? ""}  
         `)
-    }, [vertex?.head, vertex?.main, fragment?.head, fragment?.main])
+    }, [vertex.head, vertex.main, fragment.head, fragment.main])
 
     return {
         uniforms: uniforms as ReturnUniformsRecord<T>,

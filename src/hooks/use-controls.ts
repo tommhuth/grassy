@@ -1,9 +1,9 @@
-import { clamp } from "@data/utils"
+import { clamp } from "@lib/utils"
 import { useFrame, useThree } from "@react-three/fiber"
 import { useMemo, useEffect } from "react"
 import { damp } from "three/src/math/MathUtils.js"
 import { Vector2, Vector3 } from "three"
-import { useStore } from "@data/store"
+import { setState, useStore } from "@lib/store"
 
 const config = {
     acceleration: 2,
@@ -25,15 +25,32 @@ const _current = new Vector2()
 const _forward = new Vector3()
 const _projected = new Vector3()
 
+const actions: Record<string, (down: boolean) => void> = {
+    space: (down) => {
+        setState({
+            player: {
+                ...useStore.getState().player,
+                surveying: down
+            }
+        })
+    }
+}
+
 function useKeys() {
     const keys = useMemo<Record<string, boolean | number>>(() => ({}), [])
 
     useEffect(() => {
         const onkeydown = (e: KeyboardEvent) => {
-            keys[e.code.toLowerCase()] = true
+            let code = e.code.toLowerCase()
+
+            keys[code] = true
+            actions[code]?.(true)
         }
         const onkeyup = (e: KeyboardEvent) => {
-            keys[e.code.toLowerCase()] = false
+            let code = e.code.toLowerCase()
+
+            keys[code] = false
+            actions[code]?.(false)
         }
 
         window.addEventListener("keydown", onkeydown)

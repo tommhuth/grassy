@@ -15,7 +15,8 @@ export default defineConfig({
     resolve: {
         alias: {
             "@components": path.resolve(import.meta.dirname, "src/components"),
-            "@data": path.resolve(import.meta.dirname, "src/data"),
+            "@lib": path.resolve(import.meta.dirname, "src/lib"),
+            "@shaders": path.resolve(import.meta.dirname, "src/shaders"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
             "@src": path.resolve(import.meta.dirname, "src"),
         },

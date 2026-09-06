@@ -2,7 +2,11 @@
 import { useGLTF } from "@react-three/drei"
 
 import rockModel from "@assets/models/rocks.glb"
-import type { RockObstacle } from "@data/store"
+import { useStore } from "@lib/store"
+import type { RockObstacle } from "@src/types/obstacles"
+import { useRef } from "react"
+import { MeshLambertMaterial } from "three"
+import { useFrame } from "@react-three/fiber"
 
 export default function RockObstacle({
     radius,
@@ -11,6 +15,17 @@ export default function RockObstacle({
     variant = 1
 }: RockObstacle) {
     const { nodes } = useGLTF(rockModel)
+    const materialRef = useRef<MeshLambertMaterial>(null)
+
+    useFrame(() => {
+        if (!materialRef.current) {
+            return
+        }
+
+        let { player } = useStore.getState()
+
+        materialRef.current.wireframe = player.surveying
+    })
 
     return (
         <mesh
@@ -23,7 +38,7 @@ export default function RockObstacle({
             castShadow
             geometry={nodes["rock" + variant].geometry}
         >
-            <meshLambertMaterial />
+            <meshLambertMaterial ref={materialRef} />
         </mesh>
     )
 }

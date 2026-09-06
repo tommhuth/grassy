@@ -7,6 +7,9 @@ import { ReactThreeFiber } from "@react-three/fiber"
 /** @type {import('eslint').Linter.Config[]} */
 export default [
     {
+        ignores: ["node_modules/", "public/", "dist/"],
+    },
+    {
         files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
         languageOptions: {
             globals: globals.browser,

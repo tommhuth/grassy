@@ -1,23 +1,60 @@
-import { useStore } from "@data/store"
+import { useStore } from "@lib/store"
 import { useFrame, useThree } from "@react-three/fiber"
-import { useEffect, useRef } from "react"
-import { DirectionalLight } from "three"
+import { useEffect, useRef, type RefObject } from "react"
+import { CameraHelper, DirectionalLight } from "three"
 
 // direction the light travels, relative to the player
 const lightOffset = [-10, -7, -6] as const
 // how often (in frames) the shadow camera is moved along with the player
 const updateInterval = 10
 
+export function ShadowCameraHelper({ light }: { light: RefObject<DirectionalLight | null> }) {
+    const helper = useRef<CameraHelper>(null)
+    const { scene } = useThree()
+
+    useEffect(() => {
+        if (!light.current) {
+            return
+        }
+
+        let instance = new CameraHelper(light.current.shadow.camera)
+
+
+        helper.current = instance
+        scene.add(instance)
+
+        return () => {
+            scene.remove(instance)
+            instance.dispose()
+            helper.current = null
+        }
+    }, [scene, light])
+
+    useFrame(() => helper.current?.update())
+
+    return null
+}
+
 export default function Lights() {
     const light = useRef<DirectionalLight>(null)
     const counter = useRef(0)
     const { scene, viewport } = useThree()
+    const mapSize = Math.ceil(512 * viewport.dpr)
+    let size = Math.max(viewport.width, viewport.height)
 
     useEffect(() => {
         if (light.current) {
             scene.add(light.current.target)
         }
     }, [scene])
+
+    useEffect(() => {
+        if (!light.current) {
+            return
+        }
+
+        light.current.shadow.camera.updateProjectionMatrix()
+    }, [viewport.width, viewport.height])
 
     useFrame(() => {
         let { player } = useStore.getState()
@@ -28,8 +65,6 @@ export default function Lights() {
             return
         }
 
-        // the shadow camera travels with the player, so the shadow map only ever
-        // has to cover what's on screen
         light.current.position.copy(player.mesh.position)
         light.current.target.position.set(
             player.mesh.position.x + lightOffset[0],
@@ -54,20 +89,13 @@ export default function Lights() {
                 castShadow
                 shadow-radius={4}
                 shadow-bias={-.005}
-                shadow-camera-mapSize={[512, 512]}
-                onUpdate={self => {
-                    let size = Math.max(viewport.width, + viewport.height)
-
-                    self.shadow.camera.right = size
-                    self.shadow.camera.left = -size
-                    self.shadow.camera.top = size
-                    self.shadow.camera.bottom = -size
-                    self.shadow.camera.near = -size
-                    self.shadow.camera.far = size
-                    self.shadow.camera.updateProjectionMatrix()
-                    self.shadow.needsUpdate = true
-                    self.updateMatrixWorld()
-                }}
+                shadow-mapSize={[mapSize, mapSize]}
+                shadow-camera-right={size + 5}
+                shadow-camera-left={-size - 5}
+                shadow-camera-top={30}
+                shadow-camera-bottom={-15}
+                shadow-camera-near={-size - 10}
+                shadow-camera-far={size + 5}
             />
         </>
     )

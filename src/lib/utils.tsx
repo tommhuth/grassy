@@ -19,17 +19,6 @@ export function clamp(value: number, min = 0, max = 1) {
     return threeClamp(value, min, max)
 }
 
-export function glsl(strings: TemplateStringsArray, ...variables) {
-    const str: string[] = []
-
-    strings.forEach((x, i) => {
-        str.push(x)
-        str.push(variables[i] || "")
-    })
-
-    return str.join("")
-}
-
 const _matrix = new Matrix4()
 const _quaternion = new Quaternion()
 const _position = new Vector3(0, 0, 0)
@@ -39,9 +28,9 @@ const _euler = new Euler()
 interface SetMatrixAtParams {
     instance: InstancedMesh
     index: number
-    position?: Tuple3
-    rotation?: Tuple3 | Tuple4
-    scale?: Tuple3 | number
+    position?: Tuple3 | Vector3
+    rotation?: Tuple3 | Tuple4 | Vector3
+    scale?: Tuple3 | Vector3 | number
 }
 
 export function setMatrixAt({
@@ -51,11 +40,29 @@ export function setMatrixAt({
     rotation = [0, 0, 0],
     scale = [1, 1, 1],
 }: SetMatrixAtParams) {
-    instance.setMatrixAt(index, _matrix.compose(
-        _position.set(...position),
-        rotation.length === 3 ? _quaternion.setFromEuler(_euler.set(...rotation, "XYZ")) : _quaternion.set(...rotation),
-        Array.isArray(scale) ? _scale.set(...scale) : _scale.set(scale, scale, scale),
-    ))
+    if (Array.isArray(position)) {
+        _position.set(...position)
+    } else {
+        _position.copy(position)
+    }
+
+    if (typeof scale === "number") {
+        _scale.setScalar(scale)
+    } else if (Array.isArray(scale)) {
+        _scale.set(...scale)
+    } else {
+        _scale.copy(scale)
+    }
+
+    if (!Array.isArray(rotation)) {
+        _quaternion.setFromEuler(_euler.set(rotation.x, rotation.y, rotation.z, "XYZ"))
+    } else if (rotation.length === 3) {
+        _quaternion.setFromEuler(_euler.set(...rotation, "XYZ"))
+    } else {
+        _quaternion.set(...rotation)
+    }
+
+    instance.setMatrixAt(index, _matrix.compose(_position, _quaternion, _scale))
     instance.instanceMatrix.needsUpdate = true
 }
 
@@ -91,4 +98,15 @@ export function setBufferAttribute(
 
     attribute.set(Array.isArray(value) ? value : [value], index)
     attribute.needsUpdate = true
+}
+
+/**
+ * Frame-rate independent damping factor.
+ *
+ * @param lambda decay rate, same convention as three's `MathUtils.damp` (higher = faster)
+ * @param delta seconds since last frame
+ * @returns scalar to multiply by, eg `velocity.multiplyScalar(dampFactor(4, delta))`
+ */
+export function dampFactor(lambda: number, delta: number) {
+    return Math.exp(-lambda * delta)
 }

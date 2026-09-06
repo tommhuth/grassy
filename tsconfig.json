@@ -4,8 +4,11 @@
             "@assets/*": [
                 "./assets/*"
             ],
-            "@data/*": [
-                "./src/data/*"
+            "@lib/*": [
+                "./src/lib/*"
+            ],
+            "@shaders/*": [
+                "./src/shaders/*"
             ],
             "@components/*": [
                 "./src/components/*"

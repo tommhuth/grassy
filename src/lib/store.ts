@@ -1,32 +1,9 @@
 import { Tuple3 } from "@src/types/global"
-import { CatmullRomCurve3, Object3D, Vector3 } from "three"
+import { BoxObstacle, RoadkillObstacle, RockObstacle } from "@src/types/obstacles"
+import { Object3D } from "three"
 import { OBB } from "three/examples/jsm/Addons.js"
 import { create } from "zustand"
 import { subscribeWithSelector } from "zustand/middleware"
-
-interface Obstacle {
-    id: string
-    position: Tuple3
-    rotation: number
-}
-
-export interface RockObstacle extends Obstacle {
-    type: "rock"
-    radius: number
-    variant: number
-}
-
-export interface BoxObstacle extends Obstacle {
-    type: "box"
-    obb: OBB
-    size: Tuple3
-}
-
-export interface RoadkillObstacle extends Obstacle {
-    type: "roadkill"
-    radius: number
-    path: CatmullRomCurve3
-}
 
 interface Store {
     state: string
@@ -38,10 +15,11 @@ interface Store {
         mesh: Object3D | null
         progress: number
         active: boolean
+        surveying: boolean
     }
 }
 
-const store = create(
+const useStore = create(
     subscribeWithSelector<Store>(() => ({
         state: "hello",
         loading: true,
@@ -99,16 +77,16 @@ const store = create(
             size: [2.35, 1, 1.35],
             mesh: null,
             obb: new OBB(),
+            surveying: false,
             progress: 0,
             active: false
         }
 
     } satisfies Store))
 )
-const useStore = store
 
 export function setState(partial: Partial<Store>) {
-    store.setState(partial)
+    useStore.setState(partial)
 }
 
-export { store, useStore }
+export { useStore }

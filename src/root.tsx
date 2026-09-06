@@ -3,7 +3,7 @@ import { registerSW } from "virtual:pwa-register"
 import { lazy, type JSX } from "react"
 import { createRoot, RenderProps } from "@react-three/fiber"
 import Ui from "./ui/ui"
-import { clamp } from "@data/utils"
+import { clamp } from "@lib/utils"
 
 export const BASE_ZOOM = 68
 

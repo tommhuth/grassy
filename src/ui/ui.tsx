@@ -1,4 +1,4 @@
-import config from "@data/config"
+import config from "@lib/config"
 import Debug from "./debug"
 
 export default function Ui() {

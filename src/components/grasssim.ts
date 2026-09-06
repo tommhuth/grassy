@@ -1,4 +1,4 @@
-import { setState, store, useStore } from "@data/store"
+import { setState, useStore } from "@lib/store"
 import { CanvasTexture } from "three"
 import Worker from "../worker?worker"
 import { AnalyzeResultEvent } from "@src/worker"
@@ -11,7 +11,7 @@ setInterval(() => {
     let context = canvas.overlap.getContext("2d", { willReadFrequently: false })
     let overlapImage = context?.getImageData(0, 0, textsize, textsize)
 
-    if (!cutImage || !overlapImage || !store.getState().player.active) return
+    if (!cutImage || !overlapImage || !useStore.getState().player.active) return
 
     worker.postMessage(
         {
@@ -27,7 +27,7 @@ setInterval(() => {
 worker.addEventListener("message", (e: MessageEvent<AnalyzeResultEvent>) => {
     setState({
         player: {
-            ...store.getState().player,
+            ...useStore.getState().player,
             progress: e.data.progress
         }
     })
@@ -42,6 +42,8 @@ export const textsize = 512
 export const worldsize = 40
 
 // xz footprint of the patch in grass.glb (bbox is 5.97 x 5.86)
+export const grassWildness = .975 // scale of noise height
+
 export const grasspatchsize = 6
 // patches step less than their footprint so the random per patch rotation cannot open a seam
 export const grassstep = grasspatchsize * .85

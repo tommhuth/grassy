@@ -1,10 +1,12 @@
 import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import craftUrl from "@assets/models/craft.glb"
-import { BoxObstacle, RoadkillObstacle, RockObstacle, setState, store, useStore } from "@data/store"
+import { setState, useStore } from "@lib/store"
+import type { BoxObstacle, RoadkillObstacle, RockObstacle } from "@src/types/obstacles"
 import { MeshPhongMaterial, Object3D, Sphere, Vector3 } from "three"
 import { useControls } from "@src/hooks/use-controls"
 import { OBB } from "three/examples/jsm/Addons.js"
+import GrassParticles from "./grass-particles"
 
 const playerMaterial = new MeshPhongMaterial()
 
@@ -13,7 +15,7 @@ function setMesh(mesh: Object3D) {
 
     setState({
         player: {
-            ...store.getState().player,
+            ...useStore.getState().player,
             mesh
         }
     })
@@ -91,39 +93,42 @@ export default function Player() {
     })
 
     return (
-        <group
-            ref={setMesh}
-            dispose={null}
-            scale={1}
-            position-y={.25}
-        >
-            <group rotation-y={Math.PI / 2}>
-                <mesh
-                    castShadow
-                    receiveShadow
-                    geometry={nodes.Mesh_craft_cargoB.geometry}
-                    material={playerMaterial}
-                />
-                <mesh
-                    castShadow
-                    receiveShadow
-                    geometry={nodes.Mesh_craft_cargoB_1.geometry}
-                    material={playerMaterial}
-                />
-                <mesh
-                    castShadow
-                    receiveShadow
-                    geometry={nodes.Mesh_craft_cargoB_2.geometry}
-                    material={playerMaterial}
-                />
-                <mesh
-                    castShadow
-                    receiveShadow
-                    geometry={nodes.Mesh_craft_cargoB_3.geometry}
-                    material={playerMaterial}
-                />
+        <>
+            <GrassParticles />
+            <group
+                ref={setMesh}
+                dispose={null}
+                scale={1}
+                position-y={.25}
+            >
+                <group rotation-y={Math.PI / 2}>
+                    <mesh
+                        castShadow
+                        receiveShadow
+                        geometry={nodes.Mesh_craft_cargoB.geometry}
+                        material={playerMaterial}
+                    />
+                    <mesh
+                        castShadow
+                        receiveShadow
+                        geometry={nodes.Mesh_craft_cargoB_1.geometry}
+                        material={playerMaterial}
+                    />
+                    <mesh
+                        castShadow
+                        receiveShadow
+                        geometry={nodes.Mesh_craft_cargoB_2.geometry}
+                        material={playerMaterial}
+                    />
+                    <mesh
+                        castShadow
+                        receiveShadow
+                        geometry={nodes.Mesh_craft_cargoB_3.geometry}
+                        material={playerMaterial}
+                    />
+                </group>
             </group>
-        </group>
+        </>
     )
 }
 

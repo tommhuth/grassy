@@ -1,11 +1,10 @@
-import { DoubleSide, ShaderMaterial, UniformsLib, UniformsUtils } from "three"
-import easings from "@src/shaders/easings.glsl"
-import utils from "@src/shaders/utils.glsl"
-import noise from "@src/shaders/noise.glsl"
-import { cutTexture, overlapTexture, worldsize } from "./grasssim"
+import { DoubleSide, ShaderMaterial, UniformsLib, UniformsUtils, Vector3 } from "three"
+import easings from "@shaders/easings.glsl"
+import utils from "@shaders/utils.glsl"
+import noise from "@shaders/noise.glsl"
+import { cutTexture, grassWildness, overlapTexture, worldsize } from "./grasssim"
 
 const grassHeight = 1.5
-const grassWildness = .975 // scale of noise height
 const cutHeight = .15 // 0 - 1 scale 
 
 const shared = /* glsl */`
@@ -16,13 +15,26 @@ const shared = /* glsl */`
     uniform float uHeight;
     uniform float uWildness;
     uniform float uCutHeight;
-    uniform float uOcclusionLod;  
+    uniform float uOcclusionLod;
+    uniform float uSurveying;
+    uniform vec3 uPlayerPosition;
     varying vec3 vWorldPosition;
+    varying vec3 vBentWorldPosition;
     varying float vOcclusion;
+    varying float vCut;
 
     ${noise}
     ${easings}
     ${utils}
+
+    float getSurveyRadius(vec2 position, vec2 playerPosition){
+        float surveyMaxRadius = 8.;
+        float surveyFade = 6.;
+        float surveyRadius = mix(-surveyFade, surveyMaxRadius, uSurveying);
+        float surveyDist = length(playerPosition - position);
+
+        return smoothstep(surveyRadius, surveyRadius + surveyFade, surveyDist);
+    }
 `
 
 const vertexShader = /* glsl */`
@@ -47,7 +59,9 @@ const vertexShader = /* glsl */`
         // red channel = obstacles
         float gap = step(.05, overlap.r);
         // green channel = player trail, cut map = mowed
-        float pushGrade = max(overlap.g, texture2D(uCutMap, mapUv).r);
+        float pushGrade = max(overlap.g, 0.);
+
+        vCut = texture2D(uCutMap, mapUv).r;
        
         // height variation
         float baseHeightNoise = 1. - (noise(bladePosition.xz * .05) * .5 + .5) * uWildness;
@@ -58,6 +72,8 @@ const vertexShader = /* glsl */`
                 * (1. - max(pushGrade, uCutHeight / bladeMeshHeight)),
             uCutHeight
         );
+
+        bladeScale = mix(bladeScale, .5, vCut);
 
         float y = mix(position.y * bladeScale, -.1, gap);
         // one taper for wind: 0 at the root, 1 at the tip of every blade
@@ -89,6 +105,8 @@ const vertexShader = /* glsl */`
         vec4 worldPosition = modelMatrix * instanceMatrix * vec4(transformed, 1.); 
         vec3 transformedNormal = normalMatrix * normal;
 
+        vBentWorldPosition = worldPosition.xyz;
+
         #include <shadowmap_vertex>
 
         gl_Position = projectionMatrix 
@@ -118,7 +136,7 @@ const fragmentShader = /* glsl */`
         vec3 top = vec3(255. / 255., 242. / 255., 133. / 255.);
         vec3 bottom = vec3(0., 122. / 255., 100. / 255.);
         vec3 darken =  vec3(0. / 255., 10. / 255., 60. / 255.); 
-        vec3 shadowColor = vec3(0. / 255., 65. / 255., 85. / 255.);
+        vec3 shadowColor = vec3(0. / 255., 65. / 255., 85. / 255.); 
 
         gl_FragColor.a = 1.;
         gl_FragColor.rgb = mix(
@@ -133,15 +151,31 @@ const fragmentShader = /* glsl */`
 
         gl_FragColor.rgb = mix(
             gl_FragColor.rgb,
+            mix(
+                vec3(0., .1, 1.), 
+                vec3(0., 1., 1.), 
+                smoothstep(.0, uHeight, vWorldPosition.y)
+            ),
+            uSurveying
+        ); 
+
+        gl_FragColor.rgb = mix(
+            gl_FragColor.rgb,
             gl_FragColor.rgb * darken, 
             smoothstep(.1, 1., vOcclusion)
         );
 
-         gl_FragColor.rgb = mix(
+        gl_FragColor.rgb = mix(
             gl_FragColor.rgb * shadowColor,
             gl_FragColor.rgb ,
             shadow
-        );
+        ); 
+
+        gl_FragColor.a = getSurveyRadius(vBentWorldPosition.xz, uPlayerPosition.xz);
+
+        if (vCut > .1 && vBentWorldPosition.y > .4) {
+            discard;
+        }
     }
 `
 
@@ -149,6 +183,7 @@ export default class GrassMaterial extends ShaderMaterial {
     lights = true
     side = DoubleSide
     vertexShader = vertexShader
+    transparent = true
     fragmentShader = fragmentShader
     uniforms = {
         // required for lights/shadow calc
@@ -162,5 +197,7 @@ export default class GrassMaterial extends ShaderMaterial {
         uCutHeight: { value: cutHeight },
         // mip map level, 0-9
         uOcclusionLod: { value: 5 },
+        uSurveying: { value: 0 },
+        uPlayerPosition: { value: new Vector3() },
     }
 }

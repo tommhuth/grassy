@@ -1,4 +1,4 @@
-import { setMatrixNullAt } from "@data/utils"
+import { setMatrixNullAt } from "@lib/utils"
 import { useLayoutEffect } from "react"
 import { InstancedMesh } from "three"
 
