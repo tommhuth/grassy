@@ -2,7 +2,6 @@ import globals from "globals"
 import pluginJs from "@eslint/js"
 import tsEslint from "typescript-eslint"
 import pluginReact from "eslint-plugin-react"
-import { ReactThreeFiber } from "@react-three/fiber"
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -18,9 +17,6 @@ export default [
             react: {
                 version: "19.1",
             },
-        },
-        plugins: {
-            "@react-three/fiber": ReactThreeFiber,
         },
     },
     pluginReact.configs.flat.recommended,

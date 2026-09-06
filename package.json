@@ -12,8 +12,8 @@
     },
     "dependencies": {
         "@huth/random": "^6.0.2",
-        "@react-three/drei": "^10.7.8",
-        "@react-three/fiber": "^9.7.0",
+        "@react-three/drei": "11.0.0-alpha.7",
+        "@react-three/fiber": "10.0.0-alpha.4",
         "@types/node": "^26.2.0",
         "r3f-perf": "^7.2.3",
         "react": "^19.2.8",

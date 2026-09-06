@@ -2,6 +2,7 @@ import { createRoot as createUiRoot } from "react-dom/client"
 import { registerSW } from "virtual:pwa-register"
 import { lazy, type JSX } from "react"
 import { createRoot, RenderProps } from "@react-three/fiber"
+import { NoToneMapping } from "three"
 import Ui from "./ui/ui"
 import { clamp } from "@lib/utils"
 
@@ -15,7 +16,6 @@ function getConfiguration() {
             far: 150,
             position: [0, 0, 0],
         },
-        flat: true,
         orthographic: true,
         shadows: "variance",
         dpr: clamp(window.devicePixelRatio * .75, 1, 2),
@@ -26,6 +26,7 @@ function getConfiguration() {
             left: 0
         },
         gl: {
+            toneMapping: NoToneMapping,
             antialias: true,
             depth: true,
             stencil: false,

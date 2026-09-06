@@ -10,7 +10,7 @@ import GrassParticles from "./grass-particles"
 
 const playerMaterial = new MeshPhongMaterial()
 
-function setMesh(mesh: Object3D) {
+function setMesh(mesh?: Object3D | null) {
     if (!mesh) return
 
     setState({
