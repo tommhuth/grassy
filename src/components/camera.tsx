@@ -25,8 +25,8 @@ export default function Camera() {
             return
         }
 
-        camera.position.x = damp(camera.position.x, player.mesh.position.x + 10, 3, delta)
-        camera.position.z = damp(camera.position.z, player.mesh.position.z - 10, 3, delta)
+        camera.position.x = damp(camera.position.x, player.mesh.position.x + 8, 3, delta)
+        camera.position.z = damp(camera.position.z, player.mesh.position.z - 8, 3, delta)
     })
 
     return null
