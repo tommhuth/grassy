@@ -18,7 +18,7 @@ function getConfiguration() {
         },
         orthographic: true,
         shadows: "variance",
-        dpr: clamp(window.devicePixelRatio * .75, 1, 2),
+        dpr: clamp(window.devicePixelRatio ** .5, 1, 2),
         size: {
             width: window.innerWidth,
             height: window.innerHeight,
