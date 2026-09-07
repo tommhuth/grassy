@@ -12,7 +12,7 @@ export default function Ground() {
         uniforms: {
             uWorldSize: { value: worldsize },
             uWildness: { value: grassWildness },
-            uOcclusionLod: { value: 5 },
+            uOcclusionLod: { value: 3 },
             uCutMap: { value: cutTexture },
             uOverlapMap: { value: overlapTexture },
             uSurveying: { value: 0 },

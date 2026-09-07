@@ -16,12 +16,17 @@ worker.addEventListener("message", (e: MessageEvent<AnalyzeResultEvent>) => {
     })
 })
 
+const index = {
+    overlap: 0,
+    cut: 4
+}
+
 export const canvas = {
     overlap: document.createElement("canvas"),
     cut: document.createElement("canvas"),
 } as const
 
-export const textsize = 512
+export const textsize = 256 // expensive
 export const worldsize = 40
 export const grassWildness = .975 // scale of noise height 
 // xz footprint of the patch in grass.glb (bbox is 5.97 x 5.86)
@@ -89,21 +94,25 @@ setInterval(() => {
         } satisfies AnalyzeEvent,
         transfer
     )
-}, 1_000)
+}, 2_000)
 
 export const cutTexture = new CanvasTexture(canvas.cut)
 export const overlapTexture = new CanvasTexture(canvas.overlap)
 
-// seconds for the trail to fade to ~37% (1/e); matches .075/frame @ 60fps
-const FADE_TAU = 0.4
 let lastRenderTime = performance.now()
 
 function renderOverlap() {
+    index.overlap++
+
+    if (index.overlap % 3 !== 0) {
+        return requestAnimationFrame(renderOverlap)
+    }
+
     const { obstacles, player } = useStore.getState()
-    const buffer = 5 //px
+    const buffer = 3 //px
     const now = performance.now()
     const dt = Math.min((now - lastRenderTime) / 1000, 0.1)
-    const alpha = 1 - Math.exp(-dt / FADE_TAU)
+    const alpha = 1 - Math.exp(-dt / 0.4)
     const context = overlapContext
 
     lastRenderTime = now
@@ -158,17 +167,19 @@ function renderOverlap() {
 function renderCut() {
     const { player } = useStore.getState()
 
-    if (player.mesh && player.active) {
-        const x = worldpostotextpos(player.mesh.position.x) * textsize
-        const z = worldpostotextpos(player.mesh.position.z) * textsize
-
-        cutContext.beginPath()
-        cutContext.arc(x, z, worldtotext(player.size[2]) / 2 + 2, 0, Math.PI * 2)
-        cutContext.fillStyle = "#FFF"
-        cutContext.fill()
-
-        cutTexture.needsUpdate = true
+    if (index.cut++ % 8 !== 0 || !player.mesh || !player.active) {
+        return requestAnimationFrame(renderCut)
     }
+
+    const x = worldpostotextpos(player.mesh.position.x) * textsize
+    const z = worldpostotextpos(player.mesh.position.z) * textsize
+
+    cutContext.beginPath()
+    cutContext.arc(x, z, worldtotext(player.size[2]) / 2 + 2, 0, Math.PI * 2)
+    cutContext.fillStyle = "#FFF"
+    cutContext.fill()
+
+    cutTexture.needsUpdate = true
 
     requestAnimationFrame(renderCut)
 }
