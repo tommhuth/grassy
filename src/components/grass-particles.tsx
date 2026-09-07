@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react"
 import { DoubleSide, InstancedMesh, PlaneGeometry, Vector3 } from "three"
 import { worldsize } from "./grasssim"
 
-const count = 600
+const count = 200
 const geometry = new PlaneGeometry(1, 1).rotateX(-Math.PI * .5)
 const index = new LoopCounter(count)
 
@@ -34,11 +34,8 @@ const parts: Part[] = Array.from({ length: count }, (_, index): Part => ({
 }))
 
 const _delta = new Vector3()
-
-// one options bag reused for every particle, every frame. the seeded vectors only
-// fix the object shape, they get swapped for the part's own before each call
 const _params = {
-    instance: undefined as unknown as InstancedMesh,
+    instance: null as unknown as InstancedMesh,
     index: 0,
     position: new Vector3(),
     rotation: new Vector3(),
@@ -91,12 +88,13 @@ export default function GrassParticles() {
 
             for (let i = 0; i < burst; i++) {
                 let part = parts[index.next()]
+                let rotation = random.float(0, Math.PI * 2)
 
                 part.position.copy(player.mesh.position)
                 part.velocity.set(
-                    random.float(-speed, speed),
+                    Math.cos(rotation) * speed,
                     random.float(-1.5, 1.5),
-                    random.float(-speed, speed)
+                    -Math.sin(rotation) * speed,
                 )
                 part.rotation.set(0, random.float(-Math.PI, Math.PI), 0)
                 part.scale = random.float(.05, .2)
@@ -128,9 +126,8 @@ export default function GrassParticles() {
                 continue
             }
 
-            if (part.resting > 5_000) {
+            if (part.resting > 2_000) {
                 part.active = false
-                setMatrixNullAt(instance, part.index)
                 continue
             }
 
@@ -149,8 +146,8 @@ export default function GrassParticles() {
                 part.resting += nd * 1_000
                 part.velocity.y = 0
 
-                if (part.resting > 2_000) {
-                    part.position.y -= .03 * nd
+                if (part.resting > 200) {
+                    part.position.y -= .05 * nd
                 } else {
                     part.position.y = .01
                 }
