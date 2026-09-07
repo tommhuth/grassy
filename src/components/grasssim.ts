@@ -1,30 +1,13 @@
 import { setState, useStore } from "@lib/store"
 import { CanvasTexture } from "three"
 import Worker from "../worker?worker"
-import { AnalyzeResultEvent } from "@src/worker"
+import { AnalyzeEvent, AnalyzeResultEvent } from "@src/worker"
 
 const worker = new Worker()
 
-setInterval(() => {
-    let context1 = canvas.cut.getContext("2d", { willReadFrequently: false })
-    let cutImage = context1?.getImageData(0, 0, textsize, textsize)
-    let context = canvas.overlap.getContext("2d", { willReadFrequently: false })
-    let overlapImage = context?.getImageData(0, 0, textsize, textsize)
-
-    if (!cutImage || !overlapImage || !useStore.getState().player.active) return
-
-    worker.postMessage(
-        {
-            type: "analyze",
-            cutImage,
-            overlapImage,
-            mapSize: textsize * textsize
-        },
-        [overlapImage.data.buffer, cutImage.data.buffer]
-    )
-}, 1_000)
-
 worker.addEventListener("message", (e: MessageEvent<AnalyzeResultEvent>) => {
+    excempt = e.data.excempt
+
     setState({
         player: {
             ...useStore.getState().player,
@@ -40,10 +23,8 @@ export const canvas = {
 
 export const textsize = 512
 export const worldsize = 40
-
+export const grassWildness = .975 // scale of noise height 
 // xz footprint of the patch in grass.glb (bbox is 5.97 x 5.86)
-export const grassWildness = .975 // scale of noise height
-
 export const grasspatchsize = 6
 // patches step less than their footprint so the random per patch rotation cannot open a seam
 export const grassstep = grasspatchsize * .85
@@ -58,19 +39,57 @@ function worldpostotextpos(val: number) {
     return ((val / (worldsize / 2)) + 1) / 2
 }
 
-for (let c of Object.values(canvas)) {
-    c.width = textsize
-    c.height = textsize
-
+function getContext(c: HTMLCanvasElement) {
     const context = c.getContext("2d", { willReadFrequently: false })
 
     if (!context) {
         throw new Error("Missing context")
     }
 
+    return context
+}
+
+for (let c of Object.values(canvas)) {
+    c.width = textsize
+    c.height = textsize
+
+    const context = getContext(c)
+
     context.fillStyle = "#000"
     context.fillRect(0, 0, textsize, textsize)
 }
+
+const cutContext = getContext(canvas.cut)
+const overlapContext = getContext(canvas.overlap)
+
+// obstacles are static and only they write the red channel of the overlap map,
+// so the exempt pixel count holds until the obstacle set changes
+let excempt: number | null = null
+
+useStore.subscribe(state => state.obstacles, () => excempt = null)
+
+setInterval(() => {
+    if (!useStore.getState().player.active) return
+
+    const cutImage = cutContext.getImageData(0, 0, textsize, textsize)
+    const overlapImage = excempt === null ? overlapContext.getImageData(0, 0, textsize, textsize) : null
+    const transfer = [cutImage.data.buffer]
+
+    if (overlapImage) {
+        transfer.push(overlapImage.data.buffer)
+    }
+
+    worker.postMessage(
+        {
+            type: "analyze",
+            cutImage,
+            overlapImage,
+            excempt,
+            mapSize: textsize * textsize
+        } satisfies AnalyzeEvent,
+        transfer
+    )
+}, 1_000)
 
 export const cutTexture = new CanvasTexture(canvas.cut)
 export const overlapTexture = new CanvasTexture(canvas.overlap)
@@ -85,11 +104,7 @@ function renderOverlap() {
     const now = performance.now()
     const dt = Math.min((now - lastRenderTime) / 1000, 0.1)
     const alpha = 1 - Math.exp(-dt / FADE_TAU)
-    const context = canvas.overlap.getContext("2d", { willReadFrequently: false })
-
-    if (!context) {
-        throw new Error("Missing context")
-    }
+    const context = overlapContext
 
     lastRenderTime = now
 
@@ -142,16 +157,15 @@ function renderOverlap() {
 
 function renderCut() {
     const { player } = useStore.getState()
-    const context = canvas.cut.getContext("2d", { willReadFrequently: false })
 
-    if (context && player.mesh && player.active) {
+    if (player.mesh && player.active) {
         const x = worldpostotextpos(player.mesh.position.x) * textsize
         const z = worldpostotextpos(player.mesh.position.z) * textsize
 
-        context.beginPath()
-        context.arc(x, z, worldtotext(player.size[2]) / 2 + 2, 0, Math.PI * 2)
-        context.fillStyle = "#FFF"
-        context.fill()
+        cutContext.beginPath()
+        cutContext.arc(x, z, worldtotext(player.size[2]) / 2 + 2, 0, Math.PI * 2)
+        cutContext.fillStyle = "#FFF"
+        cutContext.fill()
 
         cutTexture.needsUpdate = true
     }
