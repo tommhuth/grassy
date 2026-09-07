@@ -25,6 +25,12 @@ const _position = new Vector3(0, 0, 0)
 const _scale = new Vector3(1, 1, 1)
 const _euler = new Euler()
 
+// defaults live out here so an omitted argument does not allocate a fresh tuple
+// on every call. read only, never written to
+const _defaultPosition: Tuple3 = [0, 0, 0]
+const _defaultRotation: Tuple3 = [0, 0, 0]
+const _defaultScale: Tuple3 = [1, 1, 1]
+
 interface SetMatrixAtParams {
     instance: InstancedMesh
     index: number
@@ -36,9 +42,9 @@ interface SetMatrixAtParams {
 export function setMatrixAt({
     instance,
     index,
-    position = [0, 0, 0],
-    rotation = [0, 0, 0],
-    scale = [1, 1, 1],
+    position = _defaultPosition,
+    rotation = _defaultRotation,
+    scale = _defaultScale,
 }: SetMatrixAtParams) {
     if (Array.isArray(position)) {
         _position.set(...position)

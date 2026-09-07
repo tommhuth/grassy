@@ -35,6 +35,16 @@ const parts: Part[] = Array.from({ length: count }, (_, index): Part => ({
 
 const _delta = new Vector3()
 
+// one options bag reused for every particle, every frame. the seeded vectors only
+// fix the object shape, they get swapped for the part's own before each call
+const _params = {
+    instance: undefined as unknown as InstancedMesh,
+    index: 0,
+    position: new Vector3(),
+    rotation: new Vector3(),
+    scale: 1
+}
+
 export default function GrassParticles() {
     const [instance, setRef] = useState<InstancedMesh | null>(null)
     const data = useMemo(() => {
@@ -109,6 +119,8 @@ export default function GrassParticles() {
 
         let nd = ndelta(delta)
 
+        _params.instance = instance
+
         for (let i = 0; i < parts.length; i++) {
             let part = parts[i]
 
@@ -146,13 +158,12 @@ export default function GrassParticles() {
                 part.velocity.y -= 5 * nd
             }
 
-            setMatrixAt({
-                index: part.index,
-                position: part.position,
-                scale: part.scale,
-                rotation: part.rotation,
-                instance
-            })
+            _params.index = part.index
+            _params.position = part.position
+            _params.rotation = part.rotation
+            _params.scale = part.scale
+
+            setMatrixAt(_params)
         }
     })
 
