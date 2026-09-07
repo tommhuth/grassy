@@ -22,6 +22,7 @@ const shared = /* glsl */`
     varying vec3 vBentWorldPosition;
     varying float vOcclusion;
     varying float vCut;
+    varying vec2 vUv;
 
     ${noise}
     ${easings}
@@ -99,6 +100,7 @@ const vertexShader = /* glsl */`
             * (1. - pushSoft)
             * easeOutQuart(map(transformed.y, 0., bladeMeshHeight, 1., 0.)); 
 
+        vUv = uv;
         vWorldPosition = (modelMatrix * instanceMatrix * vec4(position, 1.)).xyz;
 
         // shadow handling chunk expects these to be defined
@@ -122,6 +124,21 @@ const fragmentShader = /* glsl */`
     // include shadow parts
     #include <packing>
     #include <shadowmap_pars_fragment>
+
+    // uv.x is 0 on one rail of the blade and 1 on the other, so this is the screen
+    // space distance to the nearest long edge: the blade's own contour. neat.
+    // the stroke walks in from the centerline (t = 0, a solid blade) to a thin line (t = 1)
+    float getOutline(float t) {
+        float strokeWidth = 1.5; // px, at t = 1
+        float dist = min(vUv.x, 1. - vUv.x);
+        // uv.x per pixel, so the stroke can be sized in screen space
+        float px = max(fwidth(vUv.x), 1e-5);
+        // .5 is the blade centerline, so the start has to clear the smoothstep band
+        // above it or a 1px seam gets cut down the middle at t = 0
+        float stroke = mix(.5 + px, px * strokeWidth, t);
+
+        return 1. - smoothstep(stroke - px, stroke, dist);
+    }
 
     void main() {
         float shadow = getShadow(
@@ -171,9 +188,14 @@ const fragmentShader = /* glsl */`
             shadow
         ); 
 
-        gl_FragColor.a = getSurveyRadius(vBentWorldPosition.xz, uPlayerPosition.xz);
+        // surveying hollows each blade out to its contour 
+        float outline = getOutline(smoothstep(.2, .8, uSurveying));
 
-        if (vCut > .1 && vBentWorldPosition.y > .4) {
+        gl_FragColor.a = getSurveyRadius(vBentWorldPosition.xz, uPlayerPosition.xz) * outline;
+
+        // the hollow interior has to go before the depth write, or blades in front
+        // would occlude the ones behind them instead of layering up
+        if ((vCut > .1 && vBentWorldPosition.y > .4) || outline < .01 || gl_FragColor.a < .01) {
             discard;
         }
     }

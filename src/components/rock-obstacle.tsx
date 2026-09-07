@@ -4,9 +4,9 @@ import { useGLTF } from "@react-three/drei"
 import rockModel from "@assets/models/rocks.glb"
 import { useStore } from "@lib/store"
 import type { RockObstacle } from "@src/types/obstacles"
-import { useRef } from "react"
-import { MeshLambertMaterial } from "three"
+import { useShader } from "@src/hooks/use-shader"
 import { useFrame } from "@react-three/fiber"
+import { damp } from "three/src/math/MathUtils.js"
 
 export default function RockObstacle({
     radius,
@@ -15,16 +15,49 @@ export default function RockObstacle({
     variant = 1
 }: RockObstacle) {
     const { nodes } = useGLTF(rockModel)
-    const materialRef = useRef<MeshLambertMaterial>(null)
+    const { onBeforeCompile, customProgramCacheKey, uniforms } = useShader({
+        uniforms: {
+            uSurveying: { value: 0 },
+        },
+        shared: /* glsl */`
+            uniform float uSurveying;
+            varying vec3 vPosition;
+        `,
+        vertex: {
+            main: /* glsl */`
+                vPosition = position;
+            `
+        },
+        fragment: {
+            main: /* glsl */`
+                // the camera is orthographic, so the view direction is a constant -z in view
+                // space and the silhouette sits exactly where the normal turns perpendicular
+                float facing = abs(normalize(vNormal).z);
+                // soft falloff inwards from the silhouette
+                float rimFalloff = 4.; // higher pulls the rim tighter to the silhouette
+                float rim = mix(1., pow(max(1. - facing, 0.), rimFalloff), smoothstep(.25, .8, uSurveying));
 
-    useFrame(() => {
-        if (!materialRef.current) {
-            return
+                vec3 surveyColor = mix(
+                    vec3(.8, 1., 1.),
+                    vec3(.0, .2, 1.),
+                    smoothstep(.3, .7, abs(facing) * uSurveying)
+                );
+
+                gl_FragColor.a = rim;
+                gl_FragColor.rgb = mix(gl_FragColor.rgb, surveyColor, smoothstep(.25, .8, uSurveying));
+            `
         }
+    })
 
+    useFrame((state, delta) => {
         let { player } = useStore.getState()
 
-        materialRef.current.wireframe = player.surveying
+        uniforms.uSurveying.value = damp(
+            uniforms.uSurveying.value,
+            player.surveying ? 1 : 0,
+            player.surveying ? 2.5 : 3,
+            delta
+        )
     })
 
     return (
@@ -38,7 +71,11 @@ export default function RockObstacle({
             castShadow
             geometry={nodes["rock" + variant].geometry}
         >
-            <meshLambertMaterial ref={materialRef} />
+            <meshLambertMaterial
+                transparent
+                onBeforeCompile={onBeforeCompile}
+                customProgramCacheKey={customProgramCacheKey}
+            />
         </mesh>
     )
 }

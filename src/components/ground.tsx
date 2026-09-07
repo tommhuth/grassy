@@ -74,8 +74,6 @@ export default function Ground() {
                         * getWorldBounds(vWorldPosition, 4., fadeDistance * .25);
 
                 vec2 mapUv = (vWorldPosition.xz * vec2(1., -1.) + uWorldSize / 2.) / uWorldSize;
-                float cut = textureLod(uCutMap, mapUv, 1.).r;
-                float hole = texture2D(uOverlapMap, mapUv).r;
                 float pushSoft = max(
                     textureLod(uOverlapMap, mapUv, uOcclusionLod).g,
                     textureLod(uCutMap, mapUv, uOcclusionLod).r
@@ -87,25 +85,31 @@ export default function Ground() {
                     smoothstep(.0, 1., n * (1. - pushSoft))
                 );
 
-                vec3 overlayGridColor = mix(
-                    gl_FragColor.rgb * .65, // darker
-                    gl_FragColor.rgb + vec3(0., .8, 1.) * .1, // lighter
-                    grid(vWorldPosition.xz, .5, 2.)
-                );
-                vec3 overlayCutColor = mix(
-                    gl_FragColor.rgb * vec3(0., 4.5, 3.5), // cold blue green
-                    gl_FragColor.rgb * vec3(0., 3., 3.) + .05, // lighter
-                    grid(vWorldPosition.xz, .5, 2.)
-                );
+                // uniform branch, so it stays coherent; .5 is where the smoothstep below already zeroed out
+                if (uSurveying > .5) {
+                    float cut = textureLod(uCutMap, mapUv, 1.).r;
+                    float hole = texture2D(uOverlapMap, mapUv).r;
 
-                gl_FragColor.rgb = mix(
-                    gl_FragColor.rgb,
-                    mix(overlayGridColor, overlayCutColor, cut),
-                    getWorldBounds(vWorldPosition, 0., 0.)
-                        * (1. - hole)
-                        * smoothstep(.5, 1., uSurveying)
-                        * (1. - getSurveyRadius(vWorldPosition, uPlayerPosition))
-                );
+                    vec3 overlayGridColor = mix(
+                        gl_FragColor.rgb * .65, // darker
+                        gl_FragColor.rgb + vec3(0., .8, 1.) * .1, // lighter
+                        grid(vWorldPosition.xz, .5, 2.)
+                    );
+                    vec3 overlayCutColor = mix(
+                        gl_FragColor.rgb * vec3(0., 4.5, 3.5), // cold blue green
+                        gl_FragColor.rgb * vec3(0., 3., 3.) + .05, // lighter
+                        grid(vWorldPosition.xz, .5, 2.)
+                    );
+
+                    gl_FragColor.rgb = mix(
+                        gl_FragColor.rgb,
+                        mix(overlayGridColor, overlayCutColor, cut),
+                        getWorldBounds(vWorldPosition, 0., 0.)
+                            * (1. - hole)
+                            * smoothstep(.5, 1., uSurveying)
+                            * (1. - getSurveyRadius(vWorldPosition, uPlayerPosition))
+                    );
+                }
             `
         }
     })
