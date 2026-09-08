@@ -46,7 +46,7 @@ export default function Grass() {
         let { uniforms } = materialRef.current
 
         uniforms.uTime.value += delta
-        uniforms.uSurveying.value = damp(uniforms.uSurveying.value, player.surveying ? 1 : 0, player.surveying ? 2.5 : 3, delta)
+        uniforms.uSurveying.value = damp(uniforms.uSurveying.value, player.surveying ? 1 : 0, player.surveying ? 2.5 : 1.25, delta)
 
         if (player.mesh) {
             uniforms.uPlayerPosition.value.copy(player.mesh.position)
