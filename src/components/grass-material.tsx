@@ -22,6 +22,7 @@ const shared = /* glsl */`
     varying vec3 vBentWorldPosition;
     varying float vOcclusion;
     varying float vCut;
+    varying float vColorNoise;
     varying vec2 vUv;
 
     ${noise}
@@ -103,6 +104,7 @@ const vertexShader = /* glsl */`
 
         vUv = uv;
         vWorldPosition = (modelMatrix * instanceMatrix * vec4(position, 1.)).xyz;
+        vColorNoise = noise(vWorldPosition * .8) * .5 + .5;
 
         // shadow handling chunk expects these to be defined
         vec4 worldPosition = modelMatrix * instanceMatrix * vec4(transformed, 1.); 
@@ -142,6 +144,10 @@ const fragmentShader = /* glsl */`
     }
 
     void main() {
+        if ((vCut > .1 && vBentWorldPosition.y > .4)) {
+            discard;
+        }
+
         float shadow = getShadow(
             directionalShadowMap[0],
             directionalLightShadows[0].shadowMapSize,
@@ -162,7 +168,7 @@ const fragmentShader = /* glsl */`
             mix(
                 top, 
                 vec3(180. / 255., 235. / 255., 53. / 255.), 
-                noise(vWorldPosition * .8) * .5 + .5
+                vColorNoise
             ),
             clamp(vWorldPosition.y / (1.5 * uHeight), -.25, 1.)
         ); 
@@ -190,13 +196,12 @@ const fragmentShader = /* glsl */`
         ); 
 
         // surveying hollows each blade out to its contour 
-        float outline = getOutline(smoothstep(.2, .8, uSurveying));
-
-        gl_FragColor.a = getSurveyRadius(vBentWorldPosition.xz, uPlayerPosition.xz) * outline;
+        float outline = getOutline(smoothstep(.2, .8, uSurveying))
+            * getSurveyRadius(vBentWorldPosition.xz, uPlayerPosition.xz); 
 
         // the hollow interior has to go before the depth write, or blades in front
-        // would occlude the ones behind them instead of layering up
-        if ((vCut > .1 && vBentWorldPosition.y > .4) || outline < .01 || gl_FragColor.a < .01) {
+        // would occlude the ones behind them 
+        if (outline < .01) {
             discard;
         }
     }
@@ -206,7 +211,7 @@ export default class GrassMaterial extends ShaderMaterial {
     lights = true
     side = DoubleSide
     vertexShader = vertexShader
-    transparent = true
+    transparent = false
     fragmentShader = fragmentShader
     uniforms = {
         // required for lights/shadow calc

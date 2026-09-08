@@ -89,7 +89,7 @@ export default function Ground() {
                     gl_FragColor.rgb,
                     darken,
                     smoothstep(.0, 1., n * (1. - max(pushSoft.r, pushSoft.g)))
-                );
+                ); 
 
                 // uniform branch, so it stays coherent; .5 is where the smoothstep below already zeroed out
                 if (uSurveying > .5) {

@@ -3,13 +3,13 @@ import { useFrame } from "@react-three/fiber"
 import craftUrl from "@assets/models/craft.glb"
 import { setState, useStore } from "@lib/store"
 import type { BoxObstacle, RoadkillObstacle, RockObstacle } from "@src/types/obstacles"
-import { MeshPhongMaterial, Object3D, Sphere, Vector3 } from "three"
+import { MeshLambertMaterial, Object3D, Sphere, Vector3 } from "three"
 import { layers } from "@lib/sim/const"
 import { useControls } from "@src/hooks/use-controls"
 import { OBB } from "three/examples/jsm/Addons.js"
 import GrassParticles from "./grass-particles"
 
-const playerMaterial = new MeshPhongMaterial()
+const playerMaterial = new MeshLambertMaterial()
 
 function setMesh(mesh?: Object3D | null) {
     if (!mesh) return
