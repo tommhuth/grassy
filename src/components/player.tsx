@@ -4,6 +4,7 @@ import craftUrl from "@assets/models/craft.glb"
 import { setState, useStore } from "@lib/store"
 import type { BoxObstacle, RoadkillObstacle, RockObstacle } from "@src/types/obstacles"
 import { MeshPhongMaterial, Object3D, Sphere, Vector3 } from "three"
+import { layers } from "@lib/sim/const"
 import { useControls } from "@src/hooks/use-controls"
 import { OBB } from "three/examples/jsm/Addons.js"
 import GrassParticles from "./grass-particles"
@@ -12,6 +13,10 @@ const playerMaterial = new MeshPhongMaterial()
 
 function setMesh(mesh?: Object3D | null) {
     if (!mesh) return
+
+    // layers do not inherit, projectObject tests every object on its own, so
+    // the leaf meshes need it and not just the group
+    mesh.traverse(i => i.layers.enable(layers.player))
 
     setState({
         player: {

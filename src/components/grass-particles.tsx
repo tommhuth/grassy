@@ -5,7 +5,7 @@ import random from "@huth/random"
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useState } from "react"
 import { DoubleSide, InstancedMesh, PlaneGeometry, Vector3 } from "three"
-import { worldsize } from "./grasssim"
+import { worldSize } from "@lib/sim/const"
 
 const count = 200
 const geometry = new PlaneGeometry(1, 1).rotateX(-Math.PI * .5)
@@ -77,7 +77,7 @@ export default function GrassParticles() {
                 .sub(data.lastPosition)
                 .length()
             const fadeDistance = 2.
-            const size = worldsize / 2. - fadeDistance * .5
+            const size = worldSize / 2. - fadeDistance * .5
             const burst = Math.round(random.integer(2, 4) * clamp(vel / .1))
                 * map(pos.x, size, size + fadeDistance, 1., 0.)
                 * map(pos.x, -size - fadeDistance, -size, 0., 1.)

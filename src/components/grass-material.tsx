@@ -2,20 +2,20 @@ import { DoubleSide, ShaderMaterial, UniformsLib, UniformsUtils, Vector3 } from 
 import easings from "@shaders/easings.glsl"
 import utils from "@shaders/utils.glsl"
 import noise from "@shaders/noise.glsl"
-import { cutTexture, grassWildness, overlapTexture, worldsize } from "./grasssim"
+import { grassWildness, worldSize } from "@lib/sim/const"
+import { sim } from "@lib/sim/sim"
 
 const grassHeight = 1.5
 const cutHeight = .15 // 0 - 1 scale 
 
 const shared = /* glsl */`
     uniform sampler2D uCutMap;
-    uniform sampler2D uOverlapMap;
+    uniform sampler2D uTrailMap;
     uniform float uWorldSize;
     uniform float uTime;
     uniform float uHeight;
     uniform float uWildness;
     uniform float uCutHeight;
-    uniform float uOcclusionLod;
     uniform float uSurveying;
     uniform vec3 uPlayerPosition;
     varying vec3 vWorldPosition;
@@ -50,19 +50,22 @@ const vertexShader = /* glsl */`
     void main() {   
         vec3 bladePosition = (modelMatrix * instanceMatrix * vec4(_bladepos, 1.)).xyz; 
 
-        // three flips the y coord of textures 
+        // the sim camera looks down +y, so screen up is world -z and the maps
+        // come out with z inverted. render targets are flipY false, unlike the
+        // canvas textures this replaced, and the two conventions cancel out
         vec2 mapUv = (bladePosition.xz * vec2(1., -1.) + uWorldSize / 2.) / uWorldSize;
 
-        vec4 overlap = texture2D(uOverlapMap, mapUv);
+        vec4 trail = texture2D(uTrailMap, mapUv);
+        vec4 cut = texture2D(uCutMap, mapUv);
         // uv.y is 1 at the blade root, 0 at the tip 
         float bladeProgress = 1. - uv.y;
         float bladeMeshHeight = 2.73; // tallest blade in the mesh, only to put uCutHeight in mesh units
-        // red channel = obstacles
-        float gap = step(.05, overlap.r);
-        // green channel = player trail, cut map = mowed
-        float pushGrade = max(overlap.g, 0.);
+        // obstacles live in the cut map now, both write once and never decay
+        float gap = step(.05, cut.g);
+        // trail map .g = where the player just was, cut map = mowed
+        float pushGrade = max(trail.g, 0.);
 
-        vCut = texture2D(uCutMap, mapUv).r;
+        vCut = cut.r;
        
         // height variation
         float baseHeightNoise = 1. - (noise(bladePosition.xz * .05) * .5 + .5) * uWildness;
@@ -89,11 +92,9 @@ const vertexShader = /* glsl */`
 
         vec3 transformed = vec3(position.x, y, position.z) + bend * sway; 
 
-        // sample lower res texture for auto soften map sample
-        float pushSoft = max(
-            textureLod(uOverlapMap, mapUv, uOcclusionLod).g,
-            textureLod(uCutMap, mapUv, uOcclusionLod).r
-        );
+        // sharp for now, no mipmaps to sample and the blurred ao map is not
+        // wired up yet
+        float pushSoft = max(trail.g, cut.r);
         
         // darken lower part of blade
         vOcclusion = baseHeightNoise
@@ -210,15 +211,13 @@ export default class GrassMaterial extends ShaderMaterial {
     uniforms = {
         // required for lights/shadow calc
         ...UniformsUtils.clone(UniformsLib.lights),
-        uCutMap: { value: cutTexture },
-        uOverlapMap: { value: overlapTexture },
-        uWorldSize: { value: worldsize },
+        uCutMap: { value: sim.map.cut.texture },
+        uTrailMap: { value: sim.map.trail.texture },
+        uWorldSize: { value: worldSize },
         uTime: { value: 0 },
         uHeight: { value: grassHeight },
         uWildness: { value: grassWildness },
         uCutHeight: { value: cutHeight },
-        // mip map level, 0-9
-        uOcclusionLod: { value: 5 },
         uSurveying: { value: 0 },
         uPlayerPosition: { value: new Vector3() },
     }

@@ -7,6 +7,15 @@ import type { RockObstacle } from "@src/types/obstacles"
 import { useShader } from "@src/hooks/use-shader"
 import { useFrame } from "@react-three/fiber"
 import { damp } from "three/src/math/MathUtils.js"
+import { Layers } from "three"
+import { dilation, layers } from "@lib/sim/const"
+import { sim } from "@lib/sim/sim"
+
+// exclusive on purpose: the mask proxy below is for the sim bake only and
+// should never show up in the main camera's render
+const layer = new Layers()
+
+layer.set(layers.obstacle)
 
 export default function RockObstacle({
     radius,
@@ -61,22 +70,33 @@ export default function RockObstacle({
     })
 
     return (
-        <mesh
-            dispose={null}
-            position={position}
-            rotation-y={rotation}
-            scale={radius * 2}
-            position-y={-.25}
-            receiveShadow
-            castShadow
-            geometry={nodes["rock" + variant].geometry}
-        >
-            <meshLambertMaterial
-                transparent
-                onBeforeCompile={onBeforeCompile}
-                customProgramCacheKey={customProgramCacheKey}
-            />
-        </mesh>
+        <>
+            <mesh
+                position={position}
+                position-y={-.25}
+                rotation-x={-Math.PI / 2}
+                layers={layer}
+            >
+                <circleGeometry args={[radius + dilation, 16]} />
+                <primitive object={sim.shaders.cut} attach="material" />
+            </mesh>
+            <mesh
+                dispose={null}
+                position={position}
+                rotation-y={rotation}
+                scale={radius * 2}
+                position-y={-.25}
+                receiveShadow
+                castShadow
+                geometry={nodes["rock" + variant].geometry}
+            >
+                <meshLambertMaterial
+                    transparent
+                    onBeforeCompile={onBeforeCompile}
+                    customProgramCacheKey={customProgramCacheKey}
+                />
+            </mesh>
+        </>
     )
 }
 

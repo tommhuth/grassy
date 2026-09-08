@@ -8,10 +8,11 @@ import useFramerateReady from "@src/hooks/use-framerate-ready"
 import extensions from "./extensions"
 import Camera from "./components/camera"
 import Player from "@components/player"
-import { Mesh } from "three"
+import { Mesh, WebGLRenderer } from "three"
 import Grass from "@components/grass"
 import Lights from "@components/lights"
 import RockObstacle from "@components/rock-obstacle"
+import { step } from "@lib/sim/step"
 
 extend(extensions)
 
@@ -52,6 +53,10 @@ export default function App() {
         }
     }, [loading])
 
+    useFrame((state, delta) => {
+        step(state.renderer as WebGLRenderer, state.scene, delta)
+    })
+
     return (
         <>
             <color attach="background" args={["#333"]} />
@@ -61,7 +66,6 @@ export default function App() {
             <Grass />
 
             <Lights />
-
 
             {obstacles.map(i => {
                 switch (i.type) {

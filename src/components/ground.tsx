@@ -5,16 +5,17 @@ import noise from "@shaders/noise.glsl"
 import utils from "@shaders/utils.glsl"
 import { Vector3 } from "three"
 import { damp } from "three/src/math/MathUtils.js"
-import { cutTexture, grassWildness, overlapTexture, worldsize } from "./grasssim"
+import { grassWildness, worldSize } from "@lib/sim/const"
+import { sim } from "@lib/sim/sim"
 
 export default function Ground() {
     const { onBeforeCompile, uniforms } = useShader({
         uniforms: {
-            uWorldSize: { value: worldsize },
+            uWorldSize: { value: worldSize },
             uWildness: { value: grassWildness },
-            uOcclusionLod: { value: 3 },
-            uCutMap: { value: cutTexture },
-            uOverlapMap: { value: overlapTexture },
+            uCutMap: { value: sim.map.cut.texture },
+            uAoMap: { value: sim.map.ao.texture },
+            uTrailMap: { value: sim.map.trail.texture },
             uSurveying: { value: 0 },
             uPlayerPosition: { value: new Vector3() },
         },
@@ -22,9 +23,9 @@ export default function Ground() {
             varying vec3 vWorldPosition;
             uniform float uWorldSize;
             uniform float uWildness;
-            uniform float uOcclusionLod;
             uniform sampler2D uCutMap;
-            uniform sampler2D uOverlapMap;
+            uniform sampler2D uTrailMap;
+            uniform sampler2D uAoMap;
             uniform float uSurveying;
             uniform vec3 uPlayerPosition;
 
@@ -73,22 +74,27 @@ export default function Ground() {
                 float n = (1. - (noise(vWorldPosition.xz * .05) * .5 + .5) * uWildness)
                         * getWorldBounds(vWorldPosition, 4., fadeDistance * .25);
 
+                // the sim camera looks down +y, so screen up is world -z and the
+                // maps come out with z inverted. render targets are flipY false,
+                // unlike the canvas textures this replaced, and the two cancel out
                 vec2 mapUv = (vWorldPosition.xz * vec2(1., -1.) + uWorldSize / 2.) / uWorldSize;
-                float pushSoft = max(
-                    textureLod(uOverlapMap, mapUv, uOcclusionLod).g,
-                    textureLod(uCutMap, mapUv, uOcclusionLod).r
-                );
+                // .r cut, .g obstacles
+                vec4 cut = texture2D(uCutMap, mapUv);
+                vec4 trail = texture2D(uTrailMap, mapUv);
+                // sharp for now, no mipmaps to sample and the blurred ao map is
+                // not wired up yet
+                vec4 pushSoft = texture2D(uAoMap, mapUv);
 
                 gl_FragColor.rgb = mix(
                     gl_FragColor.rgb,
                     darken,
-                    smoothstep(.0, 1., n * (1. - pushSoft))
+                    smoothstep(.0, 1., n * (1. - max(pushSoft.r, pushSoft.g)))
                 );
 
                 // uniform branch, so it stays coherent; .5 is where the smoothstep below already zeroed out
                 if (uSurveying > .5) {
-                    float cut = textureLod(uCutMap, mapUv, 1.).r;
-                    float hole = texture2D(uOverlapMap, mapUv).r;
+                    // obstacles live in the cut map now, both write once and never decay
+                    float hole = cut.g;
 
                     vec3 overlayGridColor = mix(
                         gl_FragColor.rgb * .65, // darker
@@ -103,7 +109,7 @@ export default function Ground() {
 
                     gl_FragColor.rgb = mix(
                         gl_FragColor.rgb,
-                        mix(overlayGridColor, overlayCutColor, cut),
+                        mix(overlayGridColor, overlayCutColor, cut.r),
                         getWorldBounds(vWorldPosition, 0., 0.)
                             * (1. - hole)
                             * smoothstep(.5, 1., uSurveying)
@@ -126,12 +132,20 @@ export default function Ground() {
     })
 
     return (
-        <mesh position={[0, -.05, 0]} receiveShadow>
-            <boxGeometry args={[200, .1, 200]} />
-            <meshLambertMaterial
-                onBeforeCompile={onBeforeCompile}
-                color={"#2c414d"}
-            />
-        </mesh>
+        <>
+            <mesh position={[0, -.05, 0]} receiveShadow>
+                <boxGeometry args={[200, .1, 200]} />
+                <meshLambertMaterial
+                    onBeforeCompile={onBeforeCompile}
+                    color={"#2c414d"}
+                />
+            </mesh>
+            <mesh visible={false} position={[0, -.05, 0]} receiveShadow>
+                <boxGeometry args={[worldSize, .1, worldSize]} />
+                <meshLambertMaterial
+                    map={sim.map.ao.texture}
+                />
+            </mesh>
+        </>
     )
 }

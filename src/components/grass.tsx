@@ -6,7 +6,7 @@ import { useFrame } from "@react-three/fiber"
 import { useEffect, useRef, useState } from "react"
 import { InstancedMesh } from "three"
 import { damp } from "three/src/math/MathUtils.js"
-import { grasscount, grassstep } from "./grasssim"
+import { grassCount, grassStep } from "@lib/sim/const"
 import GrassMaterial from "./grass-material"
 import Ground from "./ground"
 import { useStore } from "@lib/store"
@@ -21,14 +21,14 @@ export default function Grass() {
             return
         }
 
-        let offset = (grasscount - 1) * grassstep / 2
+        let offset = (grassCount - 1) * grassStep / 2
 
-        for (let xi = 0; xi < grasscount; xi++) {
-            for (let zi = 0; zi < grasscount; zi++) {
+        for (let xi = 0; xi < grassCount; xi++) {
+            for (let zi = 0; zi < grassCount; zi++) {
                 setMatrixAt({
                     instance,
-                    index: xi * grasscount + zi,
-                    position: [xi * grassstep - offset, 0, zi * grassstep - offset],
+                    index: xi * grassCount + zi,
+                    position: [xi * grassStep - offset, 0, zi * grassStep - offset],
                     rotation: [0, random.float(-.5, .5), 0],
                     scale: 1
                 })
@@ -40,6 +40,7 @@ export default function Grass() {
         if (!materialRef.current) {
             return
         }
+
 
         let { player } = useStore.getState()
         let { uniforms } = materialRef.current
@@ -56,7 +57,8 @@ export default function Grass() {
         <>
             <instancedMesh
                 ref={setInstance}
-                args={[nodes.patch.geometry, undefined, grasscount * grasscount]}
+                //visible={false}
+                args={[nodes.patch.geometry, undefined, grassCount * grassCount]}
             >
                 <grassMaterial ref={materialRef} />
             </instancedMesh>
