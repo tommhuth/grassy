@@ -9,6 +9,7 @@ import { craftCabin, craftHull, craftWindows, craftWings, playerGlow } from "@li
 import { useControls } from "@src/hooks/use-controls"
 import { OBB } from "three/examples/jsm/Addons.js"
 import GrassParticles from "./grass-particles"
+import AlienParticles, { createAlienParticles } from "./alien-particles"
 import PlayerGlow from "./player-glow"
 
 function setMesh(mesh?: Object3D | null) {
@@ -79,7 +80,11 @@ export default function Player() {
 
             if (intersection) {
                 if (obstacle.type === "alien") {
+                    createAlienParticles({
+                        position: obstacle.position
+                    })
                     removeAlien(obstacle.id)
+
                     break
                 }
 

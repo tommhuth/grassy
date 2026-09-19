@@ -13,6 +13,7 @@ import Lights from "@components/lights"
 import RockObstacle from "@components/rock-obstacle"
 import AlienObstacle from "@components/alien-obstacle"
 import { step } from "@lib/sim/step"
+import AlienParticles from "@components/alien-particles"
 
 extend(extensions)
 
@@ -22,7 +23,7 @@ function Obstacles() {
     const obstacles = useStore(i => i.obstacles)
 
     useEffect(() => {
-        let id = setInterval(createAlien, 14_000 * .25)
+        let id = setInterval(createAlien, 14_000 * .1)
 
         createAlien()
 
@@ -88,6 +89,7 @@ export default function App() {
 
             <Player />
             <Obstacles />
+            <AlienParticles />
             <Grass />
 
             <Lights />

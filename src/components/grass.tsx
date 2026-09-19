@@ -29,7 +29,7 @@ export default function Grass() {
                     instance,
                     index: xi * grassCount + zi,
                     position: [xi * grassStep - offset, 0, zi * grassStep - offset],
-                    rotation: [0, random.float(-.5, .5), 0],
+                    rotation: [0, random.float(-.25, .25), 0],
                     scale: 1
                 })
             }
