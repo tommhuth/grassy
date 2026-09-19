@@ -4,7 +4,7 @@ export const aoSize = textureSize
 // world units
 export const dilation = .5
 
-export const blurScale = 2
+export const blurScale = 1.5
 export const blurIterations = 2
 
 // scale of noise height
@@ -18,5 +18,5 @@ export const grassCount = Math.ceil((worldSize - grassPatchSize) / grassStep) + 
 
 export const layers = {
     obstacle: 2,
-    player: 3
+    trail: 3
 } as const

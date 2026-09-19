@@ -1,22 +1,21 @@
 import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import craftUrl from "@assets/models/craft.glb"
-import { setState, useStore } from "@lib/store"
-import type { BoxObstacle, RoadkillObstacle, RockObstacle } from "@src/types/obstacles"
-import { MeshLambertMaterial, Object3D, Sphere, Vector3 } from "three"
+import { removeAlien, setState, useStore } from "@lib/store"
+import type { AlienObstacle, RockObstacle } from "@src/types/obstacles"
+import { Object3D, Sphere, Vector3 } from "three"
 import { layers } from "@lib/sim/const"
+import { craftCabin, craftHull, craftWindows, craftWings } from "@lib/materials"
 import { useControls } from "@src/hooks/use-controls"
 import { OBB } from "three/examples/jsm/Addons.js"
 import GrassParticles from "./grass-particles"
-
-const playerMaterial = new MeshLambertMaterial()
 
 function setMesh(mesh?: Object3D | null) {
     if (!mesh) return
 
     // layers do not inherit, projectObject tests every object on its own, so
     // the leaf meshes need it and not just the group
-    mesh.traverse(i => i.layers.enable(layers.player))
+    mesh.traverse(i => i.layers.enable(layers.trail))
 
     setState({
         player: {
@@ -29,20 +28,14 @@ function setMesh(mesh?: Object3D | null) {
 const _direction = new Vector3()
 const _sphere = new Sphere()
 
-function getIntersection(obstacle: RockObstacle | RoadkillObstacle | BoxObstacle, obb: OBB, mesh: Object3D) {
+function getIntersection(obstacle: RockObstacle | AlienObstacle, obb: OBB, mesh: Object3D) {
     let direction = _direction.copy(mesh.position)
 
-    if (obstacle.type === "box") {
-        if (obb.intersectsOBB(obstacle.obb)) {
-            return direction.sub(obstacle.obb.center)
-        }
-    } else {
-        _sphere.center.set(...obstacle.position)
-        _sphere.radius = obstacle.radius
+    _sphere.center.set(...obstacle.position)
+    _sphere.radius = obstacle.radius
 
-        if (obb.intersectsSphere(_sphere)) {
-            return direction.sub(_sphere.center)
-        }
+    if (obb.intersectsSphere(_sphere)) {
+        return direction.sub(_sphere.center)
     }
 
     return null
@@ -80,6 +73,11 @@ export default function Player() {
             let intersection = getIntersection(obstacle, obb, mesh)
 
             if (intersection) {
+                if (obstacle.type === "alien") {
+                    removeAlien(obstacle.id)
+                    break
+                }
+
                 let push = .01
 
                 intersection.multiplyScalar(push)
@@ -106,30 +104,35 @@ export default function Player() {
                 scale={1}
                 position-y={.25}
             >
-                <group rotation-y={Math.PI / 2}>
+                <pointLight
+                    color={"#70d0ff"}
+                    position={[0, .5, 0]}
+                    intensity={2}
+                />
+                <group rotation-y={-Math.PI / 2}>
                     <mesh
                         castShadow
                         receiveShadow
                         geometry={nodes.Mesh_craft_cargoB.geometry}
-                        material={playerMaterial}
+                        material={craftHull}
                     />
                     <mesh
                         castShadow
                         receiveShadow
                         geometry={nodes.Mesh_craft_cargoB_1.geometry}
-                        material={playerMaterial}
+                        material={craftCabin}
                     />
                     <mesh
                         castShadow
                         receiveShadow
                         geometry={nodes.Mesh_craft_cargoB_2.geometry}
-                        material={playerMaterial}
+                        material={craftWindows}
                     />
                     <mesh
                         castShadow
                         receiveShadow
                         geometry={nodes.Mesh_craft_cargoB_3.geometry}
-                        material={playerMaterial}
+                        material={craftWings}
                     />
                 </group>
             </group>

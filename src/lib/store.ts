@@ -1,14 +1,18 @@
 import { Tuple3 } from "@src/types/global"
-import { BoxObstacle, RoadkillObstacle, RockObstacle } from "@src/types/obstacles"
-import { Object3D } from "three"
+import { AlienObstacle, RockObstacle } from "@src/types/obstacles"
+import { Object3D, OrthographicCamera, WebGLRenderer } from "three"
 import { OBB } from "three/examples/jsm/Addons.js"
 import { create } from "zustand"
 import { subscribeWithSelector } from "zustand/middleware"
+import { alienPaths, getNextAlien } from "./alien-paths"
+import random from "@huth/random"
 
 interface Store {
     state: string
     loading: boolean
-    obstacles: (RockObstacle | BoxObstacle | RoadkillObstacle)[]
+    camera: OrthographicCamera | null
+    gl: WebGLRenderer | null
+    obstacles: (RockObstacle | AlienObstacle)[]
     player: {
         size: Tuple3
         obb: OBB
@@ -23,6 +27,8 @@ const useStore = create(
     subscribeWithSelector<Store>(() => ({
         state: "hello",
         loading: true,
+        camera: null,
+        gl: null,
         obstacles: [
             {
                 type: "rock",
@@ -72,6 +78,14 @@ const useStore = create(
                 id: "15112",
                 variant: 7
             },
+            {
+                type: "alien",
+                radius: 1,
+                path: alienPaths[0],
+                position: alienPaths[0].curve.points[0].toArray(),
+                id: "1513312",
+                direction: 1
+            },
         ],
         player: {
             size: [2.35, 1, 1.35],
@@ -87,6 +101,32 @@ const useStore = create(
 
 export function setState(partial: Partial<Store>) {
     useStore.setState(partial)
+}
+
+export function removeAlien(id: string) {
+    useStore.setState({
+        obstacles: useStore.getState().obstacles.filter(i => i.id !== id)
+    })
+}
+
+export function createAlien() {
+    let a = getNextAlien()
+    let d = random.pick(-1, 1)
+    let p = a.curve.points[d === 0 ? 0 : a.curve.points.length - 1].toArray()
+
+    useStore.setState({
+        obstacles: [
+            ...useStore.getState().obstacles,
+            {
+                type: "alien",
+                radius: 1,
+                path: a,
+                position: p,
+                id: random.id(),
+                direction: d
+            }
+        ]
+    })
 }
 
 export { useStore }

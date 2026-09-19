@@ -26,14 +26,8 @@ export function renderLayer(
     material: Material,
     layer: number
 ) {
-    const background = scene.background
-
-    // a Color background forceClears the target inside WebGLBackground and
-    // ignores autoClear, so it has to go for the duration of the pass
-    scene.background = null
     scene.overrideMaterial = material
     camera.layers.set(layer)
     gl.render(scene, camera)
     scene.overrideMaterial = null
-    scene.background = background
 }

@@ -20,6 +20,7 @@ const shared = /* glsl */`
     uniform vec3 uPlayerPosition;
     varying vec3 vWorldPosition;
     varying vec3 vBentWorldPosition;
+    varying vec3 vBladepos;
     varying float vOcclusion;
     varying float vCut;
     varying float vColorNoise;
@@ -105,6 +106,7 @@ const vertexShader = /* glsl */`
         vUv = uv;
         vWorldPosition = (modelMatrix * instanceMatrix * vec4(position, 1.)).xyz;
         vColorNoise = noise(vWorldPosition * .8) * .5 + .5;
+        vBladepos = (modelMatrix * instanceMatrix * vec4(_bladepos, 1.)).xyz;;
 
         // shadow handling chunk expects these to be defined
         vec4 worldPosition = modelMatrix * instanceMatrix * vec4(transformed, 1.); 
@@ -159,7 +161,7 @@ const fragmentShader = /* glsl */`
 
         vec3 top = vec3(255. / 255., 242. / 255., 133. / 255.);
         vec3 bottom = vec3(0., 122. / 255., 100. / 255.);
-        vec3 darken =  vec3(0. / 255., 10. / 255., 60. / 255.); 
+        vec3 darken =  vec3(0. / 255., 80. / 255., 60. / 255.); 
         vec3 shadowColor = vec3(0. / 255., 65. / 255., 85. / 255.); 
 
         gl_FragColor.a = 1.;
@@ -191,13 +193,20 @@ const fragmentShader = /* glsl */`
 
         gl_FragColor.rgb = mix(
             gl_FragColor.rgb * shadowColor,
-            gl_FragColor.rgb ,
+            gl_FragColor.rgb,
             shadow
+        ); 
+
+        gl_FragColor.rgb = mix(
+            gl_FragColor.rgb ,
+            vec3(0.8, .95, 1.),
+            map(length(uPlayerPosition - vBentWorldPosition), 0., 3., 1., 0.)  
+            * smoothstep(0., 1., map(vBentWorldPosition.y, 0., 2., 1., 0.))
         ); 
 
         // surveying hollows each blade out to its contour 
         float outline = getOutline(smoothstep(.2, .8, uSurveying))
-            * getSurveyRadius(vBentWorldPosition.xz, uPlayerPosition.xz); 
+            * getSurveyRadius(vBladepos.xz, uPlayerPosition.xz); 
 
         // the hollow interior has to go before the depth write, or blades in front
         // would occlude the ones behind them 

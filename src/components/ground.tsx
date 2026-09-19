@@ -8,6 +8,8 @@ import { damp } from "three/src/math/MathUtils.js"
 import { grassWildness, worldSize } from "@lib/sim/const"
 import { sim } from "@lib/sim/sim"
 
+const groundSize = 200
+
 export default function Ground() {
     const { onBeforeCompile, uniforms } = useShader({
         uniforms: {
@@ -69,7 +71,7 @@ export default function Ground() {
                 }
             `,
             main: /* glsl */`
-                vec3 darken = vec3(0. / 255., 5. / 255., 15. / 255.);
+                vec3 darken = vec3(0. / 255., 7. / 255., 7. / 255.);
                 float fadeDistance = 4.;
                 float n = (1. - (noise(vWorldPosition.xz * .05) * .5 + .5) * uWildness)
                         * getWorldBounds(vWorldPosition, 4., fadeDistance * .25);
@@ -133,14 +135,23 @@ export default function Ground() {
 
     return (
         <>
-            <mesh position={[0, -.05, 0]} receiveShadow>
-                <boxGeometry args={[200, .1, 200]} />
-                <meshLambertMaterial
+            <mesh
+                position={[0, -.05, 0]}
+                receiveShadow
+            >
+                <boxGeometry args={[groundSize, .1, groundSize]} />
+                <meshPhongMaterial
                     onBeforeCompile={onBeforeCompile}
-                    color={"#2c414d"}
+                    color={"#1e303b"}
+                    specular={"#fff"}
+                    shininess={10}
                 />
             </mesh>
-            <mesh visible={false} position={[0, -.05, 0]} receiveShadow>
+            <mesh
+                visible={false}
+                position={[0, -.05, 0]}
+                receiveShadow
+            >
                 <boxGeometry args={[worldSize, .1, worldSize]} />
                 <meshLambertMaterial
                     map={sim.map.ao.texture}

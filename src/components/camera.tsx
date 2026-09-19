@@ -1,8 +1,9 @@
-import { useStore } from "@lib/store"
+import { setState, useStore } from "@lib/store"
 import { map } from "@lib/utils"
 import { useFrame, useThree } from "@react-three/fiber"
 import { BASE_ZOOM } from "@src/root"
 import { useEffect, useLayoutEffect } from "react"
+import { OrthographicCamera } from "three"
 import { damp } from "three/src/math/MathUtils.js"
 
 export default function Camera() {
@@ -11,6 +12,7 @@ export default function Camera() {
     useLayoutEffect(() => {
         camera.position.set(10, 10, -10)
         camera.lookAt(0, 0, 0)
+        setState({ camera: camera as OrthographicCamera })
     }, [camera])
 
     useEffect(() => {

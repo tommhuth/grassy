@@ -1,6 +1,7 @@
 import { CatmullRomCurve3 } from "three"
 import { OBB } from "three/examples/jsm/Addons.js"
 import { Tuple3 } from "@src/types/global"
+import { alienPaths } from "@lib/alien-paths"
 
 interface Obstacle {
     id: string
@@ -20,8 +21,9 @@ export interface BoxObstacle extends Obstacle {
     size: Tuple3
 }
 
-export interface RoadkillObstacle extends Obstacle {
-    type: "roadkill"
+export interface AlienObstacle extends Omit<Obstacle, "rotation"> {
+    type: "alien"
     radius: number
-    path: CatmullRomCurve3
+    direction: 1 | -1
+    path: typeof alienPaths[number]
 }

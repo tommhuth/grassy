@@ -39,7 +39,7 @@ export default function Lights() {
     const light = useRef<DirectionalLight>(null)
     const counter = useRef(0)
     const { scene, viewport } = useThree()
-    const mapSize = Math.ceil(512 * viewport.dpr)
+    const mapSize = Math.ceil(1024 * viewport.dpr)
     let size = Math.max(viewport.width, viewport.height)
 
     useEffect(() => {
@@ -77,15 +77,19 @@ export default function Lights() {
         <>
             <hemisphereLight
                 groundColor="#75e6ff"
-                color="#4f809c"
-                intensity={.6}
+                color={"#bde9ff"}
+                intensity={.0}
+            />
+            <ambientLight
+                intensity={.5}
+                color={"#94ddff"}
             />
             <directionalLight
                 ref={light}
-                color={"#ebfffc"}
+                color={"#c4ecff"}
                 position={[0, 0, 0]}
-                target-position={[...lightOffset]}
-                intensity={1.5}
+                target-position={lightOffset}
+                intensity={3.5}
                 castShadow
                 shadow-radius={4}
                 shadow-bias={-.005}

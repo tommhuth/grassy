@@ -14,6 +14,7 @@
     outline: none;
     text-decoration: none;
     list-style: none;
+    text-align: inherit;
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none !important;

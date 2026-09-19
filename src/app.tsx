@@ -1,47 +1,51 @@
-import { extend, useFrame } from "@react-three/fiber"
+import { extend, useFrame, useThree } from "@react-three/fiber"
 import { Perf } from "r3f-perf"
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect } from "react"
 import config from "@lib/config"
-import { setState, useStore } from "@lib/store"
-import type { BoxObstacle } from "@src/types/obstacles"
+import { createAlien, setState, useStore } from "@lib/store"
 import useFramerateReady from "@src/hooks/use-framerate-ready"
 import extensions from "./extensions"
 import Camera from "./components/camera"
 import Player from "@components/player"
-import { Mesh, WebGLRenderer } from "three"
+import { WebGLRenderer } from "three"
 import Grass from "@components/grass"
 import Lights from "@components/lights"
 import RockObstacle from "@components/rock-obstacle"
+import AlienObstacle from "@components/alien-obstacle"
 import { step } from "@lib/sim/step"
 
 extend(extensions)
 
-function BoxObstacle({ obb, size, position, rotation }: BoxObstacle) {
-    let ref = useRef<Mesh>(null)
+function Obstacles() {
+    const obstacles = useStore(i => i.obstacles)
 
-    useFrame(() => {
-        if (!ref.current) {
-            return
+    useEffect(() => {
+        let id = setInterval(createAlien, 14_000 * .25)
+
+        createAlien()
+
+        return () => clearInterval(id)
+    }, [])
+
+
+    return obstacles.map(i => {
+        switch (i.type) {
+            case "rock":
+                return <RockObstacle key={i.id} {...i} />
+            case "alien":
+                return <AlienObstacle key={i.id} {...i} />
         }
-
-        obb.center.set(0, 0, 0)
-        obb.rotation.identity()
-        obb.halfSize.set(size[0] / 2, size[1] / 2, size[2] / 2)
-        obb.applyMatrix4(ref.current.matrixWorld)
     })
-
-    return (
-        <mesh position={position} rotation-y={rotation} ref={ref} castShadow receiveShadow>
-            <boxGeometry args={[...size]} />
-            <meshPhongMaterial />
-        </mesh>
-    )
 }
 
 
 export default function App() {
     const loading = useStore(i => i.loading)
-    const obstacles = useStore(i => i.obstacles)
+    const renderer = useThree(i => i.renderer)
+
+    useLayoutEffect(() => {
+        setState({ gl: renderer as WebGLRenderer })
+    }, [renderer])
 
     useFramerateReady(() => setState({ loading: false }))
 
@@ -59,24 +63,29 @@ export default function App() {
 
     return (
         <>
-            <color attach="background" args={["#333"]} />
             <Camera />
 
             <Player />
+            <Obstacles />
             <Grass />
 
             <Lights />
 
-            {obstacles.map(i => {
-                switch (i.type) {
-                    case "box":
-                        return <BoxObstacle key={i.id} {...i} />
-                    case "rock":
-                        return <RockObstacle key={i.id} {...i} />
-                }
-            })}
-
             {config.stats && <Perf position="top-right" deepAnalyze />}
         </>
     )
-} 
+}
+
+/*
+
+
+            {config.debug && alienPaths.map((i, index) => (
+                <lineSegments
+                    key={index}
+                    position-y={.1}
+                    geometry={i.geometry}
+                >
+                    <lineBasicMaterial color="red" />
+                </lineSegments>
+            ))}
+            */

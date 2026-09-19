@@ -31,7 +31,7 @@ export default defineConfig({
         VitePWA({
             registerType: "prompt",
             workbox: {
-                globPatterns: ["**/*.{html,js,css,png,svg,woff,woff2,glb}"]
+                globPatterns: ["**/*.{html,js,css,png,jpg,svg,woff,woff2,glb}"]
             },
             manifest: {
                 name: "R3F Boilerplate",

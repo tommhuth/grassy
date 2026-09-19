@@ -40,10 +40,9 @@ export function step(gl: WebGLRenderer, scene: Scene, delta: number) {
     sim.shaders.trail.opacity = 1 - Math.exp(-Math.min(delta, .1) / .4)
     sim.quad.material = sim.shaders.trail
     sim.quad.render(gl)
-
-    // the real silhouette from above, so no proxy to keep in sync with the
-    // model. MaxEquation unions the sub meshes instead of accumulating them
-    renderLayer(gl, scene, sim.camera, sim.shaders.cut, layers.player)
+    // render fresh occupancy for trail
+    // MaxEquation unions the sub meshes instead of accumulating them
+    renderLayer(gl, scene, sim.camera, sim.shaders.cut, layers.trail)
 
     // ao
     gl.setRenderTarget(sim.map.ao)
@@ -80,7 +79,7 @@ export function step(gl: WebGLRenderer, scene: Scene, delta: number) {
         reading = true
 
         gl.readRenderTargetPixelsAsync(sim.map.cut, 0, 0, textureSize, textureSize, sim.pixels)
-            .then(getProgress)
+            .then(data => data && getProgress(data))
             .finally(() => reading = false)
     }
 
