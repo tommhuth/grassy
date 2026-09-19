@@ -10,6 +10,7 @@ import { damp } from "three/src/math/MathUtils.js"
 import { Layers } from "three"
 import { dilation, layers } from "@lib/sim/const"
 import { sim } from "@lib/sim/sim"
+import { darkerGray } from "@lib/materials"
 
 // exclusive on purpose: the mask proxy below is for the sim bake only and
 // should never show up in the main camera's render
@@ -92,6 +93,8 @@ export default function RockObstacle({
             >
                 <meshLambertMaterial
                     transparent
+                    color={darkerGray.color}
+                    precision={darkerGray.precision}
                     onBeforeCompile={onBeforeCompile}
                     customProgramCacheKey={customProgramCacheKey}
                 />

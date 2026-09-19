@@ -172,7 +172,7 @@ export default function GrassParticles() {
             frustumCulled={false}
             args={[geometry, undefined, count]}
         >
-            <meshLambertMaterial side={DoubleSide} color="rgb(50, 182, 100)" />
+            <meshLambertMaterial side={DoubleSide} color="rgb(255, 242, 133)" />
         </instancedMesh>
     )
 }

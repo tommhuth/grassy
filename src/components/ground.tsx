@@ -71,7 +71,7 @@ export default function Ground() {
                 }
             `,
             main: /* glsl */`
-                vec3 darken = vec3(0. / 255., 7. / 255., 7. / 255.);
+                vec3 darken = vec3(0. / 255., 7. / 255., 17. / 255.);
                 float fadeDistance = 4.;
                 float n = (1. - (noise(vWorldPosition.xz * .05) * .5 + .5) * uWildness)
                         * getWorldBounds(vWorldPosition, 4., fadeDistance * .25);
@@ -134,29 +134,15 @@ export default function Ground() {
     })
 
     return (
-        <>
-            <mesh
-                position={[0, -.05, 0]}
-                receiveShadow
-            >
-                <boxGeometry args={[groundSize, .1, groundSize]} />
-                <meshPhongMaterial
-                    onBeforeCompile={onBeforeCompile}
-                    color={"#1e303b"}
-                    specular={"#fff"}
-                    shininess={10}
-                />
-            </mesh>
-            <mesh
-                visible={false}
-                position={[0, -.05, 0]}
-                receiveShadow
-            >
-                <boxGeometry args={[worldSize, .1, worldSize]} />
-                <meshLambertMaterial
-                    map={sim.map.ao.texture}
-                />
-            </mesh>
-        </>
+        <mesh
+            position={[0, -.05, 0]}
+            receiveShadow
+        >
+            <boxGeometry args={[groundSize, .1, groundSize]} />
+            <meshLambertMaterial
+                onBeforeCompile={onBeforeCompile}
+                color={"#223"}
+            />
+        </mesh>
     )
 }

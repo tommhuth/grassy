@@ -7,7 +7,7 @@ import alienUrl from "@assets/models/alien.glb"
 import { removeAlien } from "@lib/store"
 import { clamp } from "@lib/utils"
 import { layers } from "@lib/sim/const"
-import { alienAccent, alienGlow, alienLeg, alienShell, alienTrim } from "@lib/materials"
+import { alien } from "@lib/materials"
 import type { AlienObstacle } from "@src/types/obstacles"
 
 function easeInOutSine(x: number): number {
@@ -72,19 +72,19 @@ export default function AlienObstacle({ id, radius, direction, path: { curve }, 
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_armLeft.geometry}
-                    material={alienGlow}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_armLeft_1.geometry}
-                    material={alienTrim}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_armLeft_2.geometry}
-                    material={alienAccent}
+                    material={alien}
                 />
             </group>
             <group position={[.13, .473, 0]}>
@@ -92,19 +92,19 @@ export default function AlienObstacle({ id, radius, direction, path: { curve }, 
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_armRight.geometry}
-                    material={alienGlow}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_armRight_1.geometry}
-                    material={alienAccent}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_armRight_2.geometry}
-                    material={alienTrim}
+                    material={alien}
                 />
             </group>
             <group position={[0, .223, 0]}>
@@ -112,19 +112,19 @@ export default function AlienObstacle({ id, radius, direction, path: { curve }, 
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_body.geometry}
-                    material={alienShell}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_body_1.geometry}
-                    material={alienTrim}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_body_2.geometry}
-                    material={alienAccent}
+                    material={alien}
                 />
             </group>
             <group position={[0, .483, 0]} scale={.26}>
@@ -132,19 +132,19 @@ export default function AlienObstacle({ id, radius, direction, path: { curve }, 
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_head.geometry}
-                    material={alienGlow}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_head_1.geometry}
-                    material={alienLeg}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_head_2.geometry}
-                    material={alienTrim}
+                    material={alien}
                 />
             </group>
             <group position={[-.13, .223, 0]}>
@@ -152,19 +152,19 @@ export default function AlienObstacle({ id, radius, direction, path: { curve }, 
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_legLeft.geometry}
-                    material={alienShell}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_legLeft_1.geometry}
-                    material={alienLeg}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_legLeft_2.geometry}
-                    material={alienTrim}
+                    material={alien}
                 />
             </group>
             <group
@@ -175,19 +175,19 @@ export default function AlienObstacle({ id, radius, direction, path: { curve }, 
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_legRight.geometry}
-                    material={alienLeg}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_legRight_1.geometry}
-                    material={alienShell}
+                    material={alien}
                 />
                 <mesh
                     castShadow
                     receiveShadow
                     geometry={nodes.Mesh_legRight_2.geometry}
-                    material={alienTrim}
+                    material={alien}
                 />
             </group>
         </group>

@@ -7,8 +7,17 @@ import { subscribeWithSelector } from "zustand/middleware"
 import { alienPaths, getNextAlien } from "./alien-paths"
 import random from "@huth/random"
 
+export const State = {
+    LOADING: "loading",
+    READY: "ready",
+    GAME_OVER: "game-over",
+} as const
+
+export type State = typeof State[keyof typeof State]
+
 interface Store {
-    state: string
+    state: State
+    intro: boolean
     loading: boolean
     camera: OrthographicCamera | null
     gl: WebGLRenderer | null
@@ -25,7 +34,8 @@ interface Store {
 
 const useStore = create(
     subscribeWithSelector<Store>(() => ({
-        state: "hello",
+        state: State.LOADING,
+        intro: true,
         loading: true,
         camera: null,
         gl: null,
@@ -35,7 +45,7 @@ const useStore = create(
                 radius: 2,
                 position: [0, 0, 5],
                 rotation: 0,
-                id: "5",
+                id: "1",
                 variant: 1
             },
             {
@@ -43,7 +53,7 @@ const useStore = create(
                 radius: .25,
                 position: [-5, 0, 5],
                 rotation: 1,
-                id: "52",
+                id: "2",
                 variant: 2
             },
             {
@@ -51,7 +61,7 @@ const useStore = create(
                 radius: 3.25,
                 position: [15, 0, -10],
                 rotation: 1,
-                id: "152",
+                id: "3",
                 variant: 4
             },
             {
@@ -59,7 +69,7 @@ const useStore = create(
                 radius: 2.5,
                 position: [17, 0, 20],
                 rotation: 1,
-                id: "1512",
+                id: "4",
                 variant: 5
             },
             {
@@ -67,7 +77,7 @@ const useStore = create(
                 radius: 1,
                 position: [22, 0, 21],
                 rotation: 1,
-                id: "15s12",
+                id: "5",
                 variant: 6
             },
             {
@@ -75,7 +85,7 @@ const useStore = create(
                 radius: 1.25,
                 position: [-15, 0, -10],
                 rotation: 1,
-                id: "15112",
+                id: "6",
                 variant: 7
             },
             {
@@ -83,7 +93,7 @@ const useStore = create(
                 radius: 1,
                 path: alienPaths[0],
                 position: alienPaths[0].curve.points[0].toArray(),
-                id: "1513312",
+                id: "7",
                 direction: 1
             },
         ],
@@ -103,6 +113,25 @@ export function setState(partial: Partial<Store>) {
     useStore.setState(partial)
 }
 
+export function start() {
+    let { intro, state } = useStore.getState()
+
+    if (!intro || state !== State.READY) {
+        return
+    }
+
+    useStore.setState({ intro: false })
+}
+
+export function setActive(active: boolean) {
+    useStore.setState({
+        player: {
+            ...useStore.getState().player,
+            active
+        }
+    })
+}
+
 export function removeAlien(id: string) {
     useStore.setState({
         obstacles: useStore.getState().obstacles.filter(i => i.id !== id)
@@ -110,9 +139,9 @@ export function removeAlien(id: string) {
 }
 
 export function createAlien() {
-    let a = getNextAlien()
-    let d = random.pick(-1, 1)
-    let p = a.curve.points[d === 0 ? 0 : a.curve.points.length - 1].toArray()
+    let path = getNextAlien()
+    let direction: -1 | 1 = random.pick(-1, 1)
+    let p = path.curve.points[direction === 1 ? 0 : path.curve.points.length - 1].toArray()
 
     useStore.setState({
         obstacles: [
@@ -120,10 +149,10 @@ export function createAlien() {
             {
                 type: "alien",
                 radius: 1,
-                path: a,
+                path,
                 position: p,
                 id: random.id(),
-                direction: d
+                direction
             }
         ]
     })

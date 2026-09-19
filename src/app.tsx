@@ -2,7 +2,7 @@ import { extend, useFrame, useThree } from "@react-three/fiber"
 import { Perf } from "r3f-perf"
 import { useEffect, useLayoutEffect } from "react"
 import config from "@lib/config"
-import { createAlien, setState, useStore } from "@lib/store"
+import { createAlien, setState, State, useStore } from "@lib/store"
 import useFramerateReady from "@src/hooks/use-framerate-ready"
 import extensions from "./extensions"
 import Camera from "./components/camera"
@@ -15,6 +15,8 @@ import AlienObstacle from "@components/alien-obstacle"
 import { step } from "@lib/sim/step"
 
 extend(extensions)
+
+const revealTimeout = 2_500
 
 function Obstacles() {
     const obstacles = useStore(i => i.obstacles)
@@ -50,10 +52,29 @@ export default function App() {
     useFramerateReady(() => setState({ loading: false }))
 
     useEffect(() => {
-        const canvas = document.getElementById("canvas")
+        if (loading) {
+            return
+        }
 
-        if (!loading && canvas) {
-            canvas.style.opacity = "1"
+        const canvas = document.getElementById("canvas")
+        const label = document.getElementById("loading")
+
+        canvas?.style.setProperty("clip-path", "inset(0)")
+
+        const drop = () => label?.remove()
+        const ready = () => {
+            drop()
+            setState({ state: State.READY })
+        }
+        const tid = setTimeout(ready, revealTimeout)
+
+        canvas?.addEventListener("transitionstart", drop, { once: true })
+        canvas?.addEventListener("transitionend", ready, { once: true })
+
+        return () => {
+            clearTimeout(tid)
+            canvas?.removeEventListener("transitionstart", drop)
+            canvas?.removeEventListener("transitionend", ready)
         }
     }, [loading])
 

@@ -5,16 +5,18 @@ import { damp } from "three/src/math/MathUtils.js"
 import { Vector2, Vector3 } from "three"
 import { setState, useStore } from "@lib/store"
 
+export const maxSpeed = 4
+
 const config = {
     acceleration: 2,
     turnSpeed: 2,
     turnDamp: 15,
-    maxSpeed: 4,
+    maxSpeed,
     touchDistance: 120, // drag length for full speed
     touchDeadzone: 12,
 } as const
 
-interface Motion {
+export interface Motion {
     speed: number
     targetRotation: number
     currentRotation: number

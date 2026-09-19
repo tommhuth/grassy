@@ -18,9 +18,10 @@
 
 <body class="touch-none overflow-hidden fixed left-0 block top-0 w-full h-full">
     <canvas id="canvas"
-        class="overflow-hidden fixed left-0 block top-0 w-full h-full z-1 transition-opacity duration-500 opacity-0"></canvas>
+        class="overflow-hidden fixed left-0 block top-0 w-full h-full z-1 [clip-path:inset(50%_0)] transition-[clip-path] duration-1500 delay-500"></canvas>
     <div id="ui"></div>
-    <div id="loading" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
+    <div id="loading"
+        class="fixed top-0 left-0 w-full h-full z-1000 flex items-center justify-center uppercase pointer-events-none text-white">
         Loading...
     </div>
     <script>

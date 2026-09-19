@@ -3,6 +3,7 @@
 
 @theme {
     --animate-blink: blink .85s infinite;
+    --animate-introin: introin .75s backwards;
 }
 
 @keyframes blink {
@@ -16,5 +17,17 @@
     25%,
     75% {
         opacity: .25;
+    }
+}
+
+@keyframes introin {
+    from {
+        opacity: 0;
+        margin-left: -1em;
+    }
+
+    to {
+        opacity: 1;
+        margin-left: 0;
     }
 }

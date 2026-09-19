@@ -23,7 +23,6 @@ const shared = /* glsl */`
     varying vec3 vBladepos;
     varying float vOcclusion;
     varying float vCut;
-    varying float vColorNoise;
     varying vec2 vUv;
 
     ${noise}
@@ -105,7 +104,6 @@ const vertexShader = /* glsl */`
 
         vUv = uv;
         vWorldPosition = (modelMatrix * instanceMatrix * vec4(position, 1.)).xyz;
-        vColorNoise = noise(vWorldPosition * .8) * .5 + .5;
         vBladepos = (modelMatrix * instanceMatrix * vec4(_bladepos, 1.)).xyz;;
 
         // shadow handling chunk expects these to be defined
@@ -167,11 +165,7 @@ const fragmentShader = /* glsl */`
         gl_FragColor.a = 1.;
         gl_FragColor.rgb = mix(
             bottom,
-            mix(
-                top, 
-                vec3(180. / 255., 235. / 255., 53. / 255.), 
-                vColorNoise
-            ),
+            top,
             clamp(vWorldPosition.y / (1.5 * uHeight), -.25, 1.)
         ); 
 
@@ -199,7 +193,7 @@ const fragmentShader = /* glsl */`
 
         gl_FragColor.rgb = mix(
             gl_FragColor.rgb ,
-            vec3(0.8, .95, 1.),
+            vec3(0., 1., .969), // #00fff7, the playerGlow cyan
             map(length(uPlayerPosition - vBentWorldPosition), 0., 3., 1., 0.)  
             * smoothstep(0., 1., map(vBentWorldPosition.y, 0., 2., 1., 0.))
         ); 

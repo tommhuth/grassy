@@ -5,10 +5,11 @@ import { removeAlien, setState, useStore } from "@lib/store"
 import type { AlienObstacle, RockObstacle } from "@src/types/obstacles"
 import { Object3D, Sphere, Vector3 } from "three"
 import { layers } from "@lib/sim/const"
-import { craftCabin, craftHull, craftWindows, craftWings } from "@lib/materials"
+import { craftCabin, craftHull, craftWindows, craftWings, playerGlow } from "@lib/materials"
 import { useControls } from "@src/hooks/use-controls"
 import { OBB } from "three/examples/jsm/Addons.js"
 import GrassParticles from "./grass-particles"
+import PlayerGlow from "./player-glow"
 
 function setMesh(mesh?: Object3D | null) {
     if (!mesh) return
@@ -28,11 +29,15 @@ function setMesh(mesh?: Object3D | null) {
 const _direction = new Vector3()
 const _sphere = new Sphere()
 
+const alienCollisionScale = .5
+
 function getIntersection(obstacle: RockObstacle | AlienObstacle, obb: OBB, mesh: Object3D) {
     let direction = _direction.copy(mesh.position)
 
     _sphere.center.set(...obstacle.position)
-    _sphere.radius = obstacle.radius
+    _sphere.radius = obstacle.type === "alien"
+        ? obstacle.radius * alienCollisionScale
+        : obstacle.radius
 
     if (obb.intersectsSphere(_sphere)) {
         return direction.sub(_sphere.center)
@@ -98,6 +103,7 @@ export default function Player() {
     return (
         <>
             <GrassParticles />
+            <PlayerGlow motion={motion} />
             <group
                 ref={setMesh}
                 dispose={null}
@@ -105,7 +111,7 @@ export default function Player() {
                 position-y={.25}
             >
                 <pointLight
-                    color={"#70d0ff"}
+                    color={playerGlow}
                     position={[0, .5, 0]}
                     intensity={2}
                 />

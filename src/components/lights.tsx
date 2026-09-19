@@ -4,7 +4,7 @@ import { useEffect, useRef, type RefObject } from "react"
 import { CameraHelper, DirectionalLight } from "three"
 
 // direction the light travels, relative to the player
-const lightOffset = [-10, -7, -6] as const
+const lightOffset = [-8, -14, -6] as const
 // how often (in frames) the shadow camera is moved along with the player
 const updateInterval = 10
 
@@ -76,20 +76,17 @@ export default function Lights() {
     return (
         <>
             <hemisphereLight
-                groundColor="#75e6ff"
-                color={"#bde9ff"}
-                intensity={.0}
+                groundColor="#a5c7b0"
+                color={"#afe3d4"}
+                intensity={.4}
             />
-            <ambientLight
-                intensity={.5}
-                color={"#94ddff"}
-            />
+            <ambientLight color="#00f" intensity={.4} />
             <directionalLight
                 ref={light}
-                color={"#c4ecff"}
+                color={"#fff"}
                 position={[0, 0, 0]}
                 target-position={lightOffset}
-                intensity={3.5}
+                intensity={1.5}
                 castShadow
                 shadow-radius={4}
                 shadow-bias={-.005}
