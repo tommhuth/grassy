@@ -17,7 +17,13 @@ function easeInOutSine(x: number): number {
 const _v = new Vector3()
 const _tangent = new Vector3()
 
-export default function AlienObstacle({ id, radius, direction, path: { curve }, position }: AlienObstacle) {
+export default function AlienObstacle({
+    id,
+    radius,
+    direction,
+    path: { curve },
+    position
+}: AlienObstacle) {
     const { nodes } = useGLTF(alienUrl)
     let ref = useRef<Group>(null)
     let data = useMemo(() => {
@@ -32,7 +38,8 @@ export default function AlienObstacle({ id, radius, direction, path: { curve }, 
     useLayoutEffect(() => {
         // layers do not inherit, so the leaf meshes need it and not just the group
         ref.current?.traverse(i => i.layers.enable(layers.trail))
-    }, [])
+        ref.current?.position.set(...position)
+    }, [position])
 
     useFrame((state, delta) => {
         if (!ref.current) {
