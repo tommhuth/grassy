@@ -29,7 +29,7 @@ const material = new ShaderMaterial({
         void main() {
             float falloff = 1. - clamp(length(vUv - .5) * 2., 0., 1.);
 
-            gl_FragColor = vec4(uColor, falloff * uOpacity);
+            gl_FragColor = vec4(uColor, smoothstep(0., 1., falloff) * uOpacity);
 
             #include <colorspace_fragment>
         }

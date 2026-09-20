@@ -118,7 +118,7 @@ export default function Player() {
                 <pointLight
                     color={playerGlow}
                     position={[0, .5, 0]}
-                    intensity={2}
+                    intensity={4}
                 />
                 <group rotation-y={-Math.PI / 2}>
                     <mesh

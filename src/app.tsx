@@ -2,7 +2,7 @@ import { extend, useFrame, useThree } from "@react-three/fiber"
 import { Perf } from "r3f-perf"
 import { useEffect, useLayoutEffect } from "react"
 import config from "@lib/config"
-import { createAlien, setState, State, useStore } from "@lib/store"
+import { setState, State, useStore } from "@lib/store"
 import useFramerateReady from "@src/hooks/use-framerate-ready"
 import extensions from "./extensions"
 import Camera from "./components/camera"
@@ -10,37 +10,13 @@ import Player from "@components/player"
 import { WebGLRenderer } from "three"
 import Grass from "@components/grass"
 import Lights from "@components/lights"
-import RockObstacle from "@components/rock-obstacle"
-import AlienObstacle from "@components/alien-obstacle"
+import Obstacles from "@components/obstacles"
 import { step } from "@lib/sim/step"
 import AlienParticles from "@components/alien-particles"
 
 extend(extensions)
 
 const revealTimeout = 2_500
-
-function Obstacles() {
-    const obstacles = useStore(i => i.obstacles)
-
-    useEffect(() => {
-        let id = setInterval(createAlien, 14_000 * .1)
-
-        createAlien()
-
-        return () => clearInterval(id)
-    }, [])
-
-
-    return obstacles.map(i => {
-        switch (i.type) {
-            case "rock":
-                return <RockObstacle key={i.id} {...i} />
-            case "alien":
-                return <AlienObstacle key={i.id} {...i} />
-        }
-    })
-}
-
 
 export default function App() {
     const loading = useStore(i => i.loading)

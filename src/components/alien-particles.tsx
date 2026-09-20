@@ -11,35 +11,33 @@ const count = 150
 const geometry = new BoxGeometry(1, 1, 1)
 const index = new LoopCounter(count)
 
-const gravityAccel = 36
+const gravity = 36
 const bounce = -.45
-const drag = 1.83
-const groundDrag = .8
+const groundDrag = .7
 const restSpeed = .006
-const restTime = 10_000
-const deadTime = 12_000
+const restSpeedSquared = restSpeed ** 2
+const restTime = 6_000
+const deadTime = 8_000
 
 interface Part {
     index: number
     position: Vector3
+    velocity: Vector3
     rotation: number
-    gravity: number
-    speed: number
+    damp: number
     size: number
-    sink: number
-    tick: number
+    time: number
     active: boolean
 }
 
 const parts: Part[] = Array.from({ length: count }, (_, index): Part => ({
     index,
     position: new Vector3(),
+    velocity: new Vector3(),
     rotation: 0,
-    gravity: 0,
-    speed: 0,
+    damp: 0,
     size: 1,
-    sink: 0,
-    tick: 0,
+    time: 0,
     active: false
 }))
 
@@ -66,24 +64,29 @@ export function createAlienParticles({
     count = random.integer(30, 45),
     spread = .6,
     height = [.5, 3],
-    gravity = [-6, 6],
-    speed = [.5, 8],
+    gravity: gravityRange = [-6, 6],
+    speed: speedRange = [.5, 8],
     size = [.02, .2],
 }: CreateAlienParticlesParams) {
     for (let i = 0; i < count; i++) {
         let part = parts[index.next()]
+        let rotation = random.float(-Math.PI, Math.PI)
+        let speed = random.float(...speedRange)
 
         part.position.set(
             position[0] + random.float(-spread / 2, spread / 2),
             position[1] + random.float(...height),
             position[2] + random.float(-spread / 2, spread / 2)
         )
-        part.rotation = random.float(-Math.PI, Math.PI)
-        part.gravity = random.float(...gravity)
-        part.speed = random.float(...speed)
+        part.velocity.set(
+            Math.cos(rotation) * speed,
+            random.float(...gravityRange),
+            -Math.sin(rotation) * speed
+        )
+        part.rotation = rotation
+        part.damp = random.float(1.6, 2.1)
         part.size = random.float(...size)
-        part.sink = (i / count) * 3 + 1.2
-        part.tick = 0
+        part.time = 0
         part.active = true
     }
 }
@@ -118,29 +121,33 @@ export default function AlienParticles() {
                 continue
             }
 
-            if (part.tick > deadTime) {
+            if (part.time > deadTime) {
                 part.active = false
                 continue
             }
 
-            part.gravity -= gravityAccel * nd
-            part.position.x += Math.cos(part.rotation) * part.speed * nd
-            part.position.z -= Math.sin(part.rotation) * part.speed * nd
+            part.velocity.y -= gravity * nd
+            part.position.x += part.velocity.x * nd
+            part.position.z += part.velocity.z * nd
 
             if (part.position.y <= part.size / 2) {
-                part.gravity *= bounce
-                part.speed *= groundDrag
+                part.velocity.y *= bounce
+                part.velocity.x *= groundDrag
+                part.velocity.z *= groundDrag
             } else {
-                part.speed *= dampFactor(drag, nd)
+                let damp = dampFactor(part.damp, nd)
+
+                part.velocity.x *= damp
+                part.velocity.z *= damp
             }
 
-            if (part.speed > restSpeed) {
-                part.position.y = Math.max(part.position.y + part.gravity * nd, part.size / 2)
+            if (part.velocity.x ** 2 + part.velocity.z ** 2 > restSpeedSquared) {
+                part.position.y = Math.max(part.position.y + part.velocity.y * nd, part.size / 2)
             } else {
-                part.tick += nd * 1_000
+                part.time += nd * 1_000
 
-                if (part.tick > restTime) {
-                    part.position.y += (-part.size / 2 - 1 - part.position.y) * (1 - dampFactor(part.sink, nd))
+                if (part.time > restTime) {
+                    part.position.y -= .25 * nd
                 }
             }
 

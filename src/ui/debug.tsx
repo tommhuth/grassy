@@ -1,3 +1,4 @@
+import { createAlienParticles } from "@components/alien-particles"
 import { setState, useStore } from "@lib/store"
 
 export default function Debug() {
@@ -48,17 +49,23 @@ export default function Debug() {
             >
                 Zoom out
             </button>
-            <div>
-                <button
-                    onClick={() => {
-                        gl?.forceContextLoss()
-                        setTimeout(() => gl?.forceContextRestore(), 100)
-                        // gl?.getContext().getExtension("WEBGL_lose_context")?.loseContext()
-                    }}
-                >
-                    Lose context
-                </button>
-            </div>
+            <button
+                onClick={() => {
+                    gl?.forceContextLoss()
+                    setTimeout(() => gl?.forceContextRestore(), 100)
+                }}
+            >
+                Lose context
+            </button>
+            <button
+                onClick={() => {
+                    createAlienParticles({
+                        position: [0, 0, 0]
+                    })
+                }}
+            >
+                Spawn alien particles
+            </button>
             <div>
                 <button
                     onClick={() => {

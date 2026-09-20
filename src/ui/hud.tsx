@@ -7,7 +7,7 @@ export default function Hud() {
 
     return (
         <div
-            className="absolute bottom-0 left-0 z-100 flex items-center gap-[1.5em] ml-[clamp(1rem,5vw,12rem)] mb-[clamp(3rem,5vh,12rem)] text-[clamp(1.1em,2.25vw,1.5em)] text-white"
+            className="absolute bottom-0 left-0 z-100 flex items-center gap-[1.5em] ml-[clamp(1rem,5vw,12rem)] mb-[clamp(3rem,5vh,12rem)] text-[clamp(1.1em,2.25vw,1.25em)] text-white"
             style={{
                 display: intro ? "none" : undefined
             }}
